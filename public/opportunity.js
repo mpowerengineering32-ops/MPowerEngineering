@@ -1,0 +1,509 @@
+// Opportunity Management and tabular view lists
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.pathname.endsWith('opportunities.html')) {
+    loadOpportunitiesTable();
+    initOpportunitiesEvents();
+  }
+});
+
+let allOpportunitiesCached = [];
+let userMap = new Map();
+
+async function loadOpportunitiesTable() {
+  toggleGlobalLoader(true);
+  try {
+    const users = await SupabaseDB.getUsers();
+    userMap = new Map(users.map(u => [u.id, u.fullname]));
+    allOpportunitiesCached = await SupabaseDB.getOpportunities();
+    renderOpportunityRows(allOpportunitiesCached);
+  } catch (err) {
+    console.error("Fetch opportunities table failed", err);
+    showToastAlert('Failed to load sales opportunities data', 'danger');
+  } finally {
+    toggleGlobalLoader(false);
+  }
+}
+
+function renderOpportunityRows(opportunities) {
+  const tbody = document.getElementById('opportunity-table-body');
+  if (!tbody) return;
+
+  if (opportunities.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="11" class="text-center text-muted p-4">
+          <i class="fas fa-handshake d-block fs-2 mb-2 opacity-50"></i>
+          No sales opportunities found in the database.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const query = document.getElementById('opportunity-search-input')?.value.toLowerCase().trim() || '';
+  const numFormatter = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' });
+
+  tbody.innerHTML = opportunities.map(opp => {
+    const custName = opp.customer ? opp.customer.customer_name : 'No customer record';
+
+    // Dynamic stats badges
+    let statusClass = 'badge-lead';
+    if (opp.status === 'Qualified') statusClass = 'badge-qualified';
+    if (opp.status === 'Proposal') statusClass = 'badge-proposal text-dark';
+    if (opp.status === 'Negotiation') statusClass = 'badge-negotiation';
+    if (opp.status === 'Won') statusClass = 'badge-won';
+    if (opp.status === 'Lost') statusClass = 'badge-lost';
+    if (opp.status === 'Cancelled') statusClass = 'badge-cancelled';
+
+    // Highlight text matching
+    let projText = opp.project_name;
+    let codeText = opp.opportunity_no;
+    let clientText = custName;
+
+    if (query) {
+      projText = highlightMatch(projText, query);
+      codeText = highlightMatch(codeText, query);
+      clientText = highlightMatch(clientText, query);
+    }
+
+    // Won/Lost Quick Actions list
+    const quickActionsDisabled = (opp.status === 'Won' || opp.status === 'Lost' || opp.status === 'Cancelled');
+    const quickActionsHtml = quickActionsDisabled ? 
+      `<span class="text-muted small">Deal Closed</span>` : 
+      `
+      <div class="d-flex gap-1 justify-content-center">
+        <button class="btn btn-xs btn-success" p-1 onclick="quickChangeOpportunityStatus('${opp.id}', 'Won')" title="Mark as Closed Won (Won)"><i class="fa fa-check"></i> Won</button>
+        <button class="btn btn-xs btn-danger" p-1 onclick="quickChangeOpportunityStatus('${opp.id}', 'Lost')" title="Mark as Closed Lost (Lost)"><i class="fa fa-times"></i> Lost</button>
+      </div>
+      `;
+
+    return `
+      <tr class="align-middle">
+        <td><span class="font-monospace fw-bold text-primary">${codeText}</span></td>
+        <td>
+          <div class="fw-bold text-dark"><i class="fa fa-building me-1"></i> ${clientText}</div>
+        </td>
+        <td>
+          <div class="fw-bold text-dark">${projText}</div>
+        </td>
+        <td><span class="badge bg-light text-dark border">${opp.service_type}</span></td>
+        <td><span class="text-muted small fw-semibold">${opp.project_location || '-'}</span></td>
+        <td class="font-monospace fw-bold text-dark">${numFormatter.format(opp.estimated_value)}</td>
+        <td class="text-center font-monospace fw-bold text-indigo">${opp.success_probability || 0}%</td>
+        <td class="font-monospace small font-bold">${opp.expected_close_date || '-'}</td>
+        <td>
+          <div class="small fw-semibold text-dark" style="font-size: 0.8rem;">${(window.SupabaseDB && window.SupabaseDB.getUsernameOrDisplayName) ? window.SupabaseDB.getUsernameOrDisplayName(opp.sales_person_id) : (opp.sales_person_id || '-')}</div>
+          <div class="text-muted font-monospace mt-0.5" style="font-size: 10px; line-height: 1.2;">
+            <span class="d-block" title="Created by"><i class="fa fa-plus-circle text-secondary" style="font-size: 9px;"></i> ${opp.created_by ? window.SupabaseDB.getUsernameOrDisplayName(opp.created_by) : '@apiyut'}</span>
+            <span class="d-block" title="Edited by"><i class="fa fa-pen text-secondary" style="font-size: 9px;"></i> ${opp.updated_by ? window.SupabaseDB.getUsernameOrDisplayName(opp.updated_by) : '@apiyut'}</span>
+          </div>
+        </td>
+        <td>
+          <span class="badge-status ${statusClass} d-inline-block text-center" style="min-width: 90px;">${opp.status}</span>
+        </td>
+        <td>
+          <div class="d-flex flex-column gap-1.5 align-items-center">
+            ${quickActionsHtml}
+            <div class="d-flex gap-1 justify-content-center mt-1">
+              <button onclick="openOpportunityModal('${opp.id}')" class="btn btn-outline-primary btn-xs" title="Edit details"><i class="fa fa-edit"></i></button>
+              ${SupabaseDB.isAdmin() ? `
+                <button class="btn btn-outline-danger btn-xs" onclick="deleteOpportunityConfirm('${opp.id}', '${opp.project_name.replace(/'/g, "\\'")}', '${opp.opportunity_no}')" title="Delete opportunity"><i class="fa fa-trash"></i></button>
+              ` : `
+                <button class="btn btn-outline-secondary btn-xs opacity-50" disabled title="Admin rights required"><i class="fa fa-lock"></i></button>
+              `}
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Substring highlights
+function highlightMatch(text, query) {
+  if (!text) return '';
+  const idx = text.toLowerCase().indexOf(query);
+  if (idx === -1) return text;
+  return text.substring(0, idx) + `<span class="search-highlight">` + text.substring(idx, idx + query.length) + `</span>` + text.substring(idx + query.length);
+}
+
+function initOpportunitiesEvents() {
+  const searchInput = document.getElementById('opportunity-search-input');
+  const salesRepSelect = document.getElementById('opportunity-filter-salesrep');
+  const stageSelect = document.getElementById('opportunity-filter-stage');
+  const statusSelectors = document.querySelectorAll('.opp-status-pill-filter');
+
+  function applyAllFilters() {
+    const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const selectedSalesRep = salesRepSelect ? salesRepSelect.value : 'ALL';
+    const selectedStage = stageSelect ? stageSelect.value : 'ALL';
+
+    const filtered = allOpportunitiesCached.filter(o => {
+      // 1. Status / Stage Filter
+      if (selectedStage !== 'ALL' && o.status !== selectedStage) {
+        return false;
+      }
+
+      // 2. Sales Rep Filter
+      if (selectedSalesRep !== 'ALL') {
+        const salesRepId = o.sales_person_id || '';
+        const salesRepName = userMap.get(salesRepId) || salesRepId; // Fallback to ID if name not found
+        if (salesRepName !== selectedSalesRep) {
+          return false;
+        }
+      }
+
+      // 3. Search text query
+      if (q) {
+        const custName = o.customer ? o.customer.customer_name : '';
+        const matchText = o.project_name.toLowerCase().includes(q) ||
+               o.opportunity_no.toLowerCase().includes(q) ||
+               custName.toLowerCase().includes(q) ||
+               o.status.toLowerCase().includes(q) ||
+               o.service_type.toLowerCase().includes(q) ||
+               (o.sales_person_id || '').toLowerCase().includes(q);
+        if (!matchText) return false;
+      }
+
+      return true;
+    });
+
+    renderOpportunityRows(filtered);
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', applyAllFilters);
+  }
+
+  if (salesRepSelect) {
+    salesRepSelect.addEventListener('change', applyAllFilters);
+  }
+
+  if (stageSelect) {
+    stageSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      // Sync to status pills row
+      statusSelectors.forEach(btn => {
+        const btnStatus = btn.getAttribute('data-status');
+        if (btnStatus === val) {
+          statusSelectors.forEach(b => b.classList.remove('active', 'btn-primary'));
+          statusSelectors.forEach(b => b.classList.add('btn-outline-secondary'));
+          btn.classList.add('active', 'btn-primary');
+          btn.classList.remove('btn-outline-secondary');
+        }
+      });
+      applyAllFilters();
+    });
+  }
+
+  // Quick Status Filter buttons
+  statusSelectors.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      statusSelectors.forEach(b => b.classList.remove('active', 'btn-primary'));
+      statusSelectors.forEach(b => b.classList.add('btn-outline-secondary'));
+
+      btn.classList.add('active', 'btn-primary');
+      btn.classList.remove('btn-outline-secondary');
+
+      const btnStatus = btn.getAttribute('data-status');
+      if (stageSelect) {
+        stageSelect.value = btnStatus;
+      }
+
+      applyAllFilters();
+    });
+  });
+}
+
+// Quick adjust status (Won/Lost)
+async function quickChangeOpportunityStatus(id, nextStatus) {
+  const opp = allOpportunitiesCached.find(o => o.id === id);
+  if (!opp) return;
+
+  const phrase = nextStatus === 'Won' ? 'Closed Won (Won)' : 'Closed Lost (Lost)';
+  const icon = nextStatus === 'Won' ? 'success' : 'error';
+  const color = nextStatus === 'Won' ? '#198754' : '#dc3545';
+
+  Swal.fire({
+    title: `Do you want to change status to "${nextStatus}"?`,
+    text: `This will update the project pipeline stage of ${opp.project_name} to completed status immediately!`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: color,
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: `Change to ${nextStatus}`,
+    cancelButtonText: 'Cancel'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      toggleGlobalLoader(true);
+      try {
+        // Prepare patch params
+        const updates = { 
+          status: nextStatus,
+          success_probability: nextStatus === 'Won' ? 100 : 0
+        };
+
+        await SupabaseDB.updateOpportunity(id, updates);
+        await SupabaseDB.addActivity('Update Opportunity Status', 'Opportunity', id, `Changed opportunity status of "${opp.project_name}" to ${nextStatus}!`);
+        
+        showToastAlert(`Opportunity status updated to ${nextStatus} successfully`, 'success');
+        loadOpportunitiesTable(); // Reload to refresh tables and stats
+      } catch (err) {
+        console.error("Quick status mutation error", err);
+        showToastAlert('Update failed', 'danger');
+      } finally {
+        toggleGlobalLoader(false);
+      }
+    }
+  });
+}
+
+// Delete confirm dialog
+function deleteOpportunityConfirm(id, name, refNo) {
+  if (!SupabaseDB.isAdmin()) {
+    showToastAlert('Only Administrators are authorized to delete sales opportunities', 'danger');
+    return;
+  }
+  Swal.fire({
+    title: 'Are you sure you want to delete this sales opportunity?',
+    text: `Opportunity No. ${refNo} (Project: ${name}) will be permanently deleted and forecasting figures will be removed from analysis.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#6c757d',
+    confirmButtonText: 'Yes, delete permanently!',
+    cancelButtonText: 'Cancel'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      toggleGlobalLoader(true);
+      try {
+        await SupabaseDB.deleteOpportunity(id);
+        await SupabaseDB.addActivity('Delete Sales Opportunity', 'Opportunity', id, `Permanently deleted sales opportunity for project "${name}" (Ref: ${refNo})`);
+        showToastAlert('Opportunity deleted successfully', 'success');
+        loadOpportunitiesTable();
+      } catch (err) {
+        console.error("Delete opportunity error", err);
+        showToastAlert('Unable to delete opportunity', 'danger');
+      } finally {
+        toggleGlobalLoader(false);
+      }
+    }
+  });
+}
+
+// Export global symbols
+window.quickChangeOpportunityStatus = quickChangeOpportunityStatus;
+window.deleteOpportunityConfirm = deleteOpportunityConfirm;
+
+// Modal Support Logic
+let opportunityModalInstance = null;
+
+async function loadCustomersToDropdown() {
+  try {
+    const customers = await SupabaseDB.getCustomers();
+    const select = document.getElementById('opp-customer');
+    if (!select) return;
+
+    select.innerHTML = '<option value="" disabled selected>-- Please select customer account --</option>';
+    customers.forEach(cust => {
+      if (cust.status === 'Active') {
+        const opt = document.createElement('option');
+        opt.value = cust.id;
+        opt.innerText = `${cust.customer_name} (${cust.customer_code})`;
+        select.appendChild(opt);
+      }
+    });
+  } catch (err) {
+    console.error("Dropdown customer injection failed", err);
+  }
+}
+
+async function loadSalespersonsToDropdown() {
+  try {
+    const users = await SupabaseDB.getUsers();
+    const select = document.getElementById('opp-salesperson');
+    if (!select) return;
+
+    select.innerHTML = '<option value="" disabled selected>-- Please select Sales Owner --</option>';
+    
+    // Add real users from users DB
+    users.filter(u => u.fullname && !u.fullname.toUpperCase().includes("ART KIT")).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.id;
+      opt.innerText = `${u.fullname} (${u.role})`;
+      select.appendChild(opt);
+    });
+
+    // Fallbacks for older data/demo reps if not already added
+    const legacyReps = [
+      { id: "Ekachai Wongdee (S01)", fullname: "Ekachai Wongdee", role: "Sales Rep (S01)" },
+      { id: "Suchada Lertviriya (S02)", fullname: "Suchada Lertviriya", role: "Sales Rep (S02)" },
+      { id: "Thanapol Khamdee (S03)", fullname: "Thanapol Khamdee", role: "Sales Rep (S03)" },
+      { id: "Thanaphol Khamdee (S03)", fullname: "Thanaphol Khamdee", role: "Sales Rep (S03)" }
+    ];
+    legacyReps.filter(r => !r.fullname.toUpperCase().includes("ART KIT")).forEach(rep => {
+      if (!users.some(u => u.id === rep.id || u.fullname === rep.fullname)) {
+        const opt = document.createElement('option');
+        opt.value = rep.id;
+        opt.innerText = `${rep.fullname} (${rep.role})`;
+        select.appendChild(opt);
+      }
+    });
+  } catch (err) {
+    console.error("Dropdown salesperson injection failed", err);
+  }
+}
+
+async function loadSalespersonsToFilterDropdown() {
+  try {
+    const users = await SupabaseDB.getUsers();
+    const select = document.getElementById('opportunity-filter-salesrep');
+    if (!select) return;
+
+    select.innerHTML = '<option value="ALL">All Sales Representatives</option>';
+    
+    // Add real users from users DB
+    users.filter(u => u.fullname && !u.fullname.toUpperCase().includes("ART KIT")).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.fullname; // The current filter uses fullname as value
+      opt.innerText = u.fullname;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error("Dropdown filter injection failed", err);
+  }
+}
+
+async function openOpportunityModal(id = "") {
+  await loadCustomersToDropdown();
+  await loadSalespersonsToDropdown();
+
+  // Initialize Bootstrap modal if not already
+  if (!opportunityModalInstance) {
+    const modalEl = document.getElementById('opportunityModal');
+    if (modalEl) {
+      opportunityModalInstance = new bootstrap.Modal(modalEl);
+      
+      // Bind slider dynamically
+      const slider = document.getElementById('opp-probability');
+      const bubble = document.getElementById('opp-prob-bubble');
+      if (slider && bubble) {
+        slider.addEventListener('input', (e) => {
+          bubble.innerText = `${e.target.value}%`;
+        });
+      }
+
+      // Bind status to auto-prob
+      const statusSelect = document.getElementById('opp-status');
+      if (statusSelect && slider && bubble) {
+        statusSelect.addEventListener('change', (e) => {
+          const val = e.target.value;
+          const mappedRates = {
+            'Lead': 10,
+            'Qualified': 30,
+            'Proposal': 60,
+            'Negotiation': 80,
+            'Won': 100,
+            'Lost': 0,
+            'Cancelled': 0
+          };
+          if (mappedRates[val] !== undefined) {
+            slider.value = mappedRates[val];
+            bubble.innerText = `${mappedRates[val]}%`;
+          }
+        });
+      }
+    }
+  }
+
+  const titleEl = document.getElementById('opportunityModalLabel');
+  const form = document.getElementById('opportunityDetailForm');
+  if (form) form.reset();
+
+  const idInput = document.getElementById('opp-form-id');
+  const probabilitySlider = document.getElementById('opp-probability');
+  const probabilityBubble = document.getElementById('opp-prob-bubble');
+
+  if (id) {
+    if (titleEl) titleEl.innerHTML = '<i class="fa fa-edit me-2"></i> Edit Opportunity Details';
+    if (idInput) idInput.value = id;
+
+    // Fetch opportunity details
+    const target = allOpportunitiesCached.find(o => o.id === id);
+    if (target) {
+      document.getElementById('opp-customer').value = target.customer_id || "";
+      document.getElementById('opp-project-name').value = target.project_name || "";
+      document.getElementById('opp-service-type').value = target.service_type || "Testing Service";
+      document.getElementById('opp-lead-source').value = target.lead_source || "Website";
+      document.getElementById('opp-location').value = target.project_location || "Other";
+      document.getElementById('opp-estimated-value').value = target.estimated_value || 0;
+      document.getElementById('opp-expected-date').value = target.expected_close_date || "";
+      document.getElementById('opp-salesperson').value = target.sales_person_id || "Ekachai Wongdee (S01)";
+      document.getElementById('opp-status').value = target.status || "Lead";
+      
+      if (probabilitySlider && probabilityBubble) {
+        probabilitySlider.value = target.success_probability || 50;
+        probabilityBubble.innerText = `${target.success_probability || 50}%`;
+      }
+      document.getElementById('opp-remarks').value = target.remarks || "";
+    }
+  } else {
+    if (titleEl) titleEl.innerHTML = '<i class="fa fa-plus me-2"></i> Add New Sales Opportunity';
+    if (idInput) idInput.value = "";
+    if (probabilitySlider && probabilityBubble) {
+      probabilitySlider.value = 50;
+      probabilityBubble.innerText = "50%";
+    }
+  }
+
+  if (opportunityModalInstance) {
+    opportunityModalInstance.show();
+  }
+}
+
+async function saveOpportunityAction() {
+  const idInput = document.getElementById('opp-form-id').value;
+  const payload = {
+    customer_id: document.getElementById('opp-customer').value,
+    project_name: document.getElementById('opp-project-name').value.trim(),
+    service_type: document.getElementById('opp-service-type').value,
+    lead_source: document.getElementById('opp-lead-source').value,
+    project_location: document.getElementById('opp-location').value,
+    estimated_value: parseFloat(document.getElementById('opp-estimated-value').value),
+    expected_close_date: document.getElementById('opp-expected-date').value,
+    success_probability: parseInt(document.getElementById('opp-probability').value, 10),
+    sales_person_id: document.getElementById('opp-salesperson').value,
+    status: document.getElementById('opp-status').value,
+    remarks: document.getElementById('opp-remarks').value.trim(),
+    internal_notes: ""
+  };
+
+  toggleGlobalLoader(true);
+  try {
+    if (idInput) {
+      await SupabaseDB.updateOpportunity(idInput, payload);
+      await SupabaseDB.addActivity('Edit Sales Opportunity', 'Opportunity', idInput, `Edited opportunity details for "${payload.project_name}" (Value: ฿${payload.estimated_value.toLocaleString()})`);
+      showToastAlert('Opportunity updated successfully', 'success');
+    } else {
+      const res = await SupabaseDB.addOpportunity(payload);
+      await SupabaseDB.addActivity('Create Sales Opportunity', 'Opportunity', res.id || 'new', `Created a new sales opportunity for "${payload.project_name}"`);
+      showToastAlert('Opportunity created successfully', 'success');
+    }
+
+    if (opportunityModalInstance) {
+      opportunityModalInstance.hide();
+    }
+
+    // Refresh grid dynamically!
+    await loadOpportunitiesTable();
+  } catch (err) {
+    console.error("Save opportunity failed", err);
+    showToastAlert('An error occurred while saving the opportunity', 'danger');
+  } finally {
+    toggleGlobalLoader(false);
+  }
+}
+
+window.openOpportunityModal = openOpportunityModal;
+window.saveOpportunityAction = saveOpportunityAction;
+

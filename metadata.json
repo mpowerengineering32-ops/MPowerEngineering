@@ -1,0 +1,8 @@
+{
+  "name": "M Power Engineering Solutions CRM",
+  "description": "ระบบจัดการลูกค้าสัมพันธ์ (M Power Engineering Solutions CRM) สำหรับบริหารจัดการลูกค้าและโอกาสทางการขาย",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

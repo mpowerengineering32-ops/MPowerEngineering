@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sales Master CRM - Sales Opportunities Pipeline (Opportunity Tracker)</title>
+
+  <!-- Google Font: Source Sans Pro & Kanit (Thailand UI support) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Source+Sans+3:wght@300;400;600;700&display=swap">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <!-- AdminLTE 4 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta2/dist/css/adminlte.min.css">
+  
+  <!-- Custom Application Override CSS -->
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+
+  <div class="app-wrapper wrapper">
+    <!-- Navbar Shell Injected via app.js -->
+    <!-- Sidebar Shell Injected via app.js -->
+
+    <!-- Main Content Stage Area -->
+    <main class="app-main p-3" style="min-height: 100vh;">
+      <!-- Content Header (Page header) -->
+      <div class="container-fluid mb-3 pt-2">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <h1 class="m-0 fw-bold tracking-tight text-dark fs-2 text-uppercase"><i class="fas fa-handshake text-primary"></i> Deals & Sales Opportunities (Opportunities)</h1>
+            <p class="text-muted small m-0">Manage sales pipeline progression, analyze win probabilities, estimate monthly revenues, and assign responsible sales owners.</p>
+          </div>
+          <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
+            <div class="btn-group shadow-sm">
+              <button class="btn btn-outline-secondary btn-sm" onclick="exportTableToExcel('opportunity-table', 'Opportunities_Pipeline_Report')">
+                <i class="fa fa-file-excel text-success me-1"></i>Export Excel
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="exportTableToPDF('opportunity-table', 'Opportunities Pipeline Report')">
+                <i class="fa fa-file-pdf text-danger me-1"></i>Export PDF
+              </button>
+              <button class="btn btn-success btn-sm" onclick="openOpportunityModal()">
+                <i class="fa fa-plus-circle me-1"></i>Add Sales Opportunity
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Stages Content Area -->
+      <div class="container-fluid">
+        
+        <!-- Quick Status Filter Row -->
+        <div class="row g-2 mb-3">
+          <div class="col-12">
+            <div class="bg-white p-2 rounded shadow-sm border border-light-subtle d-flex flex-wrap gap-1.5 align-items-center justify-content-between">
+              <div class="d-flex flex-wrap gap-1 align-items-center" id="status-filter-pills-row">
+                <span class="small fw-bold text-muted me-2 ms-1"><i class="fa fa-filter"></i> Quick Filters:</span>
+                <button class="btn btn-sm btn-primary active opp-status-pill-filter px-2.5 py-1" data-status="ALL">All</button>
+                <button class="btn btn-sm btn-outline-secondary opp-status-pill-filter px-2.5 py-1" data-status="Lead">Lead</button>
+                <button class="btn btn-sm btn-outline-secondary opp-status-pill-filter px-2.5 py-1" data-status="Qualified">Qualified</button>
+                <button class="btn btn-sm btn-outline-secondary opp-status-pill-filter px-2.5 py-1" data-status="Proposal">Proposal</button>
+                <button class="btn btn-sm btn-outline-secondary opp-status-pill-filter px-2.5 py-1" data-status="Negotiation">Negotiation</button>
+                <button class="btn btn-sm btn-outline-secondary opp-status-pill-filter px-2.5 py-1" data-status="Won">Won (Deal Closed Won)</button>
+                <button class="btn btn-sm btn-outline-secondary opp-status-pill-filter px-2.5 py-1" data-status="Lost">Lost (Deal Closed Lost)</button>
+                <button class="btn btn-sm btn-outline-secondary opp-status-pill-filter px-2.5 py-1" data-status="Cancelled">Cancelled</button>
+              </div>
+              <span class="badge bg-light text-dark font-monospace border small me-1">Phase 1 Complete</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search bar -->
+        <div class="card-admin shadow-sm mb-3">
+          <div class="card-admin-body p-3">
+            <div class="row g-3 align-items-center">
+              <div class="col-12 col-md-3">
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted"><i class="fa fa-search"></i></span>
+                  <input type="text" class="form-control" id="opportunity-search-input" placeholder="Search by Deal ID, Project Name, Customer Name...">
+                </div>
+              </div>
+              <div class="col-12 col-md-3">
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted"><i class="fa fa-filter"></i></span>
+                  <select class="form-select" id="opportunity-filter-stage">
+                    <option value="ALL">All Pipeline Stages</option>
+                    <option value="Lead">Lead</option>
+                    <option value="Qualified">Qualified</option>
+                    <option value="Proposal">Proposal</option>
+                    <option value="Negotiation">Negotiation</option>
+                    <option value="Won">Won</option>
+                    <option value="Lost">Lost</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-12 col-md-3">
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted"><i class="fa fa-user-tie"></i></span>
+                  <select class="form-select" id="opportunity-filter-salesrep">
+                    <option value="ALL">All Sales Representatives</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-12 col-md-3 text-md-end text-muted small">
+                <i class="fa fa-info-circle text-info"></i> Fast-track status to <strong class="text-success">Won</strong> or <strong class="text-danger">Lost</strong> via the quick actions.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid DataTable -->
+        <div class="card-admin card-primary shadow-sm">
+          <div class="card-admin-header">
+            <h3 class="card-admin-title"><i class="fas fa-chart-bar text-primary"></i> Sales Opportunities Analysis & Win Rates Tracker (Opportunities Tracker)</h3>
+            <div class="card-tools">
+              <!-- Helper button -->
+              <a href="opportunity-kanban.html" class="btn btn-xs btn-outline-primary"><i class="fa fa-columns me-1"></i>View Pipeline Board (Kanban)</a>
+            </div>
+          </div>
+          <div class="card-admin-body p-0">
+            <div class="table-responsive">
+              <table class="google-sheet-table table-hover mb-0" id="opportunity-table">
+                <thead class="table-light border-bottom text-uppercase small font-bold">
+                  <tr>
+                    <th style="width: 100px;">Deal ID</th>
+                    <th style="min-width: 180px;">Customer</th>
+                    <th style="min-width: 180px;">Project Details</th>
+                    <th>Service Type</th>
+                    <th style="width: 150px;">Project Site</th>
+                    <th style="width: 150px;">Estimated Value (฿)</th>
+                    <th style="width: 120px;" class="text-center">Success Prob %</th>
+                    <th style="width: 120px;">Expected Close Date</th>
+                    <th style="width: 130px;">Sales Owner</th>
+                    <th class="text-center" style="width: 110px;">Pipeline Stage</th>
+                    <th class="text-center" style="width: 160px;">Actions / Quick Won-Lost</th>
+                  </tr>
+                </thead>
+                <tbody id="opportunity-table-body">
+                  <!-- Loaded dynamically via opportunity.js -->
+                  <tr>
+                    <td colspan="11" class="text-center p-5">
+                      <div class="spinner-border text-primary" role="status"></div>
+                      <p class="mt-2 text-muted m-0">Connecting and synchronizing database records...</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  <!-- Bootstrap Modal: Create/Edit Opportunity -->
+  <div class="modal fade" id="opportunityModal" tabindex="-1" aria-labelledby="opportunityModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <form id="opportunityDetailForm" onsubmit="event.preventDefault(); saveOpportunityAction();" class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="modal-header bg-primary text-white border-0 py-3">
+          <h5 class="modal-title fw-bold" id="opportunityModalLabel"><i class="fa fa-handshake me-2"></i> Save Sales Opportunity (Opportunity Details)</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body px-4 py-4 bg-light overflow-y-auto">
+            <input type="hidden" id="opp-form-id">
+            
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label for="opp-customer" class="form-label small fw-bold text-dark mb-1">Select Lead / Corporate Customer Account <span class="text-danger">*</span></label>
+                <select class="form-select shadow-sm py-2" id="opp-customer" required>
+                  <option value="" disabled selected>-- Please select customer account --</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label for="opp-project-name" class="form-label small fw-bold text-dark mb-1">Project Name / Deal Objective <span class="text-danger">*</span></label>
+                <input type="text" class="form-control shadow-sm py-2" id="opp-project-name" placeholder="e.g. Annual Factory Maintenance Testing Project" required>
+              </div>
+
+           <div class="col-md-4">
+    <label for="opp-service-type" class="form-label small fw-bold text-dark mb-1">Scope of Service Category <span class="text-danger">*</span></label>
+    <select class="form-select shadow-sm py-2" id="opp-service-type" required>
+        <option value="Industrial Cleaning">Industrial Cleaning</option>
+        <option value="Mechanical Service">Mechanical Service</option>
+        <option value="Testing Service">Testing Service</option>
+        <option value="Inspection Service">Inspection Service</option>
+        <option value="Equipment Rental">Equipment Rental</option>
+        <option value="Manpower Service">Manpower Service</option>
+        <option value="Maintenance & Repair">Maintenance & Repair</option>
+        <option value="Project Support">Project Support</option>
+    </select>
+</div>
+
+              <div class="col-md-4">
+                <label for="opp-lead-source" class="form-label small fw-bold text-dark mb-1">Lead & Opportunity Source <span class="text-danger">*</span></label>
+                <select class="form-select shadow-sm py-2" id="opp-lead-source" required>
+                  <option value="Website" selected>Website (Online Lead Form)</option>
+                  <option value="Connection">Connection (Professional Network)</option>
+                  <option value="Existing Customer">Existing Customer (Recurring Contract)</option>
+                  <option value="Tender">Tender (Government Bidding)</option>
+                  <option value="Cold Call">Cold Call (Sales Prospecting)</option>
+                  <option value="Referral">Referral (Customer Recommendation)</option>
+                  <option value="Walk In">Walk-in (Unsolicited Visitor)</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+    <label for="opp-location" class="form-label small fw-bold text-dark mb-1">Project Site / Region <span class="text-danger">*</span></label>
+    <select class="form-select shadow-sm py-2" id="opp-location" required>
+        <option value="Bangkok - Central Thailand" selected>Bangkok - Central Thailand</option>
+        <option value="Maptaput - Rayong">Maptaput - Rayong</option>
+        <option value="Laemchabang - Chonburi">Laemchabang - Chonburi</option>
+        <option value="Kamphaeng Phet - North of Thailand">Kamphaeng Phet - North of Thailand</option>
+        <option value="Songkhla - South of Thailand">Songkhla - South of Thailand</option>
+        <option value="Offshore - Gulf of Thailand">Offshore - Gulf of Thailand</option>
+        <option value="Oversea">Oversea</option>
+    </select>
+</div>
+
+              <div class="col-md-6">
+                <label for="opp-estimated-value" class="form-label small fw-bold text-dark mb-1">Estimated Contract Value <span class="text-danger">*</span></label>
+                <div class="input-group shadow-sm">
+                  <span class="input-group-text bg-white border-end-0 fw-bold">฿</span>
+                  <input type="number" step="100.00" class="form-control border-start-0 py-2 ps-0" id="opp-estimated-value" placeholder="Enter value before VAT (THB)" required>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="opp-expected-date" class="form-label small fw-bold text-dark mb-1">Expected Close / Target Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control shadow-sm py-2" id="opp-expected-date" required>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label for="opp-salesperson" class="form-label small fw-bold text-dark mb-1">Assigned Sales Owner <span class="text-danger">*</span></label>
+                <select class="form-select shadow-sm py-2" id="opp-salesperson" required>
+                  <option value="Ekachai Wongdee (S01)">Ekachai Wongdee (S01)</option>
+                  <option value="Suchada Lertviriya (S02)">Suchada Lertviriya (S02)</option>
+                  <option value="Thanapol Khamdee (S03)">Thanapol Khamdee (S03)</option>
+                </select>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label for="opp-status" class="form-label small fw-bold text-dark mb-1">Current Opportunity Stage <span class="text-danger">*</span></label>
+                <select class="form-select shadow-sm py-2" id="opp-status" required>
+                  <option value="Lead" selected>Lead (Initial Contact / Lead Profiling)</option>
+                  <option value="Qualified">Qualified (BANT Criteria Met)</option>
+                  <option value="Proposal">Proposal (Quotation Submitted)</option>
+                  <option value="Negotiation">Negotiation (Active Negotiation)</option>
+                  <option value="Won">Won (Deal Closed Won)</option>
+                  <option value="Lost">Lost (Deal Closed Lost)</option>
+                  <option value="Cancelled">Cancelled (Buyer Interest Suspended)</option>
+                </select>
+              </div>
+
+              <div class="col-12">
+                <div class="bg-white p-3 rounded-3 border border-light-subtle shadow-sm mt-2">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label for="opp-probability" class="form-label small fw-bold m-0 text-dark"><i class="fa fa-percentage me-1"></i> Probability of Closing Deal Success (%)</label>
+                    <span class="badge bg-primary px-3 py-1 font-monospace fs-6 fw-bold text-white rounded-pill shadow-sm" id="opp-prob-bubble">50%</span>
+                  </div>
+                  <input type="range" class="form-range mt-2" id="opp-probability" min="0" max="100" step="5" value="50">
+                </div>
+              </div>
+
+              <div class="col-12 mt-3">
+                <label for="opp-remarks" class="form-label small fw-bold text-dark mb-1">Opportunity Remarks & Field Notes</label>
+                <textarea class="form-control shadow-sm py-2" id="opp-remarks" rows="3" placeholder="Enter additional background information..."></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-white border-top py-3 px-4 d-flex justify-content-end gap-2 position-sticky bottom-0 z-1" style="box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);">
+            <button type="button" class="btn btn-light border fw-semibold px-4 py-2 rounded-3 shadow-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary fw-bold px-5 py-2 rounded-3 shadow-sm d-flex align-items-center gap-2"><i class="fa fa-save"></i> Save Opportunity Profile</button>
+          </div>
+        </form>
+    </div>
+  </div>
+
+  <!-- Footer block -->
+    <footer class="app-footer text-center bg-white border-top py-3 text-muted small no-print mt-auto">
+      <div class="float-end d-none d-sm-inline ms-3">AdminLTE 4.0 Sales Suite Beta</div>
+    </footer>
+  </div>
+
+  <!-- JS core dependencies references -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta2/dist/js/adminlte.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Application scripts logic -->
+  <script src="/supabase.js"></script>
+  <script src="/app.js"></script>
+  <script src="/opportunity.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSalespersonsToFilterDropdown('opportunity-filter-salesrep', 'ALL');
+    });
+  </script>
+</body>
+</html>

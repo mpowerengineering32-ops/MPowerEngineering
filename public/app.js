@@ -1,0 +1,1364 @@
+// Common Shell Layout Injection and System Controls
+document.addEventListener('DOMContentLoaded', () => {
+  // 0. Check Authentication and Session Management
+  const isLoginPage = window.location.pathname.endsWith('login.html') || window.location.pathname.endsWith('reset-password.html');
+  const loggedInEmail = localStorage.getItem('crm_user_email');
+  
+  if (!loggedInEmail && !isLoginPage) {
+    window.location.href = 'login.html';
+    return;
+  }
+  if (loggedInEmail && isLoginPage) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  // 1. Setup shared UI shell elements dynamically to prevent code duplication
+  injectSharedShell();
+
+  // 2. Sync and bind dark mode
+  initDarkMode();
+
+  // 3. Highlight active menu items based on URL
+  highlightActiveMenu();
+
+  // 4. Update Database Connectivity UI
+  syncDatabaseConnectivityIndicator();
+
+  // 5. Initialize Language Translations (TH/EN)
+  initSystemLanguage();
+
+  // 6. Check and display notifications (Quotation nearing expiration & Overdue invoices)
+  checkAndShowSystemNotifications();
+
+  // 7. Render dynamic new item badges in sidebar menu
+  updateSystemBadges();
+});
+
+// Sidebar & Navbar Dynamic Builder
+function injectSharedShell() {
+  const wrapper = document.querySelector('.wrapper');
+  if (!wrapper) return;
+
+  // Header/Navbar inject
+  const existingHeader = document.querySelector('.app-header');
+  if (!existingHeader) {
+    const headerHtml = `
+      <nav class="app-header navbar navbar-expand bg-white border-bottom shadow-sm">
+        <div class="container-fluid">
+          <!-- Left links -->
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button"><i class="fas fa-bars"></i></a>
+            </li>
+            <li class="nav-item d-none d-md-inline-block">
+              <a href="index.html" class="nav-link" data-i18n="home"><i class="fa fa-home"></i> Home</a>
+            </li>
+          </ul>
+
+          <!-- Right links -->
+          <ul class="navbar-nav ms-auto align-items-center">
+            <!-- Connection Mode Toggle -->
+            <li class="nav-item px-2">
+              <div class="form-check form-switch m-0 d-flex align-items-center gap-1.5" title="Switch Supabase vs Local Storage Mode">
+                <input class="form-check-input" type="checkbox" role="switch" id="supabaseSwitcher" style="cursor: pointer;">
+                <label class="form-check-label small font-monospace fw-bold" for="supabaseSwitcher" id="db-state-lbl">DATABASE</label>
+              </div>
+            </li>
+
+            <!-- Language Indicator (Forced English) -->
+            <li class="nav-item px-2 text-dark">
+              <div class="btn btn-link nav-link p-1 d-flex align-items-center gap-1 text-muted" style="border:none; background:none; cursor:default;">
+                <i class="fa fa-globe fs-5"></i> <span id="current-lang-lbl" class="small fw-bold">EN</span>
+              </div>
+            </li>
+
+            <!-- Dark Mode Switcher -->
+            <li class="nav-item px-2">
+              <button class="btn btn-link nav-link p-1" id="darkModeToggler" aria-label="Toggle Dark Mode">
+                <i class="fas fa-moon fs-5"></i>
+              </button>
+            </li>
+
+            <!-- User Session profile -->
+            <li class="nav-item dropdown px-2">
+              <a class="nav-link dropdown-toggle active fw-bold d-flex align-items-center gap-2" href="#" id="userProfileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(localStorage.getItem('crm_user_fullname') || 'User')}&background=0d6efd&color=fff" class="rounded-circle" style="width: 28px; height: 28px;" alt="User">
+                <span class="d-none d-sm-inline" id="user-role-span">${localStorage.getItem('crm_user_fullname') || 'User'} (${localStorage.getItem('crm_user_role') || 'Admin'})</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="userProfileDropdown" style="z-index: 10000;">
+                <li><a class="dropdown-item py-2 text-dark" href="users.html"><i class="fas fa-user-shield me-2 text-indigo"></i>User Settings</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item py-2 text-danger" href="#" onclick="handleGlobalSignOut(event)"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    `;
+    wrapper.insertAdjacentHTML('afterbegin', headerHtml);
+  }
+
+  // Sidebar inject
+  const existingSidebar = document.querySelector('.app-sidebar');
+  if (!existingSidebar) {
+    const currentLang = 'EN';
+    const menuTitles = {
+      dashboard: "Dashboard",
+      customers: "Customer Accounts",
+      opportunities: "Sales Opportunities",
+      quotations: "Quotations",
+      sales_orders: "Sales Orders",
+      invoices: "Invoices & Billings",
+      support_desk: "Service Tickets",
+      reports: "BI Reports",
+      users: "Users & Permissions"
+    };
+
+    const sidebarHtml = `
+      <aside class="app-sidebar bg-dark text-white shadow animate-fade-in" data-bs-theme="dark" style="height: 100vh; position: fixed; top: 0; left: 0; width: 250px; display: flex; flex-direction: column;">
+        <!-- Brand logo -->
+        <div class="sidebar-brand p-2 px-3 border-bottom d-flex align-items-center justify-content-between bg-white" style="flex-shrink: 0; min-height: 56px;">
+          <img src="/mpower-logo.svg" alt="M Power Logo" style="height: 36px; width: auto; max-width: 190px;" />
+        </div>
+
+        <!-- Sidebar Content -->
+        <div class="sidebar-wrapper text-white" style="flex: 1; overflow-y: auto; overflow-x: hidden; margin-bottom: 70px;">
+          <nav class="mt-2">
+            <ul class="nav flex-column gap-1" role="menu">
+
+              <!-- Dashboard -->
+              <li class="nav-item">
+                <a href="index.html" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-chart-pie text-primary" style="font-size:0.92rem; width: 18px;"></i>
+                  <span data-i18n="menu_dashboard" style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.dashboard}</span>
+                </a>
+              </li>
+
+              <!-- Customers -->
+              <li class="nav-item">
+                <a href="customers.html" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-users text-info" style="font-size:0.92rem; width: 18px;"></i>
+                  <span data-i18n="menu_customers" style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.customers}</span>
+                </a>
+              </li>
+
+              <!-- Opportunities -->
+              <li class="nav-item">
+                <a href="opportunities.html" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-handshake text-warning" style="font-size:0.92rem; width: 18px;"></i>
+                  <span data-i18n="menu_opportunities" style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.opportunities}</span>
+                  <span id="badge-opps" class="badge bg-info text-dark ms-auto font-sans font-bold d-none new-count-badge" style="font-size: 10px; border-radius: 12px; padding: 2.5px 6.5px;">0</span>
+                </a>
+              </li>
+
+              <!-- Quotations -->
+              <li class="nav-item">
+                <a href="quotations.html" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-file-contract text-warning" style="font-size:0.92rem; width: 18px;"></i>
+                  <span data-i18n="menu_quotations" style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.quotations}</span>
+                  <span id="badge-quotes" class="badge bg-warning text-dark ms-auto font-sans font-bold d-none new-count-badge" style="font-size: 10px; border-radius: 12px; padding: 2.5px 6.5px;">0</span>
+                </a>
+              </li>
+
+              <!-- Sales Orders -->
+              <li class="nav-item">
+                <a href="sales-orders.html" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-list-check text-primary" style="font-size:0.92rem; width: 18px;"></i>
+                  <span data-i18n="menu_sales_orders" style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.sales_orders}</span>
+                  <span id="badge-sales" class="badge bg-primary ms-auto font-sans font-bold d-none new-count-badge" style="font-size: 10px; border-radius: 12px; padding: 2.5px 6.5px;">0</span>
+                </a>
+              </li>
+
+              <!-- Invoices -->
+              <li class="nav-item">
+                <a href="invoices.html" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-file-invoice text-indigo" style="font-size:0.92rem; width: 18px;"></i>
+                  <span data-i18n="menu_invoices" style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.invoices}</span>
+                  <span id="badge-invoices" class="badge bg-danger ms-auto font-sans font-bold d-none new-count-badge" style="font-size: 10px; border-radius: 12px; padding: 2.5px 6.5px;">0</span>
+                </a>
+              </li>
+
+              <!-- Reports -->
+              <li class="nav-item">
+                <a href="reports-bi.html" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-chart-line text-info" style="font-size:0.92rem; width: 18px;"></i>
+                  <span data-i18n="menu_reports" style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.reports}</span>
+                </a>
+              </li>
+
+              <!-- Users -->
+              <li class="nav-item">
+                <a href="users.html" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-user-shield text-muted" style="font-size:0.92rem; width: 18px;"></i>
+                  <span data-i18n="menu_users" style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.users}</span>
+                </a>
+              </li>
+
+            </ul>
+          </nav>
+        </div>
+
+        <!-- Sidebar Footer Session summary -->
+        <div class="sidebar-footer p-2 border-t position-absolute bottom-0 start-0 end-0 bg-dark text-center no-print" style="flex-shrink: 0; z-index: 1000; height: 70px;">
+          <div class="bg-secondary bg-opacity-25 p-1 rounded border border-secondary text-center">
+            <span class="text-xs text-muted block font-bold d-block" style="font-size: 9px;">CURRENT REGION - THAILAND</span>
+            <span class="badge text-white" style="font-size:9px; background-color: #0038D1 !important;">M Power Engineering Solutions</span>
+          </div>
+        </div>
+      </aside>
+    `;
+    // Insert sidebar after app-header
+    const header = document.querySelector('.app-header');
+    if (header) {
+      header.insertAdjacentHTML('afterend', sidebarHtml);
+    } else {
+      wrapper.insertAdjacentHTML('beforeend', sidebarHtml);
+    }
+  }
+
+  // Mobile bottom Bar injection (Hidden on desktops, active on mobile)
+  const existingMobileBar = document.querySelector('.mobile-bottom-nav');
+  if (!existingMobileBar) {
+    const mobileBarHtml = `
+      <div class="mobile-bottom-nav d-flex d-md-none bg-dark border-top position-fixed bottom-0 start-0 w-100 no-print" style="height: 60px; z-index: 5000; align-items: center; justify-content: space-around; box-shadow: 0 -3px 10px rgba(0,0,0,0.15);">
+        <a href="index.html" class="mobile-nav-item" id="m-nav-dashboard" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; font-size: 10px; color: rgba(255,255,255,0.6);" onclick="localStorage.setItem('active_m_tab', 'dashboard')">
+          <i class="fas fa-chart-pie mb-1" style="font-size: 16px;"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="customers.html" class="mobile-nav-item" id="m-nav-customers" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; font-size: 10px; color: rgba(255,255,255,0.6);" onclick="localStorage.setItem('active_m_tab', 'customers')">
+          <i class="fas fa-building mb-1" style="font-size: 16px;"></i>
+          <span>Customers</span>
+        </a>
+        <a href="search.html" class="mobile-nav-item" id="m-nav-search" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; font-size: 10px; color: rgba(255,255,255,0.6);" onclick="localStorage.setItem('active_m_tab', 'search')">
+          <i class="fas fa-search mb-1" style="font-size: 16px;"></i>
+          <span>Search</span>
+        </a>
+        <a href="invoices.html" class="mobile-nav-item" id="m-nav-invoices" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; font-size: 10px; color: rgba(255,255,255,0.6);" onclick="localStorage.setItem('active_m_tab', 'invoices')">
+          <i class="fas fa-file-invoice-dollar mb-1" style="font-size: 16px;"></i>
+          <span>Billing</span>
+        </a>
+        <a href="#" class="mobile-nav-item" style="display: flex; flex-direction: column; align-items: center; text-decoration: none; font-size: 10px; color: rgba(255,255,255,0.6);" data-bs-toggle="modal" data-bs-target="#mobileMoreMenuModal">
+          <i class="fas fa-grid mb-1" style="font-size: 16px; background-color:#3b82f6; color:#fff; padding:6px; border-radius:50%; margin-top:-15px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 6px rgba(59,130,246,0.3);"></i>
+          <span>More</span>
+        </a>
+      </div>
+
+      <!-- Mobile More Menu Grid Modal -->
+      <div class="modal fade" id="mobileMoreMenuModal" tabindex="-1" aria-hidden="true" style="z-index:99999;">
+        <div class="modal-dialog modal-dialog-centered pb-5">
+          <div class="modal-content border-0 shadow-lg text-dark" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-1">
+              <h5 class="modal-title fw-bold"><i class="fas fa-grid-2 text-primary"></i> 12 Departments Management</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+              <div class="row g-3 text-center">
+                <!-- item 1 -->
+                <div class="col-4">
+                  <a href="index.html" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-chart-pie fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">Dashboard</span>
+                  </a>
+                </div>
+                <!-- item 2 -->
+                <div class="col-4">
+                  <a href="customers.html" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-building fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">Customer Master</span>
+                  </a>
+                </div>
+                <!-- item 3 -->
+                <div class="col-4">
+                  <a href="opportunities.html" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-warning bg-opacity-10 text-warning-emphasis rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-chart-line fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">Opportunities</span>
+                  </a>
+                </div>
+                <!-- item 4 -->
+                <div class="col-4">
+                  <a href="quotations.html" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-file-contract fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">Quotations</span>
+                  </a>
+                </div>
+                <!-- item 5 -->
+                <div class="col-4">
+                  <a href="sales-orders.html" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-list-check fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">Sales Orders (SO)</span>
+                  </a>
+                </div>
+                <!-- item 7 -->
+                <div class="col-4">
+                  <a href="invoices.html?view=invoice" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-indigo bg-opacity-10 text-indigo rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-file-invoice fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">Invoices</span>
+                  </a>
+                </div>
+                <!-- item 8 -->
+                <div class="col-4">
+                  <a href="invoices.html?view=receipt" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-receipt fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">Receipts</span>
+                  </a>
+                </div>
+                <!-- item 9 -->
+                <div class="col-4">
+                  <a href="reports-bi.html" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-brain fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">BI Stats</span>
+                  </a>
+                </div>
+                <!-- item 10 -->
+                <div class="col-4">
+                  <a href="search.html" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-warning bg-opacity-10 text-warning-emphasis rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-search fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">Global Search</span>
+                  </a>
+                </div>
+                <!-- item 11 -->
+                <div class="col-4">
+                  <a href="strategic-corp.html" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-dark bg-opacity-10 text-dark rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-map-marked-alt fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">SWOT & Deals</span>
+                  </a>
+                </div>
+                <!-- item 12 -->
+                <div class="col-4">
+                  <a href="users.html" class="text-decoration-none d-block p-2 rounded hover-bg-light">
+                    <div class="bg-indigo bg-opacity-10 text-indigo rounded-circle d-flex align-items-center justify-content-center mx-auto mb-1" style="width: 44px; height: 44px;">
+                      <i class="fas fa-user-shield fs-5"></i>
+                    </div>
+                    <span class="text-dark small d-block" style="font-size: 10px; font-weight: 500;">Users & Permissions</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    wrapper.insertAdjacentHTML('beforeend', mobileBarHtml);
+  }
+
+  // Spinner injection
+  const existingSpinner = document.getElementById('global-spinner');
+  if (!existingSpinner) {
+    const spinnerHtml = `
+      <div id="global-spinner" class="hidden">
+        <div class="text-center bg-white p-4 rounded shadow-lg border">
+          <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <h5 class="mt-3 text-dark fw-bold m-0">Synchronizing database...</h5>
+          <p class="text-muted small mt-1 mb-0 font-sans">Please wait, communicating with Supabase database cluster...</p>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', spinnerHtml);
+  }
+
+  // Toast container injection
+  const existingToast = document.querySelector('.toast-container');
+  if (!existingToast) {
+    const toastHtml = `<div class="toast-container"></div>`;
+    document.body.insertAdjacentHTML('beforeend', toastHtml);
+  }
+}
+
+// Sidebar active selection highlight
+function highlightActiveMenu() {
+  const currentPath = window.location.pathname;
+  const page = currentPath.substring(currentPath.lastIndexOf('/') + 1) || 'index.html';
+  const queryStr = window.location.search || '';
+
+  // Clear existing active flags on sublinks
+  document.querySelectorAll('.sidebar-submenu .nav-link').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.querySelectorAll('.sidebar-parent-btn').forEach(el => {
+    el.classList.remove('active', 'text-white');
+    el.classList.add('text-white-50');
+  });
+
+  // Track the matched sublink ID
+  let activeSubId = '';
+
+  if (page === 'index.html') {
+    if (queryStr.includes('view=sales') || queryStr.includes('dash=sales')) {
+      activeSubId = 'sub-sales-dash';
+    } else if (queryStr.includes('view=financial') || queryStr.includes('dash=finance')) {
+      activeSubId = 'sub-fin-dash';
+    } else if (queryStr.includes('view=project') || queryStr.includes('dash=project')) {
+      activeSubId = 'sub-proj-dash';
+    } else {
+      activeSubId = 'sub-exec-dash';
+    }
+  } else if (page === 'customers.html') {
+    if (queryStr.includes('view=contact')) {
+      activeSubId = 'sub-cust-contact';
+    } else if (queryStr.includes('view=industry')) {
+      activeSubId = 'sub-cust-industry';
+    } else if (queryStr.includes('view=location')) {
+      activeSubId = 'sub-cust-location';
+    } else {
+      activeSubId = 'sub-cust-list';
+    }
+  } else if (page === 'opportunities.html') {
+    if (queryStr.includes('view=followup')) {
+      activeSubId = 'sub-opp-followup';
+    } else if (queryStr.includes('view=lost')) {
+      activeSubId = 'sub-opp-lost';
+    } else {
+      activeSubId = 'sub-opp-list';
+    }
+  } else if (page === 'opportunity-kanban.html') {
+    activeSubId = 'sub-opp-kanban';
+  } else if (page === 'quotations.html') {
+    if (queryStr.includes('action=create')) {
+      activeSubId = 'sub-q-create';
+    } else if (queryStr.includes('status=Draft')) {
+      activeSubId = 'sub-q-draft';
+    } else if (queryStr.includes('status=Submitted')) {
+      activeSubId = 'sub-q-submitted';
+    } else if (queryStr.includes('status=Approved')) {
+      activeSubId = 'sub-q-approved';
+    } else if (queryStr.includes('status=Rejected')) {
+      activeSubId = 'sub-q-rejected';
+    } else if (queryStr.includes('status=Expired')) {
+      activeSubId = 'sub-q-expired';
+    } else if (queryStr.includes('view=revision')) {
+      activeSubId = 'sub-q-revision';
+    } else {
+      activeSubId = 'sub-q-all';
+    }
+  } else if (page === 'sales-orders.html') {
+    if (queryStr.includes('action=create')) {
+      activeSubId = 'sub-so-create';
+    } else if (queryStr.includes('status=Open')) {
+      activeSubId = 'sub-so-open';
+    } else if (queryStr.includes('status=Closed')) {
+      activeSubId = 'sub-so-closed';
+    } else if (queryStr.includes('view=jobs')) {
+      activeSubId = 'sub-job-list';
+    } else if (queryStr.includes('view=job_schedule')) {
+      activeSubId = 'sub-job-sched';
+    } else if (queryStr.includes('view=job_assignment')) {
+      activeSubId = 'sub-job-assign';
+    } else {
+      activeSubId = 'sub-so-all';
+    }
+  } else if (page === 'support-desk.html') {
+    if (queryStr.includes('status=Pending')) {
+      activeSubId = 'sub-job-pending';
+    } else if (queryStr.includes('status=Mobilizing')) {
+      activeSubId = 'sub-job-mobil';
+    } else if (queryStr.includes('status=OnGoing') || queryStr.includes('status=Ongoing')) {
+      activeSubId = 'sub-job-ongoing';
+    } else if (queryStr.includes('status=Completed')) {
+      activeSubId = 'sub-job-done';
+    } else if (queryStr.includes('status=ReadyForInvoice') || queryStr.includes('status=Ready')) {
+      activeSubId = 'sub-job-ready';
+    } else if (queryStr.includes('view=timeline')) {
+      activeSubId = 'sub-proj-timeline';
+    } else if (queryStr.includes('view=resources')) {
+      activeSubId = 'sub-proj-resource';
+    } else {
+      activeSubId = 'sub-job-ongoing';
+    }
+  } else if (page === 'invoices.html') {
+    if (queryStr.includes('view=receipt')) {
+      if (queryStr.includes('action=create')) {
+        activeSubId = 'sub-rcpt-entry';
+      } else if (queryStr.includes('status=Partial')) {
+        activeSubId = 'sub-rcpt-partial';
+      } else if (queryStr.includes('status=Paid')) {
+        activeSubId = 'sub-rcpt-full';
+      } else if (queryStr.includes('status=Unpaid')) {
+        activeSubId = 'sub-rcpt-outstanding';
+      } else {
+        activeSubId = 'sub-rcpt-full';
+      }
+    } else {
+      if (queryStr.includes('action=create')) {
+        activeSubId = 'sub-inv-create';
+      } else if (queryStr.includes('status=Outstanding')) {
+        activeSubId = 'sub-inv-outstanding';
+      } else if (queryStr.includes('status=Overdue')) {
+        activeSubId = 'sub-inv-overdue';
+      } else {
+        activeSubId = 'sub-inv-all';
+      }
+    }
+  } else if (page === 'reports-bi.html') {
+    if (queryStr.includes('view=conversion')) {
+      activeSubId = 'sub-q-conversion';
+    } else if (queryStr.includes('view=quote_perf')) {
+      activeSubId = 'sub-q-perf';
+    } else if (queryStr.includes('view=progress')) {
+      activeSubId = 'sub-proj-progress';
+    } else if (queryStr.includes('view=aging')) {
+      activeSubId = 'sub-ar-aging';
+    } else if (queryStr.includes('view=collection')) {
+      activeSubId = 'sub-ar-collection';
+    } else if (queryStr.includes('sec=sales')) {
+      activeSubId = 'sub-rep-sales';
+    } else if (queryStr.includes('sec=opp')) {
+      activeSubId = 'sub-rep-opp';
+    } else if (queryStr.includes('sec=quote')) {
+      activeSubId = 'sub-rep-quota';
+    } else if (queryStr.includes('sec=project')) {
+      activeSubId = 'sub-rep-proj';
+    } else if (queryStr.includes('sec=finance')) {
+      activeSubId = 'sub-rep-finance';
+    } else if (queryStr.includes('sec=management')) {
+      activeSubId = 'sub-rep-management';
+    } else {
+      activeSubId = 'sub-rep-sales';
+    }
+  } else if (page === 'search.html') {
+    if (queryStr.includes('tab=customer')) {
+      activeSubId = 'sub-search-cust';
+    } else if (queryStr.includes('tab=quotation')) {
+      activeSubId = 'sub-search-quota';
+    } else if (queryStr.includes('tab=sales_order')) {
+      activeSubId = 'sub-search-so';
+    } else if (queryStr.includes('tab=job')) {
+      activeSubId = 'sub-search-job';
+    } else if (queryStr.includes('tab=invoice')) {
+      activeSubId = 'sub-search-invoice';
+    } else {
+      activeSubId = 'sub-search-global';
+    }
+  } else if (page === 'strategic-corp.html') {
+    if (queryStr.includes('tab=location')) {
+      activeSubId = 'sub-master-location';
+    } else if (queryStr.includes('tab=industry')) {
+      activeSubId = 'sub-master-industry';
+    } else if (queryStr.includes('tab=tax')) {
+      activeSubId = 'sub-master-tax';
+    } else {
+      activeSubId = 'sub-master-service';
+    }
+  } else if (page === 'users.html') {
+    if (queryStr.includes('tab=roles')) {
+      activeSubId = 'sub-user-roles';
+    } else if (queryStr.includes('tab=permissions')) {
+      activeSubId = 'sub-user-permissions';
+    } else if (queryStr.includes('tab=audit')) {
+      activeSubId = 'sub-user-audit';
+    } else {
+      activeSubId = 'sub-user-list';
+    }
+  }
+
+  // Apply active selection & auto-expand bootstrap collapse container
+  if (activeSubId) {
+    const subBtn = document.getElementById(activeSubId);
+    if (subBtn) {
+      subBtn.classList.add('active');
+      const parentCollapse = subBtn.closest('.collapse');
+      if (parentCollapse) {
+        parentCollapse.classList.add('show');
+        const triggerBtn = document.querySelector(`[href="#${parentCollapse.id}"], [data-bs-target="#${parentCollapse.id}"]`);
+        if (triggerBtn) {
+          triggerBtn.setAttribute('aria-expanded', 'true');
+          triggerBtn.classList.add('active', 'text-white');
+          triggerBtn.classList.remove('text-white-50');
+        }
+      }
+    }
+  }
+
+  // Mobile navigation active highlight
+  const mobileMap = {
+    'index.html': 'm-nav-dashboard',
+    'customers.html': 'm-nav-customers',
+    'search.html': 'm-nav-search',
+    'invoices.html': 'm-nav-invoices'
+  };
+
+  const mobileActiveId = mobileMap[page];
+  if (mobileActiveId) {
+    const mobileBtn = document.getElementById(mobileActiveId);
+    if (mobileBtn) {
+      mobileBtn.style.color = '#3b82f6';
+      const mIcon = mobileBtn.querySelector('i');
+      if (mIcon) {
+        mIcon.style.color = '#3b82f6';
+      }
+    }
+  }
+}
+
+async function loadSalespersonsToFilterDropdown(dropdownId, defaultValue = 'ALL') {
+  try {
+    const users = await SupabaseDB.getUsers();
+    const select = document.getElementById(dropdownId);
+    if (!select) return;
+
+    // Preserve the placeholder if needed or set to default
+    const currentPlaceholder = select.querySelector('option[value="ALL"], option[value=""]')?.innerText || '-- All Sales Reps --';
+    select.innerHTML = `<option value="${defaultValue}">${currentPlaceholder}</option>`;
+    
+    // Add real users from users DB
+    users.filter(u => u.fullname && !u.fullname.toUpperCase().includes("ART KIT")).forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.fullname;
+      opt.innerText = u.fullname;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error("Dropdown filter injection failed", err);
+  }
+}
+
+// Dark Mode Actions
+function initDarkMode() {
+  const toggler = document.getElementById('darkModeToggler');
+  const isDark = localStorage.getItem('crm_dark_theme') === 'true';
+
+  applyDarkModeState(isDark);
+
+  if (toggler) {
+    toggler.addEventListener('click', () => {
+      const currentlyDark = document.body.classList.contains('dark-mode');
+      applyDarkModeState(!currentlyDark);
+    });
+  }
+}
+
+function applyDarkModeState(enable) {
+  const toggler = document.getElementById('darkModeToggler');
+  if (enable) {
+    document.body.classList.add('dark-mode');
+    document.querySelector('.app-header')?.classList.remove('bg-white');
+    document.querySelector('.app-header')?.classList.add('bg-dark', 'navbar-dark');
+    localStorage.setItem('crm_dark_theme', 'true');
+    if (toggler) toggler.innerHTML = '<i class="fas fa-sun text-warning fs-5"></i>';
+  } else {
+    document.body.classList.remove('dark-mode');
+    document.querySelector('.app-header')?.classList.remove('bg-dark', 'navbar-dark');
+    document.querySelector('.app-header')?.classList.add('bg-white');
+    localStorage.setItem('crm_dark_theme', 'false');
+    if (toggler) toggler.innerHTML = '<i class="fas fa-moon fs-5"></i>';
+  }
+}
+
+// Connectivity switcher syncing
+function syncDatabaseConnectivityIndicator() {
+  const switcher = document.getElementById('supabaseSwitcher');
+  const label = document.getElementById('db-state-lbl');
+  
+  const cloudActive = localStorage.getItem('crm_use_cloud') !== 'false';
+  
+  if (switcher) {
+    switcher.checked = cloudActive;
+    updateDBLabel(cloudActive);
+
+    switcher.addEventListener('change', (e) => {
+      const mode = e.target.checked;
+      localStorage.setItem('crm_use_cloud', JSON.stringify(mode));
+      updateDBLabel(mode);
+      
+      // Toast notification for user feedback
+      showToastAlert(
+        mode ? 'Connected and synchronized with Supabase cloud storage.' : 'Switched to local database sandbox mode.',
+        mode ? 'success' : 'warning'
+      );
+
+      // Reload page content if fetch functions are loaded
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    });
+  }
+}
+
+function updateDBLabel(isCloud) {
+  const label = document.getElementById('db-state-lbl');
+  if (label) {
+    if (isCloud) {
+       label.innerHTML = 'SUPABASE CONNECTED <span class="badge bg-success ms-1 animate__animated animate__pulse animate__infinite">CLOUD</span>';
+       label.className = 'form-check-label small font-monospace fw-bold text-success';
+    } else {
+       label.innerHTML = 'LOCAL SANDBOX ACTIVE <span class="badge bg-secondary ms-1">LOCAL</span>';
+       label.className = 'form-check-label small font-monospace fw-bold text-muted';
+    }
+  }
+}
+
+// Loading Toggle Indicators
+function toggleGlobalLoader(show) {
+  // Disabled as per user request to not show blocking loader
+  return;
+}
+
+// Toast Notification manager
+function showToastAlert(message, type = 'success') {
+  const container = document.querySelector('.toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast-item ${type}`;
+  
+  let icon = '<i class="fas fa-check-circle text-success fs-5"></i>';
+  if (type === 'danger') icon = '<i class="fas fa-times-circle text-danger fs-5"></i>';
+  if (type === 'warning') icon = '<i class="fas fa-exclamation-triangle text-amber fs-5"></i>';
+
+  toast.innerHTML = `
+    <div style="flex-shrink:0;">${icon}</div>
+    <div style="flex:1;">
+      <span class="fw-bold d-block" style="font-size:0.85rem;">System Notification</span>
+      <p class="m-0" style="font-size:0.77rem; color:inherit; opacity:0.85;">${message}</p>
+    </div>
+    <button class="btn-close ms-auto btn-sm" onclick="this.parentElement.remove()" style="font-size: 0.65rem;" aria-label="Close"></button>
+  `;
+
+  container.appendChild(toast);
+  
+  // Fade out of view after 4.5 seconds
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 4500);
+}
+
+// Dynamic spreadsheet Excel exporter using native client-side sheets structure
+function exportTableToExcel(tableId, filename = 'CRM_Export_Report') {
+  const table = document.getElementById(tableId);
+  if (!table) {
+    showToastAlert('No table data found for export.', 'danger');
+    return;
+  }
+  
+  try {
+    const wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+    XLSX.writeFile(wb, `${filename}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    showToastAlert('Excel report exported successfully.', 'success');
+  } catch (err) {
+    console.error("XLSX export failed", err);
+    showToastAlert('Excel export failed. Please check dependencies.', 'danger');
+  }
+}
+
+// Export PDF functionality using jsPDF and autoTable plug-ins
+function exportTableToPDF(tableId, titleText = 'CRM Report Summary') {
+  const { jsPDF } = window.jspdf || {};
+  if (!jsPDF) {
+    showToastAlert('PDF library not found or supported.', 'danger');
+    return;
+  }
+
+  showToastAlert('Generating and formatting PDF document...', 'success');
+
+  try {
+    const doc = new jsPDF('p', 'pt', 'a4');
+    
+    // Simple header
+    doc.setFontSize(16);
+    doc.text(titleText, 40, 40);
+    doc.setFontSize(10);
+    doc.text(`Generated At: ${new Date().toLocaleString()}`, 40, 60);
+
+    doc.autoTable({
+      html: `#${tableId}`,
+      startY: 80,
+      margin: { left: 40, right: 40 },
+      styles: { font: "Helvetica", fontSize: 8 },
+      headStyles: { fillColor: [13, 110, 253] }
+    });
+
+    doc.save(`${titleText.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`);
+    showToastAlert('PDF document downloaded successfully.', 'success');
+  } catch (error) {
+    console.error("PDF generation failed", error);
+    showToastAlert('PDF export operation failed.', 'danger');
+  }
+}
+
+// Database Seeder Fallback helper
+function seedDatabaseFallback() {
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "Your current local and cloud sandbox database data will be overwritten and restored to default seed values!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, reset data now!',
+    cancelButtonText: 'Cancel'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      localStorage.removeItem('crm_customers');
+      localStorage.removeItem('crm_contacts');
+      localStorage.removeItem('crm_opportunities');
+      localStorage.removeItem('crm_quotations');
+      localStorage.removeItem('crm_invoices');
+      localStorage.removeItem('crm_activities');
+      
+      showToastAlert('Database reset completed. Reloading workspace...', 'success');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    }
+  });
+}
+
+// Export globally
+window.showToastAlert = showToastAlert;
+window.toggleGlobalLoader = toggleGlobalLoader;
+window.exportTableToExcel = exportTableToExcel;
+window.exportTableToPDF = exportTableToPDF;
+window.seedDatabaseFallback = seedDatabaseFallback;
+
+// Localized Translation Dictionary (TH/EN)
+const I18N_DICTIONARY = {
+  TH: {
+    "home": " Home",
+    "re_seed": " Re-seed Sandbox",
+    "dashboard_main": "Main Dashboard",
+    "dashboard_bi": "BI Analytics Panel",
+    "sidebar_menu_analytical": "CORE & ANALYTICAL MENU",
+    "sidebar_menu_customers": "CUSTOMER & PROSPECTS METRICS",
+    "sidebar_menu_opps": "OPPORTUNITIES & PIPELINE",
+    "sidebar_menu_documents": "TRADE DOCUMENTS & BILLING",
+    "sidebar_menu_support": "AFTER-SALES & STRATEGIC",
+    "customer_master": "Customer Master",
+    "leads_list": "Prospect Leads (Leads)",
+    "all_opps": "All Sales Opportunities",
+    "pipeline_board": "Kanban Pipeline Board",
+    "quotations": "Quotations (Quotes)",
+    "invoices": "Invoices / Bills / Orders",
+    "support_desk": "Initiation & Support Desk",
+    "strategic_swot": "Strategic SWOT & Campaign",
+    "dashboard_title": "M Power Engineering Solutions - แดชบอร์ดสรุปยอดขาย",
+    "welcome_hi": "สวัสดีครับ, ",
+    "welcome_subtitle": "ยินดีต้อนรับสู่แดชบอร์ดติดตามยอดขาย M Power Engineering Solutions.",
+    "ai_tip": "Today's Strategic Tip:",
+    "local_time": "Local System Time",
+    "filter_placeholder": "Search by project name / corporate customer...",
+    "all_services": "All Service Types (ALL)",
+    "service_testing": "Testing Service",
+    "service_rental": "Equipment Rental",
+    "service_eng": "Engineering Service",
+    "service_manpower": "Manpower Supply",
+    "all_probs": "All Probabilities (ALL)",
+    "prob_high": "High Probability (>= 70%)",
+    "prob_mid": "Medium Probability (40% - 69%)",
+    "prob_low": "Initial Proposal (< 40%)",
+    "clear_filters": "Clear Filters",
+    "total_pipeline": "Total Pipeline",
+    "active_deals": "Active Deals",
+    "quarterly_goal": "Quarterly Target",
+    "weighted_pipeline": "Weighted Pipeline Value",
+    "average_success": "Average Success Rate",
+    "total_won_deals": "Total Won Deals",
+    "vs_quarterly_target": "Compared to Quarterly Target",
+    "active_customers": "Active Customers",
+    "retained_customers": "Total Active Accounts",
+    "update_data": " Refresh Data",
+    "new_deal": " New Auction Deal",
+    "deals_won_ratio": "Win Ratio Analysis: ",
+    "deals_ratio_sub": "Calculated as won bids over total sales opportunities.",
+    "opp_by_status": "Deals Breakdown by Status (Opportunity by Status)",
+    "realtime_update": "Live Sync Feed",
+    "recent_activities": "Recent Sales Activities Feed (Recent Activities)",
+    "pipeline_timeline_title": "Sales Pipeline Forecast Timeline (Monthly Trend)",
+    "forecast_intl": "Forecast",
+    "menu_dashboard": "Dashboard",
+    "menu_customers": "Customer Accounts",
+    "menu_opportunities": "Sales Opportunities",
+    "menu_quotations": "Quotations",
+    "menu_sales_orders": "Sales Orders",
+    "menu_invoices": "Invoices & Billings",
+    "menu_support_desk": "Service Tickets",
+    "menu_reports": "BI Reports",
+    "menu_users": "Users & Permissions"
+  },
+  EN: {
+    "home": " Home",
+    "re_seed": " Re-seed Sandbox",
+    "dashboard_main": "Main Dashboard",
+    "dashboard_bi": "BI Analytics Panel",
+    "sidebar_menu_analytical": "CORE & ANALYTICAL MENU",
+    "sidebar_menu_customers": "CUSTOMER & PROSPECTS METRICS",
+    "sidebar_menu_opps": "OPPORTUNITIES & PIPELINE",
+    "sidebar_menu_documents": "TRADE DOCUMENTS & BILLING",
+    "sidebar_menu_support": "AFTER-SALES & STRATEGIC",
+    "customer_master": "Customers Master DB",
+    "leads_list": "Prospect Leads (Leads)",
+    "all_opps": "All Sales Opportunities",
+    "pipeline_board": "Kanban Pipeline Board",
+    "quotations": "Quotations (Quotes)",
+    "invoices": "Invoices / Bills / Orders",
+    "support_desk": "Initiation & Support Desk",
+    "strategic_swot": "Strategic SWOT & Campaign",
+    "dashboard_title": "M Power Engineering Solutions - Sales Management System",
+    "welcome_hi": "Welcome, ",
+    "welcome_subtitle": "Welcome to M Power Engineering Solutions Sales Management System.",
+    "ai_tip": "Today's Strategic Tip:",
+    "local_time": "Local System Time",
+    "filter_placeholder": "Search by project name / corporate customer...",
+    "all_services": "All Service Types (ALL)",
+    "service_testing": "Testing Service",
+    "service_rental": "Equipment Rental",
+    "service_eng": "Engineering Service",
+    "service_manpower": "Manpower Supply",
+    "all_probs": "All Probabilities (ALL)",
+    "prob_high": "High Probability (>= 70%)",
+    "prob_mid": "Medium Probability (40% - 69%)",
+    "prob_low": "Initial Proposal (< 40%)",
+    "clear_filters": "Clear Filters",
+    "total_pipeline": "Total Pipeline",
+    "active_deals": "Active Deals",
+    "quarterly_goal": "Quarterly Target",
+    "weighted_pipeline": "Weighted Pipeline Value",
+    "average_success": "Average Success Rate",
+    "total_won_deals": "Total Won Deals",
+    "vs_quarterly_target": "Compared to Quarterly Target",
+    "active_customers": "Active Customers",
+    "retained_customers": "Total Active Accounts",
+    "update_data": " Refresh Data",
+    "new_deal": " New Auction Deal",
+    "deals_won_ratio": "Win Ratio Analysis: ",
+    "deals_ratio_sub": "Calculated as won bids over total sales opportunities.",
+    "opp_by_status": "Deals Breakdown by Status (Opportunity by Status)",
+    "realtime_update": "Live Sync Feed",
+    "recent_activities": "Recent Sales Activities Feed (Recent Activities)",
+    "pipeline_timeline_title": "Sales Pipeline Forecast Timeline (Monthly Trend)",
+    "forecast_intl": "Forecast",
+    "menu_dashboard": "Dashboard",
+    "menu_customers": "Customer Accounts",
+    "menu_opportunities": "Sales Opportunities",
+    "menu_quotations": "Quotations",
+    "menu_sales_orders": "Sales Orders",
+    "menu_invoices": "Invoices & Billings",
+    "menu_support_desk": "Service Tickets",
+    "menu_reports": "BI Reports",
+    "menu_users": "Users & Permissions"
+  }
+};
+
+function initSystemLanguage() {
+  const currentLang = 'EN';
+  localStorage.setItem('crm_lang', 'EN');
+  const labelEl = document.getElementById('current-lang-lbl');
+  if (labelEl) {
+    labelEl.innerText = currentLang;
+  }
+  applyLanguageTranslations(currentLang);
+}
+
+function switchSystemLanguage(lang) {
+  localStorage.setItem('crm_lang', 'EN');
+  const labelEl = document.getElementById('current-lang-lbl');
+  if (labelEl) {
+    labelEl.innerText = 'EN';
+  }
+  applyLanguageTranslations('EN');
+  showToastAlert('System language changed to English successfully', 'success');
+  
+  // Custom hook to trigger dashboard refresh if present
+  if (typeof onFilterChange === 'function') {
+    onFilterChange();
+  }
+}
+
+function applyLanguageTranslations(lang) {
+  const dict = I18N_DICTIONARY.EN;
+  
+  // Set window/page title if applicable
+  if (dict["dashboard_title"] && window.location.pathname.endsWith('index.html')) {
+    document.title = dict["dashboard_title"];
+  }
+
+  // Translate all marked elements
+  const elements = document.querySelectorAll('[data-i18n]');
+  elements.forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) {
+      // Retain icons if any exist inside the element
+      const icon = el.querySelector('i');
+      if (icon) {
+        // Clear non-icon content and re-insert icon + translation text
+        const iconClone = icon.cloneNode(true);
+        el.innerHTML = '';
+        el.appendChild(iconClone);
+        el.appendChild(document.createTextNode(' ' + dict[key].replace(/^\s*<i.*?>.*?<\/i>\s*/, '')));
+      } else {
+        // Plain text translation handles input placeholder vs inner HTML
+        if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) {
+          el.setAttribute('placeholder', dict[key]);
+        } else {
+          el.innerText = dict[key];
+        }
+      }
+    }
+  });
+}
+
+window.switchSystemLanguage = switchSystemLanguage;
+window.applyLanguageTranslations = applyLanguageTranslations;
+window.initSystemLanguage = initSystemLanguage;
+
+// -----------------------------------------------------
+// REALTIME NOTIFICATION & ALERTS SYSTEM (EXPERT CRADLE)
+// -----------------------------------------------------
+async function checkAndShowSystemNotifications() {
+  try {
+    if (typeof SupabaseDB === 'undefined') return;
+
+    // Fetch collections
+    const [quotations, invoices] = await Promise.all([
+      SupabaseDB.getQuotations(),
+      SupabaseDB.getInvoices()
+    ]);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const expiringQuotations = [];
+    const overdueInvoices = [];
+
+    // 1. Analyze Quotations: Status must be Sent or Draft or Approved
+    quotations.forEach(q => {
+      if (q.status === 'Draft' || q.status === 'Sent' || q.status === 'Approved') {
+        const qDate = new Date(q.quotation_date);
+        const validity = parseInt(q.validity_days) || 30;
+        const expiryDate = new Date(qDate.getTime() + validity * 24 * 60 * 60 * 1000);
+        expiryDate.setHours(0, 0, 0, 0);
+        
+        const diffMs = expiryDate - today;
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+        // Nearing expiration within 7 days or already expired
+        if (diffDays <= 7) {
+          expiringQuotations.push({
+            ...q,
+            days_left: diffDays,
+            expiry_date: expiryDate.toISOString().split('T')[0]
+          });
+        }
+      }
+    });
+
+    // 2. Analyze Invoices: Unpaid or Overdue, and due_date has passed
+    invoices.forEach(i => {
+      if (i.status === 'Unpaid' || i.status === 'Overdue') {
+        const dueDate = new Date(i.due_date);
+        dueDate.setHours(0, 0, 0, 0);
+
+        if (dueDate < today) {
+          const diffMs = today - dueDate;
+          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          overdueInvoices.push({
+            ...i,
+            days_overdue: diffDays
+          });
+        }
+      }
+    });
+
+    // Cache locally
+    window.lastSystemNotifications = {
+      expiringQuotations,
+      overdueInvoices
+    };
+
+    // Toast Notification logic on entry (Scoped once per Session)
+    const alreadyShown = sessionStorage.getItem('sys_notif_toast_shown');
+    if (!alreadyShown) {
+      if (expiringQuotations.length > 0 || overdueInvoices.length > 0) {
+        let toastMsg = "";
+        if (expiringQuotations.length > 0 && overdueInvoices.length > 0) {
+          toastMsg = `⚠️ Detected ${expiringQuotations.length} expiring quotations and ${overdueInvoices.length} overdue unpaid invoices!`;
+        } else if (expiringQuotations.length > 0) {
+          toastMsg = `⏳ Detected ${expiringQuotations.length} expiring/expired quotations. Please follow up with client.`;
+        } else if (overdueInvoices.length > 0) {
+          toastMsg = `🚨 Detected ${overdueInvoices.length} overdue invoices requiring follow up.`;
+        }
+        showToastAlert(toastMsg, 'danger');
+      } else {
+        showToastAlert('System active: No outstanding overdue items found today.', 'success');
+      }
+      sessionStorage.setItem('sys_notif_toast_shown', 'true');
+    }
+
+    // Render list in Dashboard if on Dashboard page
+    const path = window.location.pathname;
+    const isDashboard = path.endsWith('index.html') || path.endsWith('/') || path === '';
+    if (isDashboard) {
+      renderDashboardNotificationsList(expiringQuotations, overdueInvoices);
+    }
+  } catch (error) {
+    console.error("Critical error auditing system notifications:", error);
+  }
+}
+
+function renderDashboardNotificationsList(expiringQuotes, overdueInvoices) {
+  const container = document.getElementById('dashboard-notifications-container');
+  if (!container) return;
+
+  if (expiringQuotes.length === 0 && overdueInvoices.length === 0) {
+    container.className = "container-fluid mb-4 d-block animate__animated animate__fadeIn";
+    container.innerHTML = `
+      <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden">
+        <div class="p-3 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 5px solid #22c55e;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm animate__animated animate__pulse" style="width: 36px; height: 36px;">
+              <i class="fas fa-check-circle fs-5"></i>
+            </div>
+            <div>
+              <h6 class="m-0 fw-bold text-success" style="font-size: 0.95rem;">Smart Notification Hub</h6>
+              <span class="text-xs text-muted-flat" style="font-size: 0.8rem; color: #15803d;">All clear! No overdue payments or expiring quotations require urgent attention today.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  container.className = "container-fluid mb-4 d-block animate__animated animate__fadeIn";
+
+  let expiringHtml = '';
+  if (expiringQuotes.length > 0) {
+    expiringHtml = `
+      <div class="col-12 col-md-6">
+        <div class="p-3 bg-warning bg-opacity-10 rounded-4 h-100" style="border: 1px solid rgba(255, 193, 7, 0.44);">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="badge bg-warning text-dark px-2 py-1"><i class="fa fa-clock text-dark me-1"></i> Expiring Soon</span>
+            <h6 class="m-0 fw-bold text-warning-emphasis" style="font-size: 0.9rem;">Expiring Quotations (${expiringQuotes.length} items)</h6>
+          </div>
+          <div class="d-flex flex-column gap-2 overflow-y-auto pr-1" style="max-height: 250px;">
+            ${expiringQuotes.map(q => {
+              const customerName = q.customer ? q.customer.customer_name : 'No Customer Record';
+              const daysText = q.days_left < 0 
+                ? `<span class="badge bg-danger rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Expired ${Math.abs(q.days_left)} days ago</span>` 
+                : (q.days_left === 0 
+                  ? `<span class="badge bg-danger rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Expires Today!</span>` 
+                  : `<span class="badge bg-warning text-dark rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Expires in ${q.days_left} days</span>`);
+              return `
+                <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-xs border-light border">
+                  <div style="flex: 1; min-width: 0;" class="pe-2">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                      <span class="font-monospace fw-bold text-dark small" style="font-size: 0.82rem;">${q.quotation_no}</span>
+                      <span class="badge bg-secondary-subtle text-secondary small" style="font-size:0.67rem; font-weight:500;">Status: ${q.status}</span>
+                    </div>
+                    <span class="d-block text-slate-800 text-truncate mt-1.5 fw-semibold" style="font-size: 0.82rem;" title="${q.title}">${q.title}</span>
+                    <span class="text-xs text-muted d-block mt-0.5 text-truncate" style="font-size: 0.75rem;">Customer: ${customerName}</span>
+                  </div>
+                  <div class="text-end" style="flex-shrink: 0;">
+                    <div class="mb-2 d-flex justify-content-end">${daysText}</div>
+                    <a href="quotations.html?search=${q.quotation_no}" class="btn btn-xs btn-outline-warning py-1 px-2.5 rounded-pill text-warning border-warning border hover-bg-warning hover-text-white transition-all fw-medium" style="font-size:0.7rem; display:inline-flex; align-items:center; gap:3px;"><i class="fa fa-eye"></i> Audit</a>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    expiringHtml = `
+      <div class="col-12 col-md-6">
+        <div class="p-4 bg-light rounded-4 h-100 d-flex flex-column align-items-center justify-content-center text-center py-5 border">
+          <i class="fa-regular fa-clipboard text-muted mb-2" style="font-size: 2rem; opacity: 0.45;"></i>
+          <h6 class="m-0 fw-bold text-secondary" style="font-size: 0.88rem;">No Expiring Quotations Found</h6>
+          <span class="text-xs text-muted mt-1" style="font-size: 0.75rem;">All stored quotations are within healthy validity periods.</span>
+        </div>
+      </div>
+    `;
+  }
+
+  let overdueHtml = '';
+  if (overdueInvoices.length > 0) {
+    overdueHtml = `
+      <div class="col-12 col-md-6">
+        <div class="p-3 bg-danger bg-opacity-10 rounded-4 h-100" style="border: 1px solid rgba(220, 53, 69, 0.44);">
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <span class="badge bg-danger px-2 py-1"><i class="fa fa-ban text-white me-1"></i> Overdue</span>
+            <h6 class="m-0 fw-bold text-danger-emphasis" style="font-size: 0.9rem;">Outstanding Overdue Invoices (${overdueInvoices.length} items)</h6>
+          </div>
+          <div class="d-flex flex-column gap-2 overflow-y-auto pr-1" style="max-height: 250px;">
+            ${overdueInvoices.map(i => {
+              const customerName = i.customer ? i.customer.customer_name : 'Customer Organization Not Specified';
+              const invoiceTotal = parseFloat(i.grand_total || i.total_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+              return `
+                <div class="d-flex justify-content-between align-items-center p-3 bg-white rounded-3 shadow-xs border-light border">
+                  <div style="flex: 1; min-width: 0;" class="pe-2">
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                      <span class="font-monospace fw-bold text-dark small" style="font-size: 0.82rem;">${i.invoice_no}</span>
+                      <span class="badge bg-danger-subtle text-danger small" style="font-size:0.67rem; font-weight:500;">Status: Overdue</span>
+                    </div>
+                    <span class="d-block text-slate-800 text-truncate mt-1.5 fw-semibold" style="font-size: 0.82rem;" title="${i.project_name}">${i.project_name}</span>
+                    <span class="text-xs text-muted d-block mt-0.5 text-truncate" style="font-size: 0.75rem;">Customer: ${customerName}</span>
+                    <span class="text-xs d-block font-sans fw-bold text-danger mt-1" style="font-size: 0.78rem;">Overdue Balance: ฿${invoiceTotal}</span>
+                  </div>
+                  <div class="text-end" style="flex-shrink: 0;">
+                    <div class="mb-2"><span class="badge bg-danger rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">Overdue by ${i.days_overdue} Days</span></div>
+                    <a href="invoices.html?search=${i.invoice_no}" class="btn btn-xs btn-outline-danger py-1 px-2.5 rounded-pill text-danger border-danger border hover-bg-danger hover-text-white transition-all fw-medium" style="font-size:0.7rem; display:inline-flex; align-items:center; gap:3px;"><i class="fa fa-file-invoice"></i> Audit</a>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    overdueHtml = `
+      <div class="col-12 col-md-6">
+        <div class="p-4 bg-light rounded-4 h-100 d-flex flex-column align-items-center justify-content-center text-center py-5 border">
+          <i class="fa-regular fa-file-invoice text-muted mb-2" style="font-size: 2rem; opacity: 0.45;"></i>
+          <h6 class="m-0 fw-bold text-secondary" style="font-size: 0.88rem;">No Overdue Invoices Found</h6>
+          <span class="text-xs text-muted mt-1" style="font-size: 0.75rem;">All generated invoices have been cleared or are within safe payment terms.</span>
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden transition-all duration-300">
+      <!-- Header -->
+      <div class="px-4 py-3 bg-dark text-white d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2.5">
+          <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 28px; height: 28px;">
+            <i class="fa fa-bell text-dark" style="font-size: 0.85rem;"></i>
+          </div>
+          <div>
+            <h6 class="m-0 fw-bold" style="font-size: 0.95rem; letter-spacing: -0.2px;">SMART CRM ALERTS HUB</h6>
+            <span class="text-xs text-light" style="font-size: 0.72rem; opacity: 0.75;">Real-time automated auditing and alert aggregation for quotations and overdue invoices.</span>
+          </div>
+        </div>
+        <span class="badge bg-danger rounded-pill px-3 py-1.5 fw-bold" style="font-size:0.72rem; letter-spacing:0.3px;"><i class="fa fa-circle-exclamation me-1"></i> ${expiringQuotes.length + overdueInvoices.length} Alerts Found</span>
+      </div>
+      <!-- List Blocks -->
+      <div class="card-body p-4 bg-body-tertiary">
+        <div class="row g-3">
+          ${expiringHtml}
+          ${overdueHtml}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+window.switchSystemLanguage = switchSystemLanguage;
+window.applyLanguageTranslations = applyLanguageTranslations;
+window.initSystemLanguage = initSystemLanguage;
+window.checkAndShowSystemNotifications = checkAndShowSystemNotifications;
+window.renderDashboardNotificationsList = renderDashboardNotificationsList;
+
+window.handleGlobalSignOut = async function(e) {
+  if (e) e.preventDefault();
+  
+  // Clear local storage session
+  localStorage.removeItem('crm_user_role');
+  localStorage.removeItem('crm_user_fullname');
+  localStorage.removeItem('crm_user_email');
+  localStorage.removeItem('crm_user_id');
+  localStorage.removeItem('supabase_session_token');
+  
+  // Try Supabase Auth SignOut
+  if (window.supabaseClient) {
+    try {
+      await window.supabaseClient.auth.signOut();
+    } catch (err) {
+      console.warn("Supabase SignOut error", err);
+    }
+  }
+  
+  // Redirect to login page
+  window.location.href = 'login.html';
+};
+
+async function updateSystemBadges() {
+  if (!window.SupabaseDB) {
+    // If SupabaseDB is not ready yet, retry in 500ms
+    setTimeout(updateSystemBadges, 500);
+    return;
+  }
+  try {
+    // 1. Get Quotations count (Draft or Sent status)
+    const quotations = await window.SupabaseDB.getQuotations() || [];
+    const newQuotesCount = quotations.filter(q => q.status === "Draft" || q.status === "Sent").length;
+    const badgeQuotes = document.getElementById('badge-quotes');
+    if (badgeQuotes) {
+      if (newQuotesCount > 0) {
+        badgeQuotes.textContent = newQuotesCount;
+        badgeQuotes.classList.remove('d-none');
+      } else {
+        badgeQuotes.classList.add('d-none');
+      }
+    }
+
+    // 2. Get Sales Orders count (Pending status)
+    const salesOrders = await window.SupabaseDB.getSalesOrders() || [];
+    const pendingSOCount = salesOrders.filter(so => so.status === "Pending").length;
+    const badgeSales = document.getElementById('badge-sales');
+    if (badgeSales) {
+      if (pendingSOCount > 0) {
+        badgeSales.textContent = pendingSOCount;
+        badgeSales.classList.remove('d-none');
+      } else {
+        badgeSales.classList.add('d-none');
+      }
+    }
+
+    // 3. Get Invoices count (Unpaid/Overdue status)
+    const invoices = await window.SupabaseDB.getInvoices() || [];
+    const unpaidInvoicesCount = invoices.filter(inv => inv.status === "Unpaid" || inv.status === "Overdue").length;
+    const badgeInvoices = document.getElementById('badge-invoices');
+    if (badgeInvoices) {
+      if (unpaidInvoicesCount > 0) {
+        badgeInvoices.textContent = unpaidInvoicesCount;
+        badgeInvoices.classList.remove('d-none');
+      } else {
+        badgeInvoices.classList.add('d-none');
+      }
+    }
+
+    // 4. Get Opportunities count (Lead/Qualified status)
+    const opps = await window.SupabaseDB.getOpportunities() || [];
+    const newOppsCount = opps.filter(o => o.stage === "Lead" || o.stage === "Qualified").length;
+    const badgeOpps = document.getElementById('badge-opps');
+    if (badgeOpps) {
+      if (newOppsCount > 0) {
+        badgeOpps.textContent = newOppsCount;
+        badgeOpps.classList.remove('d-none');
+      } else {
+        badgeOpps.classList.add('d-none');
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to fetch badge counts:", err);
+  }
+}
+
+window.updateSystemBadges = updateSystemBadges;

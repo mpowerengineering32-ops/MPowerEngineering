@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sales Master CRM - Invoices & Billing</title>
+
+  <!-- Google Font: Source Sans Pro & Kanit (Thailand UI support) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&family=Source+Sans+3:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <!-- AdminLTE 4 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta2/dist/css/adminlte.min.css">
+  
+  <!-- Custom Application Override CSS -->
+  <link rel="stylesheet" href="/style.css">
+
+  <style>
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-area, #print-area * {
+        visibility: visible;
+      }
+      #print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 20px;
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+    
+    .official-document {
+      font-family: 'Source Sans 3', 'Kanit', sans-serif;
+      border: 2px solid #333;
+      padding: 30px;
+      border-radius: 4px;
+      background-color: #fff;
+      color: #333;
+    }
+    
+    .official-header {
+      border-bottom: 2px solid #222;
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+    }
+
+    .doc-logo {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: #198754;
+    }
+
+    /* Scrollbar configuration for Create New Direct Invoice Modal to ensure Save button is always accessible */
+    #invoiceFormModal .modal-body {
+      max-height: 65vh;
+      overflow-y: auto !important;
+    }
+  </style>
+</head>
+<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+
+  <div class="app-wrapper wrapper">
+    <!-- Navbar & Sidebar Injected via app.js -->
+
+    <!-- Main Content Stage Area -->
+    <main class="app-main p-3" style="min-height: 100vh; margin-left: 250px;">
+      <!-- Content Header -->
+      <div class="container-fluid mb-3 pt-2">
+        <div class="row align-items-center">
+          <div class="col-sm-6">
+            <h1 class="m-0 fw-bold tracking-tight text-dark fs-2 text-uppercase">
+              <i class="fas fa-file-invoice-dollar text-success"></i> Invoices & Billing
+            </h1>
+            <p class="text-muted small m-0">Manage billing records, monitor credit periods, record customer payments, and view official tax invoices.</p>
+          </div>
+          <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
+            <div class="btn-group shadow-sm">
+              <button class="btn btn-outline-secondary btn-sm" onclick="exportTableToExcel('invoice-table', 'Invoices_Billing_Report')">
+                <i class="fa fa-file-excel text-success me-1"></i>Export to Excel
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="exportTableToPDF('invoice-table', 'INVOICES BILLING REPORT')">
+                <i class="fa fa-file-pdf text-danger me-1"></i>Export to PDF
+              </button>
+              <button class="btn btn-success btn-sm" onclick="openCreateInvoiceModal()">
+                <i class="fa fa-plus-circle me-1"></i>Create New Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="container-fluid">
+        <!-- Quick Status Filter Row -->
+        <div class="row g-2 mb-3">
+          <div class="col-12">
+            <div class="bg-white p-2 rounded shadow-sm border border-light-subtle d-flex flex-wrap gap-1.5 align-items-center justify-content-between">
+              <div class="d-flex flex-wrap gap-1 align-items-center" id="invoice-status-filters">
+                <span class="small fw-bold text-muted me-2 ms-1"><i class="fa fa-filter"></i> Filter Status:</span>
+                <button class="btn btn-sm btn-success active i-status-pill px-2.5 py-1" data-status="ALL">All</button>
+                <button class="btn btn-sm btn-outline-secondary i-status-pill px-2.5 py-1" data-status="Unpaid">Unpaid (Outstanding)</button>
+                <button class="btn btn-sm btn-outline-secondary i-status-pill px-2.5 py-1" data-status="Paid">Paid (Fully Billed)</button>
+                <button class="btn btn-sm btn-outline-secondary i-status-pill px-2.5 py-1" data-status="Overdue">Overdue (Past Credit)</button>
+                <button class="btn btn-sm btn-outline-secondary i-status-pill px-2.5 py-1" data-status="Cancelled">Cancelled (Voided)</button>
+              </div>
+              <span class="badge bg-success-subtle text-success border font-monospace small px-2 py-1">Rule: YY Suffix Active</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search and filters -->
+        <div class="card shadow-sm border-0 mb-3">
+          <div class="card-body p-3">
+            <div class="row g-2">
+              <div class="col-12 col-md-4">
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted"><i class="fa fa-search"></i></span>
+                  <input type="text" class="form-control" id="inv-search-input" placeholder="Search by Invoice number, project name, customer name...">
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <select class="form-select" id="inv-filter-customer">
+                  <option value="">-- All Customer Accounts --</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="input-group">
+                  <span class="input-group-text bg-light text-muted"><i class="fa fa-user-tie"></i></span>
+                  <select class="form-select" id="inv-filter-salesrep">
+                    <option value="ALL">-- All Sales Reps --</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+         <!-- Invoices List Card -->
+        <div class="card shadow-sm border-0">
+          <div class="card-header bg-white border-bottom py-3">
+            <h5 class="m-0 fw-bold text-success"><i class="fas fa-receipt"></i> Billing Control Ledger</h5>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="google-sheet-table table-hover align-middle mb-0" id="invoice-table">
+                <thead class="table-light text-uppercase small font-bold">
+                  <tr>
+                    <th>Invoice Number</th>
+                    <th>IKM INV</th>
+                    <th>Job Number</th>
+                    <th>PO Reference</th>
+                    <th>Customer Account</th>
+                    <th>Project / Billing Description</th>
+                    <th>Sale Rep</th>
+                    <th>Issue & Due Date</th>
+                    <th class="text-end">Total Amount (฿)</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-center" style="width: 200px;">Financial Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="invoice-table-body">
+                  <tr>
+                    <td colspan="11" class="text-center py-5">
+                      <div class="spinner-border text-success" role="status"></div>
+                      <p class="mt-2 text-muted">Retrieving billing transactions...</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer text-center bg-white border-top py-3 text-muted small no-print mt-auto" style="margin-left: 250px;">
+      <div class="float-end d-none d-sm-inline ms-3">IKM Testing ERP System</div>
+    </footer>
+  </div>
+
+  <!-- MODAL: ADD / EDIT INVOICE (MANUAL CREATE) -->
+  <div class="modal fade" id="invoiceFormModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="invoiceFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <form id="invoiceForm" onsubmit="saveInvoiceManual(event)">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="invoiceFormModalLabel"><i class="fa fa-file-invoice"></i> Create New Invoice Record</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-4">
+            <input type="hidden" id="inv-form-id">
+            
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">Customer Account (Organization) <span class="text-danger">*</span></label>
+                <select class="form-select" id="form-customer-id" required>
+                  <option value="">-- Select Customer --</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">Quotation Reference (Optional)</label>
+                <input type="text" class="form-control" id="form-quote-ref" placeholder="e.g. QT-0002-26">
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">Project/Campaign Billing Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="form-project-name" placeholder="Specify services, e.g. Provision of Rental Tools..." required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">Customer Purchase Order (PO) Reference</label>
+                <input type="text" class="form-control" id="form-po-reference" placeholder="e.g. PO007441/2026">
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold text-success">IKM-INV (Key Manual) <span class="text-danger">*</span></label>
+                <input type="text" class="form-control border-success fw-bold text-success" id="form-ikm-inv" placeholder="e.g. IKM-INV-260012" required>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">Job Number</label>
+                <input type="text" class="form-control" id="form-job-no" placeholder="e.g. JOB-26003">
+              </div>
+
+              <div class="col-12 col-md-4">
+                <label class="form-label small fw-bold">Issue Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="form-date" required>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label small fw-bold">Due Date <span class="text-danger">*</span></label>
+                <input type="date" class="form-control" id="form-due" required>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label small fw-bold">Billing Representative (Handler)</label>
+                <input type="text" class="form-control" id="form-handler" value="Administrator">
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">Payment Status</label>
+                <select class="form-select" id="form-status">
+                  <option value="Unpaid">Unpaid (Outstanding)</option>
+                  <option value="Paid">Paid (Fully paid)</option>
+                  <option value="Overdue">Overdue (Past credit limit)</option>
+                  <option value="Cancelled">Cancelled (Voided)</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label small fw-bold">Special Remarks & Payment Notes</label>
+                <input type="text" class="form-control" id="form-remarks" placeholder="Enter tracking notes or check reference">
+              </div>
+
+              <!-- Lines grid -->
+              <div class="col-12 mt-4">
+                <div class="border p-3 rounded bg-white">
+                  <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                    <h6 class="m-0 fw-bold"><i class="fa fa-list"></i> Bill Line Items</h6>
+                    <button type="button" class="btn btn-xs btn-outline-success" onclick="addNewItemRow()">
+                      <i class="fa fa-plus-circle me-1"></i>Add Row
+                    </button>
+                  </div>
+                  
+                  <div class="table-responsive">
+                    <table class="table table-bordered table-sm align-middle" id="items-table" style="min-width: 900px;">
+                      <thead class="table-light text-center small fw-bold">
+                        <tr>
+                          <th style="width: 50px;">ITEM</th>
+                          <th>Description of Services / Rental Equipment</th>
+                          <th style="width: 100px;">QTY</th>
+                          <th style="width: 100px;">UNIT</th>
+                          <th style="width: 120px;">DURATION DAYS</th>
+                          <th style="width: 150px;">UNIT RATE (฿)</th>
+                          <th style="width: 150px;">TOTAL (฿)</th>
+                          <th style="width: 50px;" class="text-center">#</th>
+                        </tr>
+                      </thead>
+                      <tbody id="items-table-body">
+                        <!-- Loaded via JS -->
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- Calculations -->
+                  <div class="row mt-3 justify-content-end">
+                    <div class="col-12 col-md-5">
+                      <table class="table table-sm table-borderless text-end font-monospace">
+                        <tr>
+                          <td>Subtotal (Before Tax):</td>
+                          <td style="width: 150px;"><span id="calc-subtotal">0.00</span> ฿</td>
+                        </tr>
+                        <tr>
+                          <td>Value Added Tax (VAT 7%):</td>
+                          <td><span id="calc-tax">0.00</span> ฿</td>
+                        </tr>
+                        <tr class="fw-bold border-top" style="font-size: 1.1rem; color: #198754;">
+                          <td>Grand Total:</td>
+                          <td><span id="calc-grandtotal">0.00</span> ฿</td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-success"><i class="fa fa-save me-1"></i> Save Invoice Record</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PRINT OUT / VIEW INVOICE & RECEIPT TEMPLATE -->
+  <div class="modal fade" id="printViewModal" tabindex="-1" aria-labelledby="printViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header d-print-none">
+          <h5 class="modal-title fw-bold" id="printViewModalLabel"><i class="fa fa-print"></i> Official Tax Invoice & Receipt Printing</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body bg-light text-center p-4">
+          <div class="d-print-none mb-3">
+            <button class="btn btn-success px-4 font-bold" onclick="window.print()">
+              <i class="fa fa-print me-1"></i>Print Document / Save PDF (A4 Sheet)
+            </button>
+            <button class="btn btn-outline-secondary ms-2" data-bs-dismiss="modal">Close</button>
+          </div>
+
+          <!-- Printable standard sheet base -->
+          <div class="text-start mx-auto shadow bg-white" id="print-area">
+            <style>
+              #print-area {
+                font-family: 'Arial', 'Helvetica', sans-serif !important;
+                color: #000000 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                padding: 10mm 10mm 10mm 10mm !important;
+                box-sizing: border-box !important;
+                background-color: #ffffff !important;
+                position: relative !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+              }
+              #print-area h5, #print-area strong, #print-area span, #print-area td, #print-area th {
+                font-family: 'Arial', 'Helvetica', sans-serif !important;
+              }
+              .print-header-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 2px;
+              }
+              .print-header-table td {
+                vertical-align: top;
+                border: none !important;
+                padding: 0 !important;
+              }
+              .company-title {
+                font-size: 10.5pt;
+                font-weight: bold;
+                color: #000000;
+                margin: 0;
+                letter-spacing: 0.3px;
+              }
+              .company-details {
+                font-size: 8pt;
+                line-height: 1.3;
+                color: #000000;
+                margin-top: 3px;
+              }
+              .doc-title-red {
+                color: #FF0000;
+                font-size: 14pt;
+                font-weight: bold;
+                margin-top: 5px;
+                letter-spacing: 0.5px;
+              }
+              .original-red {
+                color: #FF0000;
+                font-size: 11pt;
+                font-weight: bold;
+                letter-spacing: 2px;
+                margin-bottom: 1px;
+              }
+              .print-divider-thick {
+                border-top: 1.5px solid #000000;
+                margin-top: 4px;
+                margin-bottom: 10px;
+              }
+              .print-info-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 10px;
+              }
+              .print-info-table td {
+                border: none !important;
+                vertical-align: top;
+                padding: 0 !important;
+              }
+              .invoice-to-box {
+                border: 1px solid #000000;
+                border-radius: 3px;
+                padding: 6px 10px;
+                width: 58%;
+                box-sizing: border-box;
+              }
+              .invoice-to-label {
+                font-size: 8.5pt;
+                font-weight: bold;
+                margin-bottom: 2px;
+              }
+              .invoice-to-text {
+                font-size: 8pt;
+                line-height: 1.35;
+              }
+              .invoice-meta-col {
+                width: 38%;
+                box-sizing: border-box;
+              }
+              .invoice-meta-row {
+                display: flex;
+                justify-content: flex-start;
+                margin-bottom: 3.5px;
+                font-size: 8.5pt;
+              }
+              .invoice-meta-label {
+                font-weight: bold;
+                width: 110px;
+              }
+              .invoice-meta-value {
+                font-weight: normal;
+              }
+              .print-main-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 2px;
+                table-layout: fixed;
+              }
+              .print-main-table th {
+                border-top: 1px solid #000000 !important;
+                border-bottom: 1px solid #000000 !important;
+                font-size: 9pt;
+                font-weight: bold;
+                padding: 5px 4px;
+                color: #000000;
+                word-wrap: break-word;
+                word-break: break-all;
+                overflow-wrap: anywhere;
+              }
+              .print-main-table td {
+                font-size: 8pt;
+                padding: 5px 4px;
+                vertical-align: top;
+                color: #000000;
+                border: none !important;
+                word-wrap: break-word;
+                word-break: break-all;
+                overflow-wrap: anywhere;
+                white-space: pre-wrap;
+              }
+              .print-table-wrapper {
+                min-height: 94mm;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                border-bottom: 1px solid #000000;
+              }
+              .summary-container {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 6px;
+              }
+              .terms-text-block {
+                width: 52%;
+                font-size: 7.5pt;
+                line-height: 1.3;
+                color: #000000;
+              }
+              .terms-text-block p {
+                margin: 0 0 2px 0;
+              }
+              .totals-box {
+                width: 45%;
+              }
+              .total-row-item {
+                display: flex;
+                justify-content: space-between;
+                font-size: 8pt;
+                padding: 2.5px 0;
+              }
+              .total-row-item.bold-row {
+                font-weight: bold;
+              }
+              .total-row-divider {
+                border-top: 1px solid #000000;
+                margin: 2px 0;
+              }
+              .amount-due-row {
+                display: flex;
+                justify-content: space-between;
+                font-size: 8.5pt;
+                font-weight: bold;
+                border-top: 1px solid #000000;
+                border-bottom: 3px double #000000;
+                padding: 3px 0;
+                margin-top: 2px;
+              }
+              .footer-stamp-bank-section {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-top: 10px;
+                margin-bottom: 5px;
+              }
+              .stamp-container {
+                width: 45%;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+              }
+              .bank-details-box {
+                width: 53%;
+                font-size: 7.5pt;
+                line-height: 1.35;
+                color: #000000;
+              }
+              .signature-area-row {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 10px;
+              }
+              .sig-col {
+                width: 32%;
+                text-align: center;
+                font-size: 8pt;
+              }
+              .sign-line {
+                border-bottom: 1px dotted #000000;
+                width: 150px;
+                margin: 15px auto 3px auto;
+              }
+              @media print {
+                body {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  background: #fff !important;
+                }
+                .d-print-none, .modal-header, .modal-footer {
+                  display: none !important;
+                }
+                #printViewModal {
+                  position: absolute !important;
+                  left: 0 !important;
+                  top: 0 !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  width: 100% !important;
+                  height: auto !important;
+                  border: none !important;
+                  background: #fff !important;
+                }
+                #print-area {
+                  width: 210mm !important;
+                  height: 297mm !important;
+                  padding: 10mm 10mm 10mm 10mm !important;
+                  box-sizing: border-box !important;
+                  border: none !important;
+                  box-shadow: none !important;
+                  background-color: #ffffff !important;
+                  position: relative !important;
+                }
+              }
+            </style>
+
+            <div style="flex-grow: 1; display: flex; flex-direction: column;">
+              <!-- HEADER -->
+              <table class="print-header-table" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="vertical-align: top; width: 65%;">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                      <img src="/mpower-logo.svg" alt="M Power Logo" style="width: 160px; height: auto; object-fit: contain; margin-top: 2px;">
+                      <div class="company-details" style="color: #000; font-size: 11px; line-height: 1.4;">
+                        <div style="font-weight: bold; font-size: 13px; color: #000;">M Power Engineering Solutions Co., Ltd.</div>
+                        <div>53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</div>
+                        <div>Tel. 033-641789 / 063-9359565 Email: sales.mpower-engineering.com , info@mpower-engineering.com</div>
+                        <div>Tax ID Number. 0205569006956 (Head office)</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="text-align: right; vertical-align: top; width: 35%;">
+                    <div style="display: inline-block; text-align: right;">
+                      <div class="original-red" style="color: #dc2626; font-weight: bold; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">ORIGINAL</div>
+                      <div class="doc-title-red" id="print-doc-type" style="font-weight: bold; font-size: 15px; color: #000; text-transform: uppercase; tracking-wider: 1px;">Tax Invoice / Delivery Note</div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <div class="print-divider-thick"></div>
+
+              <!-- DOCUMENT INFORMATION SECTION -->
+              <table class="print-info-table">
+                <tr>
+                  <td style="width: 58%;">
+                    <div class="invoice-to-box" style="width: 100%;">
+                      <div class="invoice-to-label">Invoice to :</div>
+                      <div class="invoice-to-text">
+                        <strong id="print-customer-name">Best Performance Engineering Co.,Ltd. (Head Office)</strong><br>
+                        <span id="print-customer-details">
+                          58, SOI NARADHIWAT RAJANAGARINDRA 10, THUNG WAT DON,<br>
+                          SATHORN BANGKOK 10120<br>
+                          THAILAND<br>
+                          Tax ID Number 0105543028503
+                        </span>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="width: 42%; padding-left: 20px;">
+                    <div class="invoice-meta-row">
+                      <span class="invoice-meta-label">Invoice Date:</span>
+                      <span class="invoice-meta-value" id="print-date">04 Jun 2026</span>
+                    </div>
+                    <div class="invoice-meta-row">
+                      <span class="invoice-meta-label">Due Date:</span>
+                      <span class="invoice-meta-value" id="print-due" style="font-weight: bold;">03 Jul 2026</span>
+                    </div>
+                    <div class="invoice-meta-row">
+                      <span class="invoice-meta-label">Invoice Number:</span>
+                      <span class="invoice-meta-value" id="print-doc-no" style="font-weight: bold;">IKMTTH-26/256</span>
+                    </div>
+                    
+                    <div class="invoice-meta-row" style="border-top: 1px dashed #15803d; padding-top: 3px; margin-top: 3px;">
+                      <span class="invoice-meta-label" style="color: #15803d; font-weight: bold;">IKM-INV No. (Manual):</span>
+                      <span class="invoice-meta-value text-success" id="print-ikm-inv" style="font-weight: bold; color: #15803d;">-</span>
+                    </div>
+                    <div class="invoice-meta-row">
+                      <span class="invoice-meta-label">Job Number:</span>
+                      <span class="invoice-meta-value" id="print-job-no">-</span>
+                    </div>
+                    <div class="invoice-meta-row">
+                      <span class="invoice-meta-label">Sales Representative:</span>
+                      <span class="invoice-meta-value" id="print-sales-person">-</span>
+                    </div>
+                    <div class="invoice-meta-row" style="margin-bottom: 0;">
+                      <span class="invoice-meta-label">Customer PO Ref:</span>
+                      <span class="invoice-meta-value" id="print-po-no" style="font-family: inherit;">PO007441/2026</span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- MAIN TABLE -->
+              <div class="print-table-wrapper">
+                <table class="print-main-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 56%; text-align: left;">Description</th>
+                      <th style="width: 10%; text-align: center;">Quantity</th>
+                      <th style="width: 12%; text-align: right;">Unit Price</th>
+                      <th style="width: 10%; text-align: center;">Tax</th>
+                      <th style="width: 12%; text-align: right;">Amount THB</th>
+                    </tr>
+                  </thead>
+                  <tbody id="print-items-body">
+                    <!-- Rendered dynamically -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- TOTAL & TERMS SECTION -->
+              <div class="summary-container">
+                <div class="terms-text-block">
+                  <p style="text-decoration: underline; font-weight: bold;">(Please Deduct Withholding Tax for Service 3% and or Rental 5% )</p>
+                  <p style="margin-top: 5px;">General Term & Condition of Sales & Hire apply Note</p>
+                  <p><strong>: Late payments, the company charges a penalty of 1.25%</strong></p>
+                  <p><strong>per month</strong> Note: Overdue accounts are subject to interest of <strong>1.25%</strong> per month.</p>
+                  <p style="margin-top: 5px;">In the event of discrepancy, Kindly contact</p>
+                  <p>our Accounts department within 7 days In writing from the Invoice</p>
+                </div>
+                <div class="totals-box">
+                  <div class="total-row-item">
+                    <span>Subtotal</span>
+                    <span id="print-subtotal">10,000.00</span>
+                  </div>
+                  <div class="total-row-item">
+                    <span>Total VAT on Sales 7%</span>
+                    <span id="print-vat">700.00</span>
+                  </div>
+                  <div class="total-row-divider"></div>
+                  <div class="total-row-item bold-row">
+                    <span>Invoice Total THB</span>
+                    <span id="print-invoice-total">10,700.00</span>
+                  </div>
+                  <div class="total-row-divider"></div>
+                  <div class="total-row-item">
+                    <span>Total Net Payments THB</span>
+                    <span id="print-net-payments">0.00</span>
+                  </div>
+                  <div class="amount-due-row">
+                    <span>Amount Due THB</span>
+                    <span id="print-grandtotal">10,700.00</span>
+                  </div>
+
+                  <!-- BANK INFO INSIDE TOTALS BOX -->
+                  <div class="bank-details-box" style="width: 100%; margin-top: 15px; font-size: 8pt; line-height: 1.45; color: #000000; text-align: left;">
+                    <p style="margin: 0 0 2px 0; font-weight: bold;">Method of payment :</p>
+                    <p style="margin: 0 0 2px 10px;">Cheque or transfer under name M Power Engineering Solutions Co., Ltd.</p>
+                    <p style="margin: 0 0 4px 10px;">Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</p>
+                    <p style="margin: 4px 0 0 0; font-size: 7.5pt; font-weight: 600;">After your processing payment Please let us know and attach poof document to account.mpower-engineering.com or call number + 66 33 641 789</p>
+                  </div>
+                </div>
+              </div>
+
+            <!-- SIGNATURES (AT THE VERY BOTTOM) -->
+            <div class="signature-area-row">
+              <div class="sig-col" style="width: 48%;">
+                <p style="margin: 0; font-size: 7.5pt; font-weight: bold; color: #555;">CONFIRMED AND ACCEPTED BY</p>
+                <div class="sign-line" style="margin-top: 15px; width: 160px;"></div>
+              </div>
+              <div class="sig-col" style="width: 48%;">
+                <p style="margin: 0; font-size: 7.5pt; font-weight: bold; color: #555;">SIGNATURE & COMPANY STAMP</p>
+                <div class="sign-line" style="margin-top: 15px; width: 160px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta2/dist/js/adminlte.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- DB & Common Setup -->
+  <script src="/supabase.js"></script>
+  <script src="/app.js"></script>
+
+  <!-- Interactive script inline -->
+  <script>
+    let rawCustomers = [];
+    let currentInvoices = [];
+    let userMap = new Map();
+    let itemIndexCounter = 0;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      toggleGlobalLoader(true);
+      try {
+        // Initialize UserMap for filtering
+        const users = await SupabaseDB.getUsers();
+        userMap = new Map(users.map(u => [u.id, u.fullname]));
+
+        await loadInvoiceMasterData();
+        await loadSalespersonsToFilterDropdown('inv-filter-salesrep', 'ALL');
+        await renderInvoicesList();
+      } catch (err) {
+        console.error("Load invoices view error", err);
+      } finally {
+        toggleGlobalLoader(false);
+      }
+
+      // Bind Search & Filters
+      document.getElementById('inv-search-input').addEventListener('input', filterAndDrawTable);
+      document.getElementById('inv-filter-customer').addEventListener('change', filterAndDrawTable);
+      document.getElementById('inv-filter-salesrep').addEventListener('change', filterAndDrawTable);
+
+      // Auto-populate search from URL parameter if provided
+      const urlParams = new URLSearchParams(window.location.search);
+      const searchParam = urlParams.get('search');
+      if (searchParam) {
+        document.getElementById('inv-search-input').value = searchParam;
+        filterAndDrawTable();
+      }
+
+      // Status filters
+      document.querySelectorAll('.i-status-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          document.querySelectorAll('.i-status-pill').forEach(p => p.classList.remove('active', 'btn-success'));
+          document.querySelectorAll('.i-status-pill').forEach(p => p.classList.add('btn-outline-secondary'));
+          
+          pill.classList.add('active', 'btn-success');
+          pill.classList.remove('btn-outline-secondary');
+          filterAndDrawTable();
+        });
+      });
+    });
+
+    async function loadInvoiceMasterData() {
+      rawCustomers = await SupabaseDB.getCustomers() || [];
+      const filterSelect = document.getElementById('inv-filter-customer');
+      const formCustSelect = document.getElementById('form-customer-id');
+      
+      filterSelect.innerHTML = '<option value="">-- All Customer Accounts --</option>';
+      formCustSelect.innerHTML = '<option value="">-- Select Customer --</option>';
+
+      rawCustomers.forEach(c => {
+        const o = `<option value="${c.id}">${c.customer_name} (${c.customer_code})</option>`;
+        filterSelect.insertAdjacentHTML('beforeend', o);
+        formCustSelect.insertAdjacentHTML('beforeend', o);
+      });
+    }
+
+    async function renderInvoicesList() {
+      currentInvoices = await SupabaseDB.getInvoices() || [];
+      filterAndDrawTable();
+    }
+
+    function filterAndDrawTable() {
+      const search = document.getElementById('inv-search-input').value.toLowerCase().trim();
+      const customerVal = document.getElementById('inv-filter-customer').value;
+      const salesRepVal = document.getElementById('inv-filter-salesrep').value;
+
+      const storedUsersRaw = localStorage.getItem('crm_users_list');
+      const allUsers = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+      const selectedUserObj = allUsers.find(u => 
+        u.fullname && u.fullname.toLowerCase() === salesRepVal.toLowerCase()
+      );
+
+      const activePill = document.querySelector('.i-status-pill.active');
+      const statusVal = activePill ? activePill.getAttribute('data-status') : 'ALL';
+
+      const tbody = document.getElementById('invoice-table-body');
+      tbody.innerHTML = '';
+
+      const filtered = currentInvoices.filter(i => {
+        const matchesSearch = !search || 
+          (i.invoice_no && i.invoice_no.toLowerCase().includes(search)) || 
+          (i.ikm_inv && i.ikm_inv.toLowerCase().includes(search)) ||
+          (i.job_no && i.job_no.toLowerCase().includes(search)) ||
+          (i.quotation_no && i.quotation_no.toLowerCase().includes(search)) ||
+          (i.project_name && i.project_name.toLowerCase().includes(search)) ||
+          (i.customer && i.customer.customer_name && i.customer.customer_name.toLowerCase().includes(search));
+
+        const matchesCustomer = !customerVal || i.customer_id === customerVal;
+        const matchesStatus = statusVal === 'ALL' || i.status === statusVal;
+        
+        const salesRepId = i.sales_person_id || '';
+        const salesRepText = i.sales_person || '';
+        
+        // Resolve names using the robust SupabaseDB utility
+        const nameFromId = salesRepId ? window.SupabaseDB.getUsernameOrDisplayName(salesRepId, true) : '';
+        const nameFromText = salesRepText ? window.SupabaseDB.getUsernameOrDisplayName(salesRepText, true) : '';
+        
+        const orderVals = [
+          salesRepId,
+          salesRepText,
+          nameFromId,
+          nameFromText
+        ].map(n => String(n).trim().toLowerCase()).filter(Boolean);
+
+        const filterVals = [salesRepVal];
+        if (selectedUserObj) {
+          if (selectedUserObj.fullname) filterVals.push(selectedUserObj.fullname);
+          if (selectedUserObj.username) filterVals.push(selectedUserObj.username);
+          if (selectedUserObj.id) filterVals.push(selectedUserObj.id);
+        }
+        const filterValsLower = filterVals.map(f => String(f).trim().toLowerCase()).filter(Boolean);
+
+        const matchesSalesRep = salesRepVal === 'ALL' || orderVals.some(oVal => 
+          filterValsLower.some(fVal => 
+            oVal === fVal || 
+            oVal.includes(fVal) || 
+            fVal.includes(oVal)
+          )
+        );
+
+        return matchesSearch && matchesCustomer && matchesStatus && matchesSalesRep;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="text-center py-4 text-muted">
+              <i class="fa fa-folder-open fs-2 d-block mb-2 text-secondary"></i>
+              No invoice records match the selected filters.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.forEach(i => {
+        const sub = (i.total_value * 0.07).toLocaleString(undefined, { minimumFractionDigits: 2 });
+        const grand = (i.grand_total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+        let statusBadge = '';
+        if (i.status === 'Unpaid') statusBadge = '<span class="badge-status badge-status-unpaid"><i class="fa fa-clock"></i> Unpaid</span>';
+        else if (i.status === 'Paid') statusBadge = '<span class="badge-status badge-status-approved"><i class="fa fa-check-double"></i> Paid</span>';
+        else if (i.status === 'Overdue') statusBadge = '<span class="badge-status badge-status-rejected"><i class="fa fa-exclamation-triangle"></i> Overdue</span>';
+        else statusBadge = `<span class="badge-status badge-status-draft">${i.status}</span>`;
+
+        const row = `
+          <tr>
+            <td class="font-bold text-success font-monospace" style="font-size:0.95rem;">${i.invoice_no}</td>
+            <td class="font-bold text-primary font-monospace" style="font-size:0.95rem;">${i.ikm_inv || '-'}</td>
+            <td class="small font-monospace text-secondary">${i.job_no || '-'}</td>
+            <td class="small font-monospace">${i.po_reference || '-'}</td>
+            <td>
+              <div class="small fw-semibold text-dark">${i.customer ? i.customer.customer_name : 'Customer Account Not Found'}</div>
+              <div class="text-xs text-muted font-monospace">${i.customer ? i.customer.customer_code : '-'}</div>
+            </td>
+            <td>
+              <div class="fw-bold small text-truncate" style="max-width: 200px;" title="${i.project_name}">${i.project_name}</div>
+              <div class="text-xs text-muted font-monospace">QT Ref: ${i.quotation_no || 'Direct'}</div>
+              <div class="text-muted font-monospace mt-0.5" style="font-size: 10px; line-height: 1.2;">
+                <span class="d-inline-block me-2" title="Created by"><i class="fa fa-plus-circle text-secondary" style="font-size: 9px;"></i> ${i.created_by ? window.SupabaseDB.getUsernameOrDisplayName(i.created_by) : 'System'}</span>
+                <span class="d-inline-block me-2" title="Updated by"><i class="fa fa-pen text-secondary" style="font-size: 9px;"></i> ${i.updated_by ? window.SupabaseDB.getUsernameOrDisplayName(i.updated_by) : 'System'}</span>
+              </div>
+            </td>
+            <td class="small text-secondary">${window.SupabaseDB.getUsernameOrDisplayName(i.sales_person_id || i.sales_person, true) || i.sales_person || '-'}</td>
+            <td class="small">
+              <div><strong>Issue:</strong> ${i.invoice_date}</div>
+              <div class="text-xs text-danger"><strong>Due:</strong> ${i.due_date}</div>
+            </td>
+            <td class="text-end font-monospace font-bold text-success" style="font-size: 1rem;">
+              <div>${grand}</div>
+              <div class="text-muted" style="font-size:10px;">VAT: ${sub}</div>
+            </td>
+            <td class="text-center">${statusBadge}</td>
+            <td class="text-center">
+              <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-info" title="Print Invoice" onclick="openPrintModal('${i.id}', 'invoice')">
+                  <i class="fa fa-print"></i> Invoice
+                </button>
+                <button class="btn btn-outline-success" title="Print Official Receipt" onclick="openPrintModal('${i.id}', 'receipt')">
+                  <i class="fa fa-file-invoice"></i> Receipt
+                </button>
+                <button class="btn btn-outline-primary" title="Edit Invoice" onclick="openEditInvoiceModal('${i.id}')">
+                  <i class="fa fa-edit"></i>
+                </button>
+                ${SupabaseDB.isAdmin() ? `
+                  <button class="btn btn-outline-danger" title="Delete Invoice" onclick="deleteInvoice('${i.id}')">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                ` : `
+                  <button class="btn btn-outline-secondary opacity-50" disabled title="Admin Rights Required">
+                    <i class="fa fa-lock"></i>
+                  </button>
+                `}
+              </div>
+            </td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
+      });
+    }
+
+    // Manual Creation
+    function openCreateInvoiceModal() {
+      document.getElementById('invoiceForm').reset();
+      document.getElementById('inv-form-id').value = '';
+      document.getElementById('form-ikm-inv').value = '';
+      document.getElementById('form-job-no').value = '';
+      document.getElementById('invoiceFormModalLabel').innerHTML = '<i class="fa fa-plus-circle text-success"></i> Create New Direct Invoice';
+      
+      document.getElementById('form-date').value = new Date().toISOString().slice(0, 10);
+      const due = new Date();
+      due.setDate(due.getDate() + 30);
+      document.getElementById('form-due').value = due.toISOString().slice(0, 10);
+
+      document.getElementById('items-table-body').innerHTML = '';
+      itemIndexCounter = 0;
+      
+      addNewItemRow();
+
+      const modal = new bootstrap.Modal(document.getElementById('invoiceFormModal'));
+      modal.show();
+    }
+
+    // Edit Invoice Modal
+    async function openEditInvoiceModal(id) {
+      toggleGlobalLoader(true);
+      try {
+        const i = await SupabaseDB.getInvoiceById(id);
+        if (!i) return;
+
+        document.getElementById('inv-form-id').value = i.id;
+        document.getElementById('invoiceFormModalLabel').innerHTML = `<i class="fa fa-edit text-success"></i> Update Invoice & Billing Details <span class="badge bg-dark font-monospace">${i.invoice_no}</span>`;
+
+        document.getElementById('form-customer-id').value = i.customer_id;
+        document.getElementById('form-quote-ref').value = i.quotation_no || '';
+        document.getElementById('form-project-name').value = i.project_name;
+        document.getElementById('form-po-reference').value = i.po_reference || '';
+        document.getElementById('form-ikm-inv').value = i.ikm_inv || '';
+        document.getElementById('form-job-no').value = i.job_no || '';
+        document.getElementById('form-date').value = i.invoice_date;
+        document.getElementById('form-due').value = i.due_date;
+        document.getElementById('form-handler').value = i.sales_person;
+        document.getElementById('form-status').value = i.status;
+        document.getElementById('form-remarks').value = i.remarks || '';
+
+        // Draw rows
+        const tbody = document.getElementById('items-table-body');
+        tbody.innerHTML = '';
+        itemIndexCounter = 0;
+
+        const items = i.items || [];
+        items.forEach(item => {
+          addNewItemRow(item);
+        });
+
+        if (items.length === 0) addNewItemRow();
+
+        recalculateTotals();
+
+        const modal = new bootstrap.Modal(document.getElementById('invoiceFormModal'));
+        modal.show();
+
+      } catch (err) {
+        console.error("Open edit invoice modal failed", err);
+      } finally {
+        toggleGlobalLoader(false);
+      }
+    }
+
+    function addNewItemRow(item = null) {
+      itemIndexCounter++;
+      const tbody = document.getElementById('items-table-body');
+
+      const qty = item ? item.qty : 1;
+      const unit = item ? item.unit : 'Set';
+      const desc = item ? item.description : '';
+      const dur = item ? item.duration : 1;
+      const rate = item ? item.unit_rate : 0;
+      const total = item ? item.total_price : 0;
+
+      const rowHtml = `
+        <tr class="item-calc-row" id="item-calc-tr-${itemIndexCounter}">
+          <td class="text-center fw-bold text-muted index-lbl">${itemIndexCounter}</td>
+          <td>
+            <input type="text" class="form-control form-control-sm item-desc" value="${desc}" placeholder="Enter billing item description" required>
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-center item-qty" value="${qty}" oninput="triggerLineCalculation(${itemIndexCounter})" required min="1">
+          </td>
+          <td>
+            <input type="text" class="form-control form-control-sm text-center item-unit" value="${unit}" placeholder="e.g. Set, Job">
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-center item-dur" value="${dur}" oninput="triggerLineCalculation(${itemIndexCounter})" required min="1">
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end item-rate" value="${rate}" step="0.01" oninput="triggerLineCalculation(${itemIndexCounter})" required>
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end item-total-price bg-light font-monospace" value="${total}" readonly>
+          </td>
+          <td class="text-center">
+            <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeItemRow(${itemIndexCounter})">
+              <i class="fa fa-minus-circle fs-5"></i>
+            </button>
+          </td>
+        </tr>
+      `;
+      tbody.insertAdjacentHTML('beforeend', rowHtml);
+      triggerLineCalculation(itemIndexCounter);
+    }
+
+    function removeItemRow(id) {
+      const row = document.getElementById(`item-calc-tr-${id}`);
+      if (row) {
+        row.remove();
+        reindexItemRows();
+        recalculateTotals();
+      }
+    }
+
+    function reindexItemRows() {
+      let counter = 1;
+      document.querySelectorAll('.item-calc-row').forEach(row => {
+        row.querySelector('.index-lbl').innerHTML = counter;
+        counter++;
+      });
+    }
+
+    function triggerLineCalculation(id) {
+      const row = document.getElementById(`item-calc-tr-${id}`);
+      if (!row) return;
+
+      const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+      const dur = parseFloat(row.querySelector('.item-dur').value) || 1;
+      const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+
+      const total = qty * dur * rate;
+      row.querySelector('.item-total-price').value = total.toFixed(2);
+
+      recalculateTotals();
+    }
+
+    function recalculateTotals() {
+      let subtotal = 0;
+      document.querySelectorAll('.item-calc-row').forEach(row => {
+        const total = parseFloat(row.querySelector('.item-total-price').value) || 0;
+        subtotal += total;
+      });
+
+      const vat = subtotal * 0.07;
+      const grand = subtotal + vat;
+
+      document.getElementById('calc-subtotal').innerHTML = subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
+      document.getElementById('calc-tax').innerHTML = vat.toLocaleString(undefined, { minimumFractionDigits: 2 });
+      document.getElementById('calc-grandtotal').innerHTML = grand.toLocaleString(undefined, { minimumFractionDigits: 2 });
+    }
+
+    // Save Manual/Edited Invoices
+    async function saveInvoiceManual(event) {
+      event.preventDefault();
+      toggleGlobalLoader(true);
+
+      const id = document.getElementById('inv-form-id').value;
+      const customerId = document.getElementById('form-customer-id').value;
+      const quoteRef = document.getElementById('form-quote-ref').value;
+      const project = document.getElementById('form-project-name').value;
+      const poRef = document.getElementById('form-po-reference').value;
+      const date = document.getElementById('form-date').value;
+      const due = document.getElementById('form-due').value;
+      const sales = document.getElementById('form-handler').value;
+      const status = document.getElementById('form-status').value;
+      const remarks = document.getElementById('form-remarks').value;
+      const ikmInv = document.getElementById('form-ikm-inv').value;
+      const jobNo = document.getElementById('form-job-no').value;
+
+      // Extract lines
+      const items = [];
+      document.querySelectorAll('.item-calc-row').forEach((row, idx) => {
+        items.push({
+          item_no: idx + 1,
+          description: row.querySelector('.item-desc').value,
+          qty: parseFloat(row.querySelector('.item-qty').value) || 1,
+          unit: row.querySelector('.item-unit').value || 'Set',
+          duration: parseFloat(row.querySelector('.item-dur').value) || 1,
+          unit_rate: parseFloat(row.querySelector('.item-rate').value) || 0,
+          total_price: parseFloat(row.querySelector('.item-total-price').value) || 0
+        });
+      });
+
+      const total_value = items.reduce((sum, item) => sum + item.total_price, 0);
+      const tax_rate = 7;
+      const grand_total = total_value * 1.07;
+
+      const payload = {
+        customer_id: customerId,
+        quotation_no: quoteRef || null,
+        project_name: project,
+        po_reference: poRef,
+        ikm_inv: ikmInv,
+        job_no: jobNo,
+        invoice_date: date,
+        due_date: due,
+        sales_person: sales,
+        status: status,
+        remarks: remarks,
+        items: items,
+        total_value: total_value,
+        tax_rate: tax_rate,
+        grand_total: grand_total
+      };
+
+      try {
+        if (id) {
+          const res = await SupabaseDB.updateInvoice(id, payload);
+          showToastAlert(`Invoice updated successfully: ${res.invoice_no}`, 'success');
+          await SupabaseDB.addActivity('Update', 'Invoice', id, `Updated invoice information of ${res.invoice_no}`);
+        } else {
+          const res = await SupabaseDB.addInvoice(payload);
+          showToastAlert(`Invoice created successfully: ${res.invoice_no}`, 'success');
+          await SupabaseDB.addActivity('Create', 'Invoice', res.id, `Manually created Invoice ${res.invoice_no}`);
+        }
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('invoiceFormModal'));
+        modal.hide();
+
+        await renderInvoicesList();
+      } catch (err) {
+        console.error("Save Invoice manual failed", err);
+      } finally {
+        toggleGlobalLoader(false);
+      }
+    }
+
+    // Delete Invoice
+    async function deleteInvoice(id) {
+      if (!SupabaseDB.isAdmin()) {
+        showToastAlert('Only Administrators are authorized to delete invoices.', 'danger');
+        return;
+      }
+      const i = await SupabaseDB.getInvoiceById(id);
+      if (!i) return;
+
+      Swal.fire({
+        title: 'Confirm Invoice Deletion?',
+        text: `Invoice ${i.invoice_no} will be permanently removed from the ledger.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#dc3545',
+        confirmButtonText: 'Yes, Delete',
+        cancelButtonText: 'Cancel'
+      }).then(async (result) => {
+        if (result.isConfirmed) {
+          toggleGlobalLoader(true);
+          try {
+            await SupabaseDB.deleteInvoice(id);
+            showToastAlert('Invoice deleted successfully', 'success');
+            await SupabaseDB.addActivity('Delete', 'Invoice', id, `Deleted Invoice ${i.invoice_no}`);
+            await renderInvoicesList();
+          } catch (err) {
+            console.error("Error delete Invoice", err);
+          } finally {
+            toggleGlobalLoader(false);
+          }
+        }
+      });
+    }
+
+    // Date formatter helper: DD MMM YYYY
+    function formatDateDDMMMYYYY(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = months[date.getMonth()];
+      const year = date.getFullYear();
+      return `${day} ${month} ${year}`;
+    }
+
+    // Open Print Preview (Invoice OR Receipt layout)
+    async function openPrintModal(id, docType) {
+      toggleGlobalLoader(true);
+      try {
+        const i = await SupabaseDB.getInvoiceById(id);
+        if (!i) return;
+
+        if (docType === 'invoice') {
+          document.getElementById('print-doc-type').innerText = "Tax Invoice / Delivery Note";
+          document.getElementById('print-doc-no').innerText = i.invoice_no;
+        } else {
+          document.getElementById('print-doc-type').innerText = "OFFICIAL RECEIPT";
+          document.getElementById('print-doc-no').innerText = i.invoice_no.replace('INV-', 'RE-');
+        }
+
+        document.getElementById('print-customer-name').innerText = i.customer ? i.customer.customer_name : 'Customer Not Specified';
+        
+        let clientDetailsHtml = '';
+        if (i.customer) {
+          clientDetailsHtml = `
+            ${i.customer.address || '-'}<br>
+            Tax ID Number ${i.customer.tax_id || '-'}
+          `;
+        }
+        document.getElementById('print-customer-details').innerHTML = clientDetailsHtml;
+
+        document.getElementById('print-date').innerText = formatDateDDMMMYYYY(i.invoice_date);
+        document.getElementById('print-due').innerText = formatDateDDMMMYYYY(i.due_date);
+        document.getElementById('print-po-no').innerText = i.po_reference || 'None';
+        document.getElementById('print-ikm-inv').innerText = i.ikm_inv || 'None';
+        document.getElementById('print-job-no').innerText = i.job_no || 'None';
+        document.getElementById('print-sales-person').innerText = i.sales_person || 'None';
+
+        // Line details
+        const tbody = document.getElementById('print-items-body');
+        tbody.innerHTML = '';
+
+        const items = i.items || [];
+        items.forEach((item, index) => {
+          let descHtml = `<strong>${item.description}</strong>`;
+          if (item.duration && item.duration > 1) {
+            descHtml += `<br><span style="font-size: 7.5pt; font-weight: normal; color: #555;">(${parseFloat(item.qty).toFixed(2)} ${item.unit || 'Unit'} x ${item.duration} Days)</span>`;
+          } else if (item.unit) {
+            descHtml += `<br><span style="font-size: 7.5pt; font-weight: normal; color: #555;">(Unit: ${item.unit})</span>`;
+          }
+
+          const row = `
+            <tr>
+              <td style="text-align: left;">${descHtml}</td>
+              <td style="text-align: center; font-family: monospace;">${parseFloat(item.qty || 1).toFixed(2)}</td>
+              <td style="text-align: right; font-family: monospace;">${parseFloat(item.unit_rate || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <td style="text-align: center;">7%</td>
+              <td style="text-align: right; font-family: monospace;">${parseFloat(item.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+            </tr>
+          `;
+          tbody.insertAdjacentHTML('beforeend', row);
+        });
+
+        const sub = i.total_value || 0;
+        const vat = sub * 0.07;
+        const grand = i.grand_total || (sub + vat);
+
+        document.getElementById('print-subtotal').innerText = sub.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        document.getElementById('print-vat').innerText = vat.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        document.getElementById('print-invoice-total').innerText = grand.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        document.getElementById('print-net-payments').innerText = (docType === 'invoice' ? '0.00' : grand.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+        document.getElementById('print-grandtotal').innerText = (docType === 'invoice' ? grand.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00');
+
+        const modal = new bootstrap.Modal(document.getElementById('printViewModal'));
+        modal.show();
+
+      } catch (err) {
+        console.error("Open printing invoices unsuccessful", err);
+      } finally {
+        toggleGlobalLoader(false);
+      }
+    }
+  </script>
+</body>
+</html>

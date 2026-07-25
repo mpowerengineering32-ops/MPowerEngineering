@@ -1,0 +1,522 @@
+// Dashboard functions and charts manager
+document.addEventListener('DOMContentLoaded', () => {
+  // Load dashboard widgets and graphs
+  if (window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/') || window.location.pathname === '') {
+    loadDashboardData();
+    initializeRealtimeClock();
+    setupDashboardRealtime();
+  }
+});
+
+let allCustomers = [];
+let allOpportunities = [];
+let allActivities = [];
+let systemUsers = []; // Will be fetched from Supabase
+
+let statusChartInstance = null;
+let pipelineChartInstance = null;
+
+async function setupDashboardRealtime() {
+  if (!window.supabaseClient) return;
+  // Listen to all changes on relevant tables
+  const tables = ['customers', 'opportunities', 'activities'];
+  tables.forEach(table => {
+    window.supabaseClient
+      .channel(`public:${table}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: table }, payload => {
+        console.log(`Realtime change received: ${table}!`, payload);
+        loadDashboardData();
+      })
+      .subscribe();
+  });
+}
+
+async function loadDashboardData() {
+  toggleGlobalLoader(true);
+  try {
+    // Use Promise.all for performance
+    const [customers, opportunities, activities, users] = await Promise.all([
+      SupabaseDB.getCustomers(),
+      SupabaseDB.getOpportunities(),
+      SupabaseDB.getActivities(),
+      fetchUsersFromSupabase()
+    ]);
+    
+    allCustomers = customers;
+    allOpportunities = opportunities;
+    allActivities = activities;
+    systemUsers = users;
+
+    // Set welcome profile username if logged in
+    const cachedUser = localStorage.getItem('crm_user_role') || 'Admin';
+    const cachedFullname = localStorage.getItem('crm_user_fullname') || 'Apiyut';
+    const welcomeUserEl = document.getElementById('welcome-username');
+    if (welcomeUserEl) {
+      welcomeUserEl.innerText = `${cachedFullname} (${cachedUser})`;
+    }
+
+    // Trigger initial render
+    onFilterChange();
+
+  } catch (error) {
+    console.error("Failed to load dashboard metrics", error);
+    showToastAlert('Failed to load dashboard metrics. Please check network connection.', 'danger');
+  } finally {
+    toggleGlobalLoader(false);
+  }
+}
+
+async function fetchUsersFromSupabase() {
+  try {
+    const users = await SupabaseDB.getUsers();
+    return users;
+  } catch (error) {
+    console.error("Failed to fetch users", error);
+    return [];
+  }
+}
+
+function initializeRealtimeClock() {
+  const clockEl = document.getElementById('realtime-clock');
+  const dateEl = document.getElementById('realtime-date');
+  
+  if (clockEl) {
+    setInterval(() => {
+      const now = new Date();
+      clockEl.innerHTML = `<i class="fa fa-clock me-1 text-warning"></i> ${now.toLocaleTimeString('en-US')}`;
+    }, 1000);
+  }
+  
+  if (dateEl) {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    dateEl.innerText = new Date().toLocaleDateString('en-US', options);
+  }
+}
+
+function onFilterChange() {
+  const searchVal = (document.getElementById('filter-search')?.value || '').toLowerCase().trim();
+  const serviceTypeVal = document.getElementById('filter-type')?.value || 'ALL';
+  const probLevelVal = document.getElementById('filter-prob')?.value || 'ALL';
+
+  let filteredOpps = [...allOpportunities];
+
+  // 1. Filter by Text query
+  if (searchVal) {
+    filteredOpps = filteredOpps.filter(o => 
+      (o.opportunity_name || '').toLowerCase().includes(searchVal) || 
+      (o.customer_name || '').toLowerCase().includes(searchVal) ||
+      (o.service_type || '').toLowerCase().includes(searchVal)
+    );
+  }
+
+  // 2. Filter by Service Type
+  if (serviceTypeVal !== 'ALL') {
+    filteredOpps = filteredOpps.filter(o => o.service_type === serviceTypeVal);
+  }
+
+  // 3. Filter by Success Probability Level
+  if (probLevelVal !== 'ALL') {
+    filteredOpps = filteredOpps.filter(o => {
+      const prob = parseFloat(o.success_probability) || 0;
+      if (probLevelVal === 'high') return prob >= 70;
+      if (probLevelVal === 'mid') return prob >= 40 && prob < 70;
+      if (probLevelVal === 'low') return prob < 40;
+      return true;
+    });
+  }
+
+  // Also filter activities that are related to active filtered opportunities
+  let filteredActs = [...allActivities];
+  if (searchVal || serviceTypeVal !== 'ALL' || probLevelVal !== 'ALL') {
+    const activeOppIds = new Set(filteredOpps.map(o => o.id));
+    filteredActs = allActivities.filter(a => {
+      if (a.target_type === 'Opportunity') {
+        return activeOppIds.has(a.target_id);
+      }
+      return true;
+    });
+  }
+
+  // Master recalculate and update visuals
+  calculateKPIs(allCustomers, filteredOpps);
+  renderStatusDistributionChart(filteredOpps);
+  renderPipelineTimelineChart(filteredOpps);
+  renderRecentTimeline(filteredActs, allCustomers, filteredOpps);
+  generateAISmartInsight(filteredOpps);
+}
+
+function resetDashboardFilters() {
+  const searchInput = document.getElementById('filter-search');
+  const typeSelect = document.getElementById('filter-type');
+  const probSelect = document.getElementById('filter-prob');
+
+  if (searchInput) searchInput.value = '';
+  if (typeSelect) typeSelect.value = 'ALL';
+  if (probSelect) probSelect.value = 'ALL';
+
+  onFilterChange();
+  showToastAlert('Dashboard filters cleared.', 'info');
+}
+
+function generateAISmartInsight(opps) {
+  const element = document.getElementById('ai-insight-line');
+  if (!element) return;
+
+  const negotiationOpps = opps.filter(o => o.status === 'Negotiation');
+  const proposalOpps = opps.filter(o => o.status === 'Proposal');
+  const wonOpps = opps.filter(o => o.status === 'Won');
+  
+  let insightText = '';
+  if (negotiationOpps.length > 0) {
+    const totalNegValue = negotiationOpps.reduce((sum, item) => sum + (parseFloat(item.estimated_value) || 0), 0);
+    const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(totalNegValue).replace('$', '฿');
+    insightText = `Found ${negotiationOpps.length} high-value Negotiation deal(s) totaling ${formatter}. Recommended to close today!`;
+  } else if (proposalOpps.length > 0) {
+    insightText = `There are ${proposalOpps.length} active Quotation proposals awaiting client feedback. Schedule follow-up calls this week.`;
+  } else if (wonOpps.length > 0) {
+    insightText = `Congratulations! Large sales deals recently Won. The quarterly revenue projections are positive.`;
+  } else {
+    insightText = `Sales pipeline is balanced. Create new prospective leads to sustain momentum for next quarter.`;
+  }
+  
+  element.innerHTML = `
+    <i class="fa fa-lightbulb text-warning animate__bounce animate__animated animate__infinite"></i>
+    <span class="fw-semibold">Today's Strategy Tip:</span> ${insightText}
+  `;
+}
+
+function calculateKPIs(customers, opportunities) {
+  // Total Active Opportunities Value
+  const activeOpps = opportunities.filter(o => o.status !== 'Lost' && o.status !== 'Cancelled');
+  const totalValue = activeOpps.reduce((sum, item) => sum + (parseFloat(item.estimated_value) || 0), 0);
+  
+  // Weighted Pipeline Value (Sum of Estimated Value * Success Probability %)
+  const weightedPipeline = activeOpps.reduce((sum, item) => {
+    const val = parseFloat(item.estimated_value) || 0;
+    const prob = parseFloat(item.success_probability) || 0;
+    return sum + (val * (prob / 100));
+  }, 0);
+
+  // Won values
+  const wonOpps = opportunities.filter(o => o.status === 'Won');
+  const wonValue = wonOpps.reduce((sum, item) => sum + (parseFloat(item.estimated_value) || 0), 0);
+
+  // Active Customers Count
+  const activeCustomers = customers.filter(c => c.status === 'Active').length;
+
+  // Format currency helpers
+  const formatter = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 });
+
+  document.getElementById('kpi-total-val').innerText = formatter.format(totalValue);
+  document.getElementById('kpi-weighted-val').innerText = formatter.format(weightedPipeline);
+  document.getElementById('kpi-won-val').innerText = formatter.format(wonValue);
+  
+  document.getElementById('kpi-customers-count').innerText = `${activeCustomers} Accounts`;
+
+  // Weighted logic progress bar sync
+  const weightedPct = totalValue > 0 ? Math.round((weightedPipeline / totalValue) * 100) : 0;
+  const weightedBar = document.getElementById('kpi-weighted-progress');
+  const weightedPctText = document.getElementById('kpi-weighted-pct');
+  if (weightedBar) {
+    weightedBar.style.width = `${weightedPct}%`;
+  }
+  if (weightedPctText) {
+    weightedPctText.innerText = `${weightedPct}% of total pipeline`;
+  }
+
+  // Won progress bar sync against arbitrary target e.g. 5,000,000 THB
+  const wonTarget = 5000000;
+  const wonPct = Math.min(100, Math.round((wonValue / wonTarget) * 100));
+  const wonBar = document.getElementById('kpi-won-progress');
+  const wonPctText = document.getElementById('kpi-won-pct');
+  if (wonBar) {
+    wonBar.style.width = `${wonPct}%`;
+  }
+  if (wonPctText) {
+    wonPctText.innerText = `${wonPct}% of ฿5M target`;
+  }
+
+  // Mini progress calculation percentage
+  const winPercent = opportunities.length > 0 ? Math.round((wonOpps.length / opportunities.length) * 100) : 0;
+  document.getElementById('kpi-win-ratio-desc').innerText = `Sales Win Ratio: ${winPercent}% (${wonOpps.length} won from ${opportunities.length} total opportunities)`;
+}
+
+function renderStatusDistributionChart(opportunities) {
+  const ctx = document.getElementById('statusChart');
+  if (!ctx) return;
+
+  const statuses = ['Lead', 'Qualified', 'Proposal', 'Negotiation', 'Won', 'Lost', 'Cancelled'];
+  const statusCounts = statuses.map(st => opportunities.filter(o => o.status === st).length);
+
+  if (statusChartInstance) {
+    statusChartInstance.destroy();
+  }
+
+  const enLabels = ['Lead', 'Qualified', 'Proposal', 'Negotiation', 'Won', 'Lost', 'Cancelled'];
+  const chartLabel = 'Number of Deals by Status';
+
+  const canvasCtx = ctx.getContext('2d');
+  statusChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: enLabels,
+      datasets: [{
+        label: chartLabel,
+        data: statusCounts,
+        backgroundColor: [
+          'rgba(108, 117, 125, 0.85)', // Lead - Gray
+          'rgba(13, 202, 240, 0.85)',  // Qualified - Light Blue
+          'rgba(255, 193, 7, 0.85)',   // Proposal - Orange Yellow
+          'rgba(253, 126, 20, 0.85)',  // Negotiation - Orange
+          'rgba(25, 135, 84, 0.85)',   // Won - Green
+          'rgba(220, 53, 69, 0.85)',   // Lost - Red
+          'rgba(33, 37, 41, 0.85)'     // Cancelled - Dark
+        ],
+        hoverBackgroundColor: [
+          '#6c757d', '#0dcaf0', '#ffc107', '#fd7e14', '#198754', '#dc3545', '#212529'
+        ],
+        borderWidth: 0,
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, color: '#64748b' },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)',
+            drawTicks: false
+          }
+        },
+        x: {
+          ticks: { color: '#64748b' },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+function renderPipelineTimelineChart(opportunities) {
+  const ctx = document.getElementById('pipelineChart');
+  if (!ctx) return;
+
+  // Group active opportunities values by Expected Close Month-Year e.g. "2026-07"
+  const grouped = {};
+  opportunities.forEach(opp => {
+    if (opp.status === 'Lost' || opp.status === 'Cancelled') return;
+    if (!opp.expected_close_date) return;
+    const dateStr = opp.expected_close_date; // YYYY-MM-DD
+    const label = dateStr.substring(0, 7); // "YYYY-MM"
+    grouped[label] = (grouped[label] || 0) + parseFloat(opp.estimated_value);
+  });
+
+  // Sort months chronologically
+  const sortedMonths = Object.keys(grouped).sort();
+  const sortedValues = sortedMonths.map(m => grouped[m]);
+
+  // Translate labels to user-friendly list "Jan 26", "Feb 26"
+  const engMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+  const formattedLabels = sortedMonths.map(m => {
+    const parts = m.split('-');
+    const monthIdx = parseInt(parts[1], 10) - 1;
+    const shortYr = parts[0].substring(2);
+    const mName = engMonths[monthIdx];
+    return `${mName} ${shortYr}`;
+  });
+
+  if (pipelineChartInstance) {
+    pipelineChartInstance.destroy();
+  }
+
+  const canvasCtx = ctx.getContext('2d');
+  // Create beautiful line filling linear gradient
+  const gradientFill = canvasCtx.createLinearGradient(0, 0, 0, 300);
+  gradientFill.addColorStop(0, 'rgba(25, 135, 84, 0.28)');
+  gradientFill.addColorStop(1, 'rgba(25, 135, 84, 0.00)');
+
+  const emptyText = "No Deal Data";
+  const datasetLabel = 'Forecasted Cumulative Won Revenue (THB)';
+
+  pipelineChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: formattedLabels.length > 0 ? formattedLabels : [emptyText],
+      datasets: [{
+        label: datasetLabel,
+        data: sortedValues.length > 0 ? sortedValues : [0],
+        fill: true,
+        borderColor: '#198754',
+        backgroundColor: gradientFill,
+        tension: 0.35,
+        borderWidth: 3,
+        pointBackgroundColor: '#198754',
+        pointHoverBackgroundColor: '#157347',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        pointHoverRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { 
+          display: true, 
+          labels: { 
+            color: '#64748b',
+            boxWidth: 15,
+            font: { family: 'Inter, Prompt, sans-serif', size: 12 } 
+          } 
+        }
+      },
+      scales: {
+        y: {
+          ticks: {
+            color: '#64748b',
+            callback: function(value) {
+              if (value >= 1000000) {
+                return (value / 1000000).toFixed(1) + 'M ฿';
+              } else if (value >= 1000) {
+                return (value / 1000).toFixed(0) + 'k ฿';
+              }
+              return value + ' ฿';
+            }
+          },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.05)',
+            drawTicks: false
+          }
+        },
+        x: { 
+          ticks: { color: '#64748b' },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+}
+
+function renderRecentTimeline(activities, customers, opportunities) {
+  const container = document.getElementById('recent-timeline');
+  if (!container) return;
+
+  if (activities.length === 0) {
+    const noActText = "No activities found matching current pipeline";
+    container.innerHTML = `
+      <div class="text-center p-5 text-muted small">
+        <i class="fas fa-history d-block fs-2 mb-3 opacity-25"></i>
+        ${noActText}
+      </div>
+    `;
+    return;
+  }
+
+  // Build bullet lists with interactive layout
+  let html = `<div class="d-flex flex-column gap-3">`;
+  
+  // Show last 120 logs
+  activities.slice(0, 120).forEach((act, idx) => {
+    let typeBadge = '<span class="badge bg-secondary rounded-pill px-2" style="font-size:9px;">System</span>';
+    let iconHTML = '<div class="timeline-circle bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;"><i class="fa fa-cog small"></i></div>';
+    
+    if (act.target_type === 'Customer') {
+      typeBadge = '<span class="badge bg-primary text-white rounded-pill px-2" style="font-size:9px;">Customer</span>';
+      iconHTML = '<div class="timeline-circle bg-primary text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;"><i class="fa fa-user-tie small"></i></div>';
+    }
+    if (act.target_type === 'Opportunity') {
+      typeBadge = '<span class="badge bg-warning text-dark rounded-pill px-2" style="font-size:9px;">Opportunity</span>';
+      iconHTML = '<div class="timeline-circle bg-warning text-dark rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;"><i class="fa fa-handshake small"></i></div>';
+    }
+    if (act.target_type === 'Quotation') {
+      typeBadge = '<span class="badge bg-info text-dark rounded-pill px-2" style="font-size:9px;">Quotation</span>';
+      iconHTML = '<div class="timeline-circle bg-info text-dark rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;"><i class="fa fa-file-invoice-dollar small"></i></div>';
+    }
+    if (act.target_type === 'Sales Order') {
+      typeBadge = '<span class="badge bg-success text-white rounded-pill px-2" style="font-size:9px;">Sales Order</span>';
+      iconHTML = '<div class="timeline-circle bg-success text-white rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;"><i class="fa fa-shopping-cart small"></i></div>';
+    }
+
+    const timeLoc = 'en-US';
+    const dateObj = new Date(act.created_at);
+    const formattedDate = dateObj.toLocaleDateString(timeLoc, { day: 'numeric', month: 'short' });
+    const timestamp = dateObj.toLocaleTimeString(timeLoc, { hour: '2-digit', minute: '2-digit' });
+    const timeSuffix = '';
+    const displayTime = `${formattedDate} ${timestamp}${timeSuffix}`;
+    const actionLabel = act.action;
+    
+    let targetLabel = `ID: ${act.target_id.slice(0,6)}`;
+    
+    let matchedUser = null;
+    if (act.created_by) {
+      matchedUser = systemUsers.find(u => u.id === act.created_by) || { fullname: act.created_by_name };
+    } else if (act.created_by_name) {
+      matchedUser = { fullname: act.created_by_name };
+    }
+
+    if (!matchedUser) {
+      if (act.target_type === 'Opportunity') {
+        const opp = (opportunities || []).find(o => o.id === act.target_id) || (typeof allOpportunities !== 'undefined' ? allOpportunities.find(o => o.id === act.target_id) : null);
+        
+        if (opp) {
+          const rawSalesPerson = opp.sales_person_id || opp.sales_person || "";
+          
+          matchedUser = systemUsers.find(u => {
+            const fn = u.fullname.toLowerCase();
+            const rp = rawSalesPerson.toLowerCase();
+            return fn.includes(rp) || rp.includes(fn);
+          });
+        }
+      } else if (act.target_type === 'Customer') {
+        const cust = (customers || []).find(c => c.id === act.target_id) || (typeof allCustomers !== 'undefined' ? allCustomers.find(c => c.id === act.target_id) : null);
+        
+        if (cust) {
+          const rawSalesPerson = cust.sales_person_id || cust.sales_person || cust.created_by || "";
+          
+          matchedUser = systemUsers.find(u => {
+            const fn = u.fullname.toLowerCase();
+            const rp = rawSalesPerson.toLowerCase();
+            return (rp && fn.includes(rp)) || (rp && rp.includes(fn)) || u.id === rawSalesPerson;
+          });
+        }
+      }
+    }
+
+    if (!matchedUser) {
+       // Fallback
+       matchedUser = systemUsers[0] || { fullname: "Admin" };
+    }
+
+    const displayUsername = matchedUser && matchedUser.fullname ? matchedUser.fullname : (systemUsers[0] ? systemUsers[0].fullname : "Admin");
+    const cleanUsername = displayUsername.split('(')[0].trim();
+    targetLabel = `<i class="fa fa-user text-white opacity-75 me-1" style="font-size: 8px;"></i>${cleanUsername}`;
+    
+    html += `
+      <div class="d-flex align-items-start gap-2.5 pb-2 border-bottom border-light">
+        ${iconHTML}
+        <div class="flex-grow-1" style="min-width: 0;">
+          <div class="d-flex align-items-center justify-content-between mb-0.5">
+            <strong class="text-dark truncate fw-bold" style="font-size: 0.85rem; max-width: 60%;">${actionLabel}</strong>
+            <span class="text-muted font-monospace text-nowrap" style="font-size: 10px;">${displayTime}</span>
+          </div>
+          <p class="text-muted small m-0 mb-1" style="font-size: 0.76rem; line-height: 1.35;">${act.details}</p>
+          <div class="d-flex align-items-center gap-2">
+            ${typeBadge} 
+            <span class="badge bg-dark text-white font-sans fw-bold" style="font-size:9px; padding: 3px 8px;">${targetLabel}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
