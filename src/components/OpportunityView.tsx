@@ -39,6 +39,7 @@ interface OpportunityViewProps {
 }
 
 const SERVICE_TYPES = [
+  'Product Sales',
   'Industrial Cleaning',
   'Mechanical Service',
   'Testing Service',

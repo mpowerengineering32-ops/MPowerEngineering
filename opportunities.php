@@ -270,6 +270,7 @@ foreach ($opportunities as $opp) {
             <div class="col-12 col-md-6">
               <label class="form-label small fw-bold">ประเภทบริการ (Service Segment)</label>
               <select class="form-select" name="service_type">
+                <option value="Product Sales">Product Sales (งานขายสินค้าและอุปกรณ์)</option>
                 <option value="Testing Service">Testing Service (งานบริการทดสอบ)</option>
                 <option value="Equipment Rental">Equipment Rental (งานเช่าอุปกรณ์)</option>
                 <option value="Manpower Supply">Manpower Supply (กำลังพลสนับสนุน)</option>

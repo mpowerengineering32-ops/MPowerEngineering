@@ -758,20 +758,8 @@ export default function QuotationView({
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-start gap-4">
                     {/* Logo */}
-                    <div className="flex flex-col items-start shrink-0">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-black text-blue-900 tracking-tight" style={{ fontFamily: 'sans-serif' }}>
-                          M <span className="text-blue-600">Power</span>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 -mt-1">
-                        <svg width="36" height="8" viewBox="0 0 36 8" fill="none">
-                          <path d="M0 4 Q 4 0, 8 4 T 16 4 T 24 4 T 32 4 T 36 4" stroke="#eab308" strokeWidth="2" fill="none"/>
-                        </svg>
-                      </div>
-                      <span className="text-[9px] font-bold text-blue-900 tracking-wider uppercase mt-0.5">
-                        Engineering Solutions
-                      </span>
+                    <div className="w-[180px] shrink-0 pt-0.5">
+                      <img src="/mpower-logo.png" alt="M Power Logo" className="w-full h-auto object-contain" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).onerror=null; (e.target as HTMLImageElement).src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q'; }} />
                     </div>
 
                     {/* Company Info */}

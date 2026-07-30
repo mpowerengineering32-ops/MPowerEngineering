@@ -181,7 +181,10 @@
     <!-- Company Header -->
     <table class="header-table">
         <tr>
-            <td class="company-info-cell">
+            <td style="width: 170px; vertical-align: top;">
+                <img src="/mpower-logo.png" alt="M Power Logo" style="width: 160px; height: auto;" />
+            </td>
+            <td class="company-info-cell" style="vertical-align: top;">
                 <div class="company-name">M Power Engineering Solutions Co., Ltd.</div>
                 <div>53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</div>
                 <div>Tel. 033-641789 / 063-9359565 Email: sales.mpower-engineering.com , info@mpower-engineering.com</div>

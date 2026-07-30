@@ -947,7 +947,7 @@ export default function InvoiceView({
                     {/* Left: Logo & Company Address */}
                     <div className="flex items-start gap-3">
                       <div className="w-[180px] shrink-0 pt-1">
-                        <img src="/mpower-logo.svg" alt="M Power Logo" className="w-full h-auto object-contain" />
+                        <img src="/mpower-logo.png" alt="M Power Logo" className="w-full h-auto object-contain" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).onerror=null; (e.target as HTMLImageElement).src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q'; }} />
                       </div>
                       <div className="text-[11.5px] leading-snug text-black">
                         <div className="font-bold text-[13px] text-black">M Power Engineering Solutions Co., Ltd.</div>

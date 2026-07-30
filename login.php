@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="card login-card p-4 m-3">
     <div class="text-center mb-4">
       <div class="bg-white rounded-3 p-3 d-inline-flex align-items-center justify-content-center mb-3 shadow" style="border: 2px solid #f59e0b;">
-        <img src="/mpower-logo.svg" alt="M Power Logo" style="max-height: 50px; width: auto;" />
+        <img src="/mpower-logo.png" alt="M Power Logo" style="max-height: 60px; width: auto;" onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q';" />
       </div>
       <h4 class="fw-bold m-0 text-white" style="letter-spacing: -0.5px;">M Power Engineering Solutions Co., Ltd.</h4>
       <p class="text-white-50 small mt-1">53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</p>

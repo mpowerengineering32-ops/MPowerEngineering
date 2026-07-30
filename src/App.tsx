@@ -2232,6 +2232,7 @@ export default function App() {
                   <div>
                     <label className="block mb-1 font-bold text-slate-400">ประเภทบริการ</label>
                     <select value={oppForm.serviceType} onChange={e => setOppForm({ ...oppForm, serviceType: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none">
+                      <option value="Product Sales">Product Sales (ขายสินค้าและอุปกรณ์)</option>
                       <option value="Testing Service">Testing Service (ทดสอบแรงดัน)</option>
                       <option value="Equipment Rental">Equipment Rental (เช่าอุปกรณ์)</option>
                       <option value="Manpower Supply">Manpower Supply (กำลังพลวิศวกรรม)</option>

@@ -119,7 +119,7 @@ function injectSharedShell() {
       <aside class="app-sidebar bg-dark text-white shadow animate-fade-in" data-bs-theme="dark" style="height: 100vh; position: fixed; top: 0; left: 0; width: 250px; display: flex; flex-direction: column;">
         <!-- Brand logo -->
         <div class="sidebar-brand p-2 px-3 border-bottom d-flex align-items-center justify-content-between bg-white" style="flex-shrink: 0; min-height: 56px;">
-          <img src="/mpower-logo.svg" alt="M Power Logo" style="height: 36px; width: auto; max-width: 190px;" />
+          <img src="/mpower-logo.png" alt="M Power Logo" style="height: 36px; width: auto; max-width: 190px;" onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q';" />
         </div>
 
         <!-- Sidebar Content -->
