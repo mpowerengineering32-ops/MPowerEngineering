@@ -1366,7 +1366,7 @@
               invoice_date: new Date().toISOString().split('T')[0],
               due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], 
               po_reference: so.po_no || 'No PO Link',
-              ikm_inv: `IKM-INV-${Math.floor(Math.random() * 90000 + 10000)}`,
+              ikm_inv: `M-POWER-INV-${Math.floor(Math.random() * 90000 + 10000)}`,
               job_no: so.job_no || '',
               sales_person: so.sales_person || so.sales_representative || 'System Broker',
               items: so.items,
