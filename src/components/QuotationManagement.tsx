@@ -1821,8 +1821,8 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
                 <tr>
                   <td className="p-2 border-r border-black"></td>
                   <td className="p-2.5 border-r border-black text-left">
-                    <div className="font-bold text-black text-[10.5px] mb-1">Remarks / Notes</div>
-                    <div className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed bg-slate-50 p-2 rounded border border-slate-200">
+                    <div className="font-bold text-black text-[10.5px] mb-0.5">Remarks / Notes</div>
+                    <div className="text-[10px] text-black whitespace-pre-wrap leading-snug">
                       {quote.remarks || quote.notes}
                     </div>
                   </td>
