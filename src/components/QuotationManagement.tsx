@@ -1722,10 +1722,28 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
               {customer?.city ? `${customer.city}, ${customer.province || ''}` : "Banchang District, Rayong, Thailand 21130"}
             </div>
             <div>
-              Tel.{customer?.phone || quote.customer_phone || "038-601 996-8"}
+              Tel. {customer?.phone || quote.customer_phone || "038-601 996-8"}
             </div>
             <div>
               Tax ID: {customer?.tax_id || quote.tax_id || "0215552000909"} (Head Office)
+            </div>
+            
+            <div className="pt-2 border-t border-black/20 mt-1 space-y-0.5">
+              <div className="grid grid-cols-[42px_8px_1fr]">
+                <span className="font-bold">Attn</span>
+                <span>:</span>
+                <span className="font-semibold">{quote.attention || quote.attn || customer?.contacts?.[0]?.name || "Sarote Tongra-ar"}</span>
+              </div>
+              <div className="grid grid-cols-[42px_8px_1fr]">
+                <span className="font-bold">Tel</span>
+                <span>:</span>
+                <span>{quote.attention_phone || quote.customer_phone || customer?.contacts?.[0]?.phone || customer?.phone || "081-821-6634"}</span>
+              </div>
+              <div className="grid grid-cols-[42px_8px_1fr]">
+                <span className="font-bold">Email</span>
+                <span>:</span>
+                <span>{quote.attention_email || quote.customer_email || customer?.contacts?.[0]?.email || customer?.email || "sarote.t@etenergymsiam.com"}</span>
+              </div>
             </div>
           </div>
 
@@ -1779,19 +1797,14 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
                       {itemQty}
                     </td>
                     <td className="p-2 border-r border-black text-left leading-snug">
-                      <div className="font-bold text-black text-[11px] mb-1">
-                        {it.name || it.description || quote.title || "Sky Lotech High Lift"}
+                      <div className="font-bold text-black text-[11px]">
+                        {it.description || it.name || quote.title || "Sky Lotech High Lift"}
                       </div>
-                      {it.brand && <div>Brand : {it.brand}</div>}
-                      {it.model && <div>Model : {it.model}</div>}
+                      {it.brand && <div className="text-[10px] mt-0.5">Brand : {it.brand}</div>}
+                      {it.model && <div className="text-[10px]">Model : {it.model}</div>}
                       {it.specs && Array.isArray(it.specs) && it.specs.map((sp: string, sIdx: number) => (
-                        <div key={sIdx} className="pl-2">- {sp}</div>
+                        <div key={sIdx} className="pl-2 text-[10px]">- {sp}</div>
                       ))}
-                      {(!it.brand && !it.specs) && (
-                        <div className="text-slate-700 whitespace-pre-wrap">
-                          {it.description}
-                        </div>
-                      )}
                     </td>
                     <td className="p-2 border-r border-black text-right font-mono">
                       {itemUnitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1802,6 +1815,21 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
                   </tr>
                 );
               })}
+
+              {/* Remarks / Notes Section inside table */}
+              {(quote.remarks || quote.notes) && (
+                <tr>
+                  <td className="p-2 border-r border-black"></td>
+                  <td className="p-2.5 border-r border-black text-left">
+                    <div className="font-bold text-black text-[10.5px] mb-1">Remarks / Notes</div>
+                    <div className="text-[10px] text-slate-800 whitespace-pre-wrap leading-relaxed bg-slate-50 p-2 rounded border border-slate-200">
+                      {quote.remarks || quote.notes}
+                    </div>
+                  </td>
+                  <td className="p-2 border-r border-black"></td>
+                  <td className="p-2"></td>
+                </tr>
+              )}
 
               {/* Mid Table Last Entry marker */}
               <tr>
@@ -1879,15 +1907,7 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
         <div className="grid grid-cols-2 gap-12 mt-12 text-[10.5px] font-bold text-black">
           {/* Left Signature */}
           <div className="flex flex-col items-center justify-end h-24">
-            <div className="border-b border-black w-64 mb-1 text-center relative">
-              {savedSignature ? (
-                <img src={savedSignature} alt="Signature" className="h-10 object-contain mx-auto -mb-2" />
-              ) : (
-                <svg width="120" height="30" viewBox="0 0 120 30" fill="none" className="mx-auto -mb-2">
-                  <path d="M10 20 C 30 5, 50 28, 70 10 C 90 2, 100 25, 110 15" stroke="#1d4ed8" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-                </svg>
-              )}
-            </div>
+            <div className="border-b border-black w-64 mb-1 h-10"></div>
             <div className="uppercase tracking-wider">PREPARE BY</div>
           </div>
 

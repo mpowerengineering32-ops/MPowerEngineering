@@ -205,6 +205,11 @@
                 <div>Banchang District, Rayong, Thailand 21130</div>
                 <div>Tel. {{ $customer_phone ?? '038-601 996-8' }}</div>
                 <div>Tax ID: {{ $tax_id ?? '0215552000909' }} (Head Office)</div>
+                <div style="margin-top: 6px; padding-top: 4px; border-top: 1px solid #ccc;">
+                    <div><strong>Attn :</strong> {{ $attention ?? 'Sarote Tongra-ar' }}</div>
+                    <div><strong>Tel :</strong> {{ $attention_phone ?? '081-821-6634' }}</div>
+                    <div><strong>Email :</strong> {{ $attention_email ?? 'sarote.t@etenergymsiam.com' }}</div>
+                </div>
             </td>
             <td class="meta-right">
                 <table style="width: 100%; border-collapse: collapse;">
@@ -267,6 +272,18 @@
                     <td style="text-align: right;">2,800.00</td>
                     <td style="text-align: right;">2,800.00</td>
                 </tr>
+            @endif
+
+            @if(isset($remarks) && $remarks)
+            <tr>
+                <td></td>
+                <td style="text-align: left; padding: 8px;">
+                    <div style="font-weight: bold; font-size: 10.5px;">Remarks / Notes</div>
+                    <div style="font-size: 10px; color: #333;">{{ $remarks }}</div>
+                </td>
+                <td></td>
+                <td></td>
+            </tr>
             @endif
 
             <!-- Mid table last entry marker -->

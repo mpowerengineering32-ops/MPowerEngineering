@@ -967,14 +967,6 @@ export default function QuotationView({
                     <div className="text-slate-800">Thanks and Regards</div>
                     
                     <div className="mt-auto relative">
-                      {savedSignature && (
-                        <img 
-                          src={savedSignature} 
-                          alt="Signature" 
-                          className="h-[45px] object-contain max-w-[200px] absolute bottom-[22px] left-[10px] select-none pointer-events-none"
-                          referrerPolicy="no-referrer"
-                        />
-                      )}
                       <div className="border-b border-black w-[200px] mb-1"></div>
                       <div className="font-bold text-black">M Power Engineering Solutions Co., Ltd.</div>
                     </div>
