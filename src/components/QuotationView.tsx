@@ -788,19 +788,19 @@ export default function QuotationView({
                   <div className="grid grid-cols-[55px_15px_1fr] gap-y-0.5 align-start">
                     <div className="font-semibold text-slate-800">To</div>
                     <div className="text-slate-600">:</div>
-                    <div className="text-black font-semibold">{clientObj?.customer_name || viewingQuote.customer_name || "STP&I Company Limited"}</div>
+                    <div className="text-black font-semibold">{clientObj?.customer_name || viewingQuote.customer_name || "-"}</div>
 
                     <div className="font-semibold text-slate-800">Attn</div>
                     <div className="text-slate-600">:</div>
-                    <div className="text-black">{attentionName}</div>
+                    <div className="text-black">{attentionName || "-"}</div>
 
                     <div className="font-semibold text-slate-800">Tel</div>
                     <div className="text-slate-600">:</div>
-                    <div className="text-black">{viewingQuote.customer_phone || clientObj?.contacts?.[0]?.phone || clientObj?.phone || "+66(0)93-296-9151"}</div>
+                    <div className="text-black">{viewingQuote.customer_phone || clientObj?.contacts?.[0]?.phone || clientObj?.phone || "-"}</div>
 
                     <div className="font-semibold text-slate-800">Email</div>
                     <div className="text-slate-600">:</div>
-                    <div className="text-black break-all">{viewingQuote.customer_email || clientObj?.contacts?.[0]?.email || clientObj?.email || "sawit.k@stpi.co.th"}</div>
+                    <div className="text-black break-all">{viewingQuote.customer_email || clientObj?.contacts?.[0]?.email || clientObj?.email || "-"}</div>
 
                     {/* Spacer */}
                     <div className="col-span-3 h-1"></div>

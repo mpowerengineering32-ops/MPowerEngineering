@@ -896,8 +896,10 @@ function QuoteForm({ id, onClose, quotations, customers, onToast }: any) {
       title: fd.get("title"),
       customer_id: customerId,
       customer_name: selectedCust?.customer_name || "",
+      customer_address: selectedCust?.address || "",
       customer_phone: fd.get("customer_phone") || selectedCust?.phone || "",
       customer_email: fd.get("customer_email") || selectedCust?.email || "",
+      tax_id: selectedCust?.tax_id || "",
       attention: fd.get("attention") || "",
       cc: fd.get("cc") || "",
       quotation_date: fd.get("date"),
@@ -1610,13 +1612,10 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
   const items = quote.items && quote.items.length > 0 ? quote.items : [
     {
       qty: 1,
-      unit: "Set",
-      description: quote.title || quote.subject || "Sky Lotech High Lift",
-      brand: "Skyy Lotech",
-      model: "M-380X-200",
-      specs: ["Length : 200 Meter", "Length : 200 Meter", "Diameter : 1/2\""],
-      unit_rate: quote.total_value || quote.total_amount || 2800,
-      total_price: quote.total_value || quote.total_amount || 2800
+      unit: "Lot",
+      description: quote.title || quote.subject || "Service / Equipment Item",
+      unit_rate: quote.total_value || quote.total_amount || 0,
+      total_price: quote.total_value || quote.total_amount || 0
     }
   ];
 
@@ -1713,36 +1712,44 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
           {/* Left Customer Cell */}
           <div className="p-2 border-r border-black space-y-0.5">
             <div className="font-bold text-[11px] text-black">
-              {customer?.customer_name || quote.customer_name || "IKM Testing (Thailand) Co., Ltd"}
+              {customer?.customer_name || quote.customer_name || "-"}
             </div>
-            <div>
-              {customer?.address || quote.customer_address || "155/167 Moo 5, Samnakthon Sub-District"}
-            </div>
-            <div>
-              {customer?.city ? `${customer.city}, ${customer.province || ''}` : "Banchang District, Rayong, Thailand 21130"}
-            </div>
-            <div>
-              Tel. {customer?.phone || quote.customer_phone || "038-601 996-8"}
-            </div>
-            <div>
-              Tax ID: {customer?.tax_id || quote.tax_id || "0215552000909"} (Head Office)
-            </div>
+            {(customer?.address || quote.customer_address) && (
+              <div>
+                {customer?.address || quote.customer_address}
+              </div>
+            )}
+            {customer?.city && (
+              <div>
+                {customer.city}{customer.province ? `, ${customer.province}` : ''}
+              </div>
+            )}
+            {(customer?.phone || quote.customer_phone) && (
+              <div>
+                Tel. {customer?.phone || quote.customer_phone}
+              </div>
+            )}
+            {(customer?.tax_id || quote.tax_id) && (
+              <div>
+                Tax ID: {customer?.tax_id || quote.tax_id} {customer?.branch ? `(${customer.branch})` : '(Head Office)'}
+              </div>
+            )}
             
             <div className="pt-2 border-t border-black/20 mt-1 space-y-0.5">
               <div className="grid grid-cols-[42px_8px_1fr]">
                 <span className="font-bold">Attn</span>
                 <span>:</span>
-                <span className="font-semibold">{quote.attention || quote.attn || customer?.contacts?.[0]?.name || "Sarote Tongra-ar"}</span>
+                <span className="font-semibold">{quote.attention || quote.attn || customer?.contacts?.[0]?.contact_name || customer?.contacts?.[0]?.name || "-"}</span>
               </div>
               <div className="grid grid-cols-[42px_8px_1fr]">
                 <span className="font-bold">Tel</span>
                 <span>:</span>
-                <span>{quote.attention_phone || quote.customer_phone || customer?.contacts?.[0]?.phone || customer?.phone || "081-821-6634"}</span>
+                <span>{quote.attention_phone || customer?.contacts?.[0]?.phone || quote.customer_phone || customer?.phone || "-"}</span>
               </div>
               <div className="grid grid-cols-[42px_8px_1fr]">
                 <span className="font-bold">Email</span>
                 <span>:</span>
-                <span>{quote.attention_email || quote.customer_email || customer?.contacts?.[0]?.email || customer?.email || "sarote.t@etenergymsiam.com"}</span>
+                <span>{quote.attention_email || customer?.contacts?.[0]?.email || quote.customer_email || customer?.email || "-"}</span>
               </div>
             </div>
           </div>

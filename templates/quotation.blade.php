@@ -200,15 +200,23 @@
     <table class="meta-box">
         <tr>
             <td class="meta-left">
-                <div style="font-weight: bold; font-size: 11px;">{{ $customer_name ?? 'IKM Testing (Thailand) Co., Ltd' }}</div>
-                <div>{{ $customer_address ?? '155/167 Moo 5, Samnakthon Sub-District' }}</div>
-                <div>Banchang District, Rayong, Thailand 21130</div>
-                <div>Tel. {{ $customer_phone ?? '038-601 996-8' }}</div>
-                <div>Tax ID: {{ $tax_id ?? '0215552000909' }} (Head Office)</div>
+                <div style="font-weight: bold; font-size: 11px;">{{ $customer_name ?? '-' }}</div>
+                @if(isset($customer_address) && $customer_address)
+                <div>{{ $customer_address }}</div>
+                @endif
+                @if(isset($customer_city) && $customer_city)
+                <div>{{ $customer_city }}{{ isset($customer_province) && $customer_province ? ', ' . $customer_province : '' }}</div>
+                @endif
+                @if(isset($customer_phone) && $customer_phone)
+                <div>Tel. {{ $customer_phone }}</div>
+                @endif
+                @if(isset($tax_id) && $tax_id)
+                <div>Tax ID: {{ $tax_id }} {{ isset($branch) && $branch ? '(' . $branch . ')' : '(Head Office)' }}</div>
+                @endif
                 <div style="margin-top: 6px; padding-top: 4px; border-top: 1px solid #ccc;">
-                    <div><strong>Attn :</strong> {{ $attention ?? 'Sarote Tongra-ar' }}</div>
-                    <div><strong>Tel :</strong> {{ $attention_phone ?? '081-821-6634' }}</div>
-                    <div><strong>Email :</strong> {{ $attention_email ?? 'sarote.t@etenergymsiam.com' }}</div>
+                    <div><strong>Attn :</strong> {{ $attention ?? '-' }}</div>
+                    <div><strong>Tel :</strong> {{ $attention_phone ?? $customer_phone ?? '-' }}</div>
+                    <div><strong>Email :</strong> {{ $attention_email ?? $customer_email ?? '-' }}</div>
                 </div>
             </td>
             <td class="meta-right">
