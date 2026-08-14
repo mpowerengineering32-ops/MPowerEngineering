@@ -883,14 +883,14 @@ export default function QuotationView({
                   <tbody>
                     {/* Item Rows */}
                     {printItems.map((it: any, idx: number) => (
-                      <tr key={it.id || idx} className={`text-[10.5px] h-[28px] align-middle ${tableBorderStyle === "grid" ? "border-b border-black" : idx % 2 === 0 ? "bg-white" : "bg-slate-50"}`}>
-                        <td className={`${tableBorderStyle !== "horizontal" ? "border-l border-r border-black" : "border-b border-slate-200"} text-center font-mono font-medium text-slate-700 p-1`}>{idx + 1}</td>
-                        <td className={`${tableBorderStyle !== "horizontal" ? "border-l border-r border-black" : "border-b border-slate-200"} text-center font-mono font-medium p-1`}>{it.qty}</td>
-                        <td className={`${tableBorderStyle !== "horizontal" ? "border-l border-r border-black" : "border-b border-slate-200"} text-center p-1`}>{it.unit}</td>
-                        <td className={`${tableBorderStyle !== "horizontal" ? "border-l border-r border-black" : "border-b border-slate-200"} px-3 py-1.5 text-left whitespace-pre-wrap leading-relaxed font-medium break-words`}>{it.description}</td>
-                        <td className={`${tableBorderStyle !== "horizontal" ? "border-l border-r border-black" : "border-b border-slate-200"} text-center font-mono p-1`}>{it.duration_days || it.duration || "1"}</td>
-                        <td className={`${tableBorderStyle !== "horizontal" ? "border-l border-r border-black" : "border-b border-slate-200"} text-right px-2 font-mono p-1`}>{it.unit_rate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td className={`${tableBorderStyle !== "horizontal" ? "border-l border-r border-black" : "border-b border-slate-200"} text-right px-2 font-mono font-semibold p-1`}>{it.total_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <tr key={it.id || idx} className="text-[10.5px] h-[28px] align-middle bg-white">
+                        <td className="border-r border-black text-center font-mono font-medium text-slate-700 p-1">{idx + 1}</td>
+                        <td className="border-r border-black text-center font-mono font-medium p-1">{it.qty}</td>
+                        <td className="border-r border-black text-center p-1">{it.unit}</td>
+                        <td className="border-r border-black px-3 py-1.5 text-left whitespace-pre-wrap leading-relaxed font-medium break-words">{it.description}</td>
+                        <td className="border-r border-black text-center font-mono p-1">{it.duration_days || it.duration || "1"}</td>
+                        <td className="border-r border-black text-right px-2 font-mono p-1">{it.unit_rate.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td className="text-right px-2 font-mono font-semibold p-1">{it.total_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       </tr>
                     ))}
 

@@ -2522,39 +2522,40 @@ export default function App() {
 
                 {/* Items Table */}
                 <div>
-                  <table className="w-full text-left border-collapse text-[10px]">
+                  <table className="w-full text-left text-[10px]" style={{ borderCollapse: 'collapse', border: '1px solid #000000' }}>
                     <thead>
-                      <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                        <th className="py-2 px-2 text-center w-12">ลำดับ</th>
-                        <th className="py-2 px-2">รายการสินค้า / บริการวิศวกรรม</th>
-                        <th className="py-2 px-2 text-center w-16">จำนวน</th>
-                        <th className="py-2 px-2 text-center w-16">หน่วย</th>
-                        <th className="py-2 px-2 text-right w-24">ราคาต่อหน่วย</th>
-                        <th className="py-2 px-2 text-right w-28">จำนวนเงิน (บาท)</th>
+                      <tr className="font-bold text-slate-900">
+                        <th style={{ borderRight: '1px solid #000000', borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'center', width: '64px' }}>Quantity</th>
+                        <th style={{ borderRight: '1px solid #000000', borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'center' }}>Drescription</th>
+                        <th style={{ borderRight: '1px solid #000000', borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'right', width: '110px' }}>Unit Price (THB)</th>
+                        <th style={{ borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'right', width: '110px' }}>Amount (THB)</th>
                       </tr>
                     </thead>
                     <tbody>
                       {selectedViewQuotation.items && selectedViewQuotation.items.length > 0 ? (
                         selectedViewQuotation.items.map((item, index) => (
-                          <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 text-slate-800">
-                            <td className="py-2.5 px-2 text-center text-slate-400 font-mono">{index + 1}</td>
-                            <td className="py-2.5 px-2 font-bold text-slate-950">{item.name}</td>
-                            <td className="py-2.5 px-2 text-center font-mono">{item.qty}</td>
-                            <td className="py-2.5 px-2 text-center text-slate-500">{item.unit}</td>
-                            <td className="py-2.5 px-2 text-right font-mono">฿{item.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                            <td className="py-2.5 px-2 text-right font-mono font-bold text-slate-950">฿{(item.qty * item.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                          <tr key={index} className="text-slate-900" style={{ border: 'none' }}>
+                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>{item.qty || 1}</td>
+                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', fontWeight: 'bold', verticalAlign: 'top' }}>{item.name || item.description || selectedViewQuotation.title}</td>
+                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', verticalAlign: 'top' }}>{(item.price || item.unit_rate || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                            <td style={{ padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>{((item.qty || 1) * (item.price || item.unit_rate || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                           </tr>
                         ))
                       ) : (
-                        <tr className="border-b border-slate-100 hover:bg-slate-50 text-slate-800">
-                          <td className="py-2.5 px-2 text-center text-slate-400 font-mono">1</td>
-                          <td className="py-2.5 px-2 font-bold text-slate-950">{selectedViewQuotation.title}</td>
-                          <td className="py-2.5 px-2 text-center font-mono">1</td>
-                          <td className="py-2.5 px-2 text-center text-slate-500">Job</td>
-                          <td className="py-2.5 px-2 text-right font-mono">฿{selectedViewQuotation.total_value.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                          <td className="py-2.5 px-2 text-right font-mono font-bold text-slate-950">฿{selectedViewQuotation.total_value.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <tr className="text-slate-900" style={{ border: 'none' }}>
+                          <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>1</td>
+                          <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', fontWeight: 'bold', verticalAlign: 'top' }}>{selectedViewQuotation.title}</td>
+                          <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', verticalAlign: 'top' }}>{selectedViewQuotation.total_value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                          <td style={{ padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>{selectedViewQuotation.total_value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                         </tr>
                       )}
+                      {/* Spacer row to stretch vertical lines */}
+                      <tr style={{ border: 'none', height: '100px' }}>
+                        <td style={{ borderRight: '1px solid #000000' }}></td>
+                        <td style={{ borderRight: '1px solid #000000' }}></td>
+                        <td style={{ borderRight: '1px solid #000000' }}></td>
+                        <td></td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>

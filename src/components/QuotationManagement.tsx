@@ -1776,20 +1776,20 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
         </div>
 
         {/* Items Table */}
-        <div className="border border-black mb-0">
-          <table className="w-full border-collapse text-[10px] table-fixed">
+        <div className="mb-2" style={{ border: '1px solid #000000' }}>
+          <table className="w-full text-[10px] table-fixed" style={{ borderCollapse: 'collapse' }}>
             <colgroup>
-              <col className="w-[10%]" />
-              <col className="w-[60%]" />
-              <col className="w-[15%]" />
-              <col className="w-[15%]" />
+              <col style={{ width: '10%' }} />
+              <col style={{ width: '60%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '15%' }} />
             </colgroup>
             <thead>
-              <tr className="border-b border-black font-bold text-[10.5px]">
-                <th className="p-1.5 border-r border-black text-center">Quantity</th>
-                <th className="p-1.5 border-r border-black text-center">Drescription</th>
-                <th className="p-1.5 border-r border-black text-right">Unit Price</th>
-                <th className="p-1.5 text-right">Amount</th>
+              <tr className="font-bold text-[10.5px]">
+                <th style={{ borderRight: '1px solid #000000', borderBottom: '1px solid #000000', padding: '6px 4px', textAlign: 'center', fontWeight: 'bold' }}>Quantity</th>
+                <th style={{ borderRight: '1px solid #000000', borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'center', fontWeight: 'bold' }}>Drescription</th>
+                <th style={{ borderRight: '1px solid #000000', borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>Unit Price (THB)</th>
+                <th style={{ borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'right', fontWeight: 'bold' }}>Amount (THB)</th>
               </tr>
             </thead>
             <tbody className="align-top">
@@ -1799,87 +1799,103 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
                 const itemAmount = Number(it.total_price || (itemQty * itemUnitPrice)) || 0;
                 
                 return (
-                  <tr key={idx} className="min-h-[100px]">
-                    <td className="p-2 border-r border-black text-center font-mono">
+                  <tr key={idx} style={{ border: 'none' }}>
+                    <td style={{ borderRight: '1px solid #000000', padding: '6px 4px', textAlign: 'center', verticalAlign: 'top', fontFamily: 'monospace', fontWeight: 'bold' }}>
                       {itemQty}
                     </td>
-                    <td className="p-2 border-r border-black text-left leading-snug">
+                    <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'left', verticalAlign: 'top', lineHeight: '1.3' }}>
                       <div className="font-bold text-black text-[11px]">
                         {it.description || it.name || quote.title || "Sky Lotech High Lift"}
                       </div>
                       {it.brand && <div className="text-[10px] mt-0.5">Brand : {it.brand}</div>}
                       {it.model && <div className="text-[10px]">Model : {it.model}</div>}
                       {it.specs && Array.isArray(it.specs) && it.specs.map((sp: string, sIdx: number) => (
-                        <div key={sIdx} className="pl-2 text-[10px]">- {sp}</div>
+                        <div key={sIdx} className="pl-2 text-[10px] italic">- {sp}</div>
                       ))}
                     </td>
-                    <td className="p-2 border-r border-black text-right font-mono">
+                    <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'right', verticalAlign: 'top', fontFamily: 'monospace' }}>
                       {itemUnitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
-                    <td className="p-2 text-right font-mono">
+                    <td style={{ padding: '6px 8px', textAlign: 'right', verticalAlign: 'top', fontFamily: 'monospace' }}>
                       {itemAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
                 );
               })}
 
-              {/* Remarks / Notes Section inside table */}
+              {/* Remarks / Notes Section inside description column */}
               {(quote.remarks || quote.notes) && (
-                <tr>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2.5 border-r border-black text-left">
+                <tr style={{ border: 'none' }}>
+                  <td style={{ borderRight: '1px solid #000000', padding: '4px' }}></td>
+                  <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'left', verticalAlign: 'top' }}>
                     <div className="font-bold text-black text-[10.5px] mb-0.5">Remarks / Notes</div>
                     <div className="text-[10px] text-black whitespace-pre-wrap leading-snug">
                       {quote.remarks || quote.notes}
                     </div>
                   </td>
-                  <td className="p-2 border-r border-black"></td>
-                  <td className="p-2"></td>
+                  <td style={{ borderRight: '1px solid #000000', padding: '4px' }}></td>
+                  <td style={{ padding: '4px' }}></td>
                 </tr>
               )}
 
               {/* Mid Table Last Entry marker */}
-              <tr>
-                <td className="p-2 border-r border-black"></td>
-                <td className="p-4 border-r border-black text-center font-bold text-black text-[10px] uppercase tracking-widest">
+              <tr style={{ border: 'none' }}>
+                <td style={{ borderRight: '1px solid #000000', padding: '4px' }}></td>
+                <td style={{ borderRight: '1px solid #000000', padding: '16px 8px 8px', textAlign: 'center', fontWeight: 'bold', fontStyle: 'italic', color: '#000000', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
                   ** LAST ENTRY **
                 </td>
-                <td className="p-2 border-r border-black"></td>
-                <td className="p-2"></td>
+                <td style={{ borderRight: '1px solid #000000', padding: '4px' }}></td>
+                <td style={{ padding: '4px' }}></td>
               </tr>
 
-              {/* Padding height rows */}
-              <tr className="h-24">
-                <td className="border-r border-black"></td>
-                <td className="border-r border-black"></td>
-                <td className="border-r border-black"></td>
+              {/* Stretch vertical lines to bottom of table */}
+              <tr style={{ border: 'none', height: '140px' }}>
+                <td style={{ borderRight: '1px solid #000000' }}></td>
+                <td style={{ borderRight: '1px solid #000000' }}></td>
+                <td style={{ borderRight: '1px solid #000000' }}></td>
                 <td></td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        {/* Summary Table Row (Baht text left, Totals right) */}
-        <div className="border border-t-0 border-black grid grid-cols-[70%_30%] text-[10.5px]">
-          {/* Left Spelled-out Baht box */}
-          <div className="p-2 border-r border-black flex items-center justify-center font-bold text-center uppercase tracking-wide">
+        {/* Totals Section matching exact sample image */}
+        <div className="flex justify-between items-end mb-4">
+          {/* Left: Baht Words Box */}
+          <div className="w-[68%] border border-black py-1.5 px-3 text-center text-[10px] font-bold uppercase tracking-wider text-black">
             {bahtTextWords}
           </div>
 
-          {/* Right Totals Box */}
-          <div className="divide-y divide-black text-right font-mono">
-            <div className="p-1.5 flex justify-between">
-              <span className="font-sans font-semibold">AMOUNT</span>
-              <span>{subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </div>
-            <div className="p-1.5 flex justify-between">
-              <span className="font-sans font-semibold">SALES VAT 7%</span>
-              <span>{vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </div>
-            <div className="p-1.5 flex justify-between font-bold text-black bg-slate-50">
-              <span className="font-sans">TOTAL AMOUNT</span>
-              <span>{grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-            </div>
+          {/* Right: Totals summary with lines between rows */}
+          <div className="w-[30%]">
+            <table className="w-full border-collapse text-[10px]">
+              <tbody>
+                <tr>
+                  <td className="py-1 px-2 text-right font-bold text-black uppercase tracking-wider text-[10px]">
+                    AMOUNT
+                  </td>
+                  <td className="w-[110px] py-1 px-2 border border-black text-right font-mono text-[10px] text-black">
+                    {subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-1 px-2 text-right font-bold text-black uppercase tracking-wider text-[10px]">
+                    SALES VAT 7%
+                  </td>
+                  <td className="w-[110px] py-1 px-2 border border-black text-right font-mono text-[10px] text-black">
+                    {vatAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-1 px-2 text-right font-bold text-black uppercase tracking-wider text-[10px]">
+                    TOTAL AMOUNT
+                  </td>
+                  <td className="w-[110px] py-1 px-2 border border-black text-right font-mono font-bold text-[10px] text-black">
+                    {grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 

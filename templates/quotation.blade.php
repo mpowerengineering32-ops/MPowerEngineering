@@ -85,7 +85,7 @@
             width: 100%;
             border-collapse: collapse;
             border: 1px solid #000000;
-            margin-bottom: 0px;
+            margin-bottom: 8px;
         }
         .items-table th {
             font-size: 10.5px;
@@ -110,35 +110,46 @@
         }
 
         /* Totals Box */
+        .totals-section {
+            width: 100%;
+            margin-bottom: 12px;
+        }
         .totals-table {
             width: 100%;
             border-collapse: collapse;
-            border: 1px solid #000000;
-            border-top: none;
-            margin-bottom: 12px;
         }
         .baht-words-cell {
-            width: 70%;
-            border-right: 1px solid #000000;
+            width: 68%;
             text-align: center;
-            vertical-align: middle;
+            vertical-align: bottom;
+            padding: 0 10px 0 0;
+        }
+        .baht-words-box {
+            border: 1px solid #000000;
+            padding: 6px 8px;
+            text-align: center;
             font-weight: bold;
             text-transform: uppercase;
-            padding: 8px;
-            font-size: 10.5px;
+            font-size: 10px;
+            color: #000000;
         }
         .totals-values-cell {
-            width: 30%;
-            padding: 0;
+            width: 32%;
+            vertical-align: bottom;
         }
         .sub-total-row {
             width: 100%;
             border-collapse: collapse;
         }
         .sub-total-row td {
-            padding: 4px 6px;
+            padding: 3px 6px;
             font-size: 10px;
-            border-bottom: 1px solid #000000;
+        }
+        .sub-total-row td.amount-box {
+            border: 1px solid #000000;
+            width: 100px;
+            text-align: right;
+            font-family: monospace;
         }
         .sub-total-row tr:last-child td {
             border-bottom: none;
@@ -247,16 +258,16 @@
         <thead>
             <tr>
                 <th style="width: 10%;">Quantity</th>
-                <th style="width: 60%;">Drescription</th>
-                <th style="width: 15%; text-align: right;">Unit Price</th>
-                <th style="width: 15%; text-align: right;">Amount</th>
+                <th style="width: 60%;">Description</th>
+                <th style="width: 15%; text-align: right;">Unit Price (THB)</th>
+                <th style="width: 15%; text-align: right;">Amount (THB)</th>
             </tr>
         </thead>
         <tbody>
             @if(isset($items) && count($items) > 0)
                 @foreach($items as $item)
                     <tr>
-                        <td style="text-align: center;">{{ $item['qty'] ?? 1 }}</td>
+                        <td style="text-align: center; font-weight: bold;">{{ $item['qty'] ?? 1 }}</td>
                         <td>
                             <div style="font-weight: bold; font-size: 11px;">{{ $item['description'] ?? 'Sky Lotech High Lift' }}</div>
                             @if(isset($item['brand']))<div>Brand : {{ $item['brand'] }}</div>@endif
@@ -268,14 +279,14 @@
                 @endforeach
             @else
                 <tr>
-                    <td style="text-align: center;">1</td>
+                    <td style="text-align: center; font-weight: bold;">1</td>
                     <td>
                         <div style="font-weight: bold; font-size: 11px;">Sky Lotech High Lift</div>
                         <div>Brand : Skyy Lotech</div>
                         <div>Model : M-380X-200</div>
-                        <div>- Length : 200 Meter</div>
-                        <div>- Length : 200 Meter</div>
-                        <div>- Diameter : 1/2"</div>
+                        <div style="font-style: italic;">- Length : 200 Meter</div>
+                        <div style="font-style: italic;">- Length : 200 Meter</div>
+                        <div style="font-style: italic;">- Diameter : 1/2"</div>
                     </td>
                     <td style="text-align: right;">2,800.00</td>
                     <td style="text-align: right;">2,800.00</td>
@@ -287,7 +298,7 @@
                 <td></td>
                 <td style="text-align: left; padding: 8px;">
                     <div style="font-weight: bold; font-size: 10.5px;">Remarks / Notes</div>
-                    <div style="font-size: 10px; color: #333;">{{ $remarks }}</div>
+                    <div style="font-size: 10px; color: #000;">{{ $remarks }}</div>
                 </td>
                 <td></td>
                 <td></td>
@@ -297,7 +308,7 @@
             <!-- Mid table last entry marker -->
             <tr>
                 <td></td>
-                <td style="text-align: center; font-weight: bold; padding: 12px; letter-spacing: 2px;">
+                <td style="text-align: center; font-weight: bold; font-style: italic; padding: 12px; letter-spacing: 2px;">
                     ** LAST ENTRY **
                 </td>
                 <td></td>
@@ -307,29 +318,33 @@
     </table>
 
     <!-- Totals Row -->
-    <table class="totals-table">
-        <tr>
-            <td class="baht-words-cell">
-                TWO THOUSAND NINE HUNDRED NINETY SIX BAHT
-            </td>
-            <td class="totals-values-cell">
-                <table class="sub-total-row">
-                    <tr>
-                        <td>AMOUNT</td>
-                        <td style="text-align: right;">{{ number_format($subtotal ?? 2800.00, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td>SALES VAT 7%</td>
-                        <td style="text-align: right;">{{ number_format($vat_amount ?? 196.00, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td>TOTAL AMOUNT</td>
-                        <td style="text-align: right;">{{ number_format($grand_total ?? 2996.00, 2) }}</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
+    <div class="totals-section">
+        <table class="totals-table">
+            <tr>
+                <td class="baht-words-cell">
+                    <div class="baht-words-box">
+                        {{ $baht_text ?? 'TWO THOUSAND NINE HUNDRED NINETY SIX BAHT' }}
+                    </div>
+                </td>
+                <td class="totals-values-cell">
+                    <table class="sub-total-row">
+                        <tr>
+                            <td style="font-weight: bold; text-align: right; text-transform: uppercase;">AMOUNT</td>
+                            <td class="amount-box">{{ number_format($subtotal ?? 2800.00, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold; text-align: right; text-transform: uppercase;">SALES VAT 7%</td>
+                            <td class="amount-box">{{ number_format($vat_amount ?? 196.00, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: bold; text-align: right; text-transform: uppercase;">TOTAL AMOUNT</td>
+                            <td class="amount-box" style="font-weight: bold;">{{ number_format($grand_total ?? 2996.00, 2) }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <!-- Terms & Conditions -->
     <div class="terms-section">
