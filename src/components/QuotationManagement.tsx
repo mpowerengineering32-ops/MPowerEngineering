@@ -1694,7 +1694,7 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
             <div className="text-[10px] text-black leading-tight pt-0.5">
               <div className="font-bold text-[12px] text-black">M Power Engineering Solutions Co., Ltd.</div>
               <div>53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</div>
-              <div>Tel. 033-641789 / 063-9359565 Email: sales.mpower-engineering.com , info@mpower-engineering.com</div>
+              <div>Tel. 033-641789 / 063-9359565 Email: sales@mpower-engineering.com , info@mpower-engineering.com</div>
               <div>Tax ID Number. 0205569006956 (Head office)</div>
             </div>
           </div>
