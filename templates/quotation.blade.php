@@ -233,7 +233,7 @@
             <td class="meta-right">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <td style="font-weight: bold; width: 100px; padding: 1px 0;">Quotation No. :</td>
+                        <td style="font-weight: bold; width: 110px; padding: 1px 0;">Quotation No. :</td>
                         <td style="font-weight: bold; padding: 1px 0;">{{ $quotation_no ?? 'QT2607001' }}</td>
                     </tr>
                     <tr>
@@ -241,8 +241,8 @@
                         <td style="padding: 1px 0;">{{ $quotation_date ?? '26-10-2025' }}</td>
                     </tr>
                     <tr>
-                        <td style="font-weight: bold; padding: 1px 0;">Due Date :</td>
-                        <td style="padding: 1px 0;">30 Days</td>
+                        <td style="font-weight: bold; padding: 1px 0;">Payment Term :</td>
+                        <td style="padding: 1px 0;">{{ $payment_term ?? '30 Days' }}</td>
                     </tr>
                     <tr>
                         <td style="font-weight: bold; padding: 1px 0;">Sales Name :</td>

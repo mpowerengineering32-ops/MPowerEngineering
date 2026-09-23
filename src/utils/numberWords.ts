@@ -50,3 +50,55 @@ export function numberToEnglishWords(amount: number): string {
 
   return result.toUpperCase();
 }
+
+export function numberToThaiBaht(num: number): string {
+  if (isNaN(num) || num === 0) return 'ศูนย์บาทถ้วน';
+  const thaiDigits = ['', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
+  const thaiUnits = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน', 'ล้าน'];
+
+  const convertGroup = (nStr: string): string => {
+    let res = '';
+    const len = nStr.length;
+    for (let i = 0; i < len; i++) {
+      const digit = parseInt(nStr.charAt(i), 10);
+      const pos = len - i - 1;
+      if (digit !== 0) {
+        if (pos === 0 && digit === 1 && len > 1 && parseInt(nStr.charAt(len - 2), 10) !== 0) {
+          res += 'เอ็ด';
+        } else if (pos === 1 && digit === 1) {
+          res += '';
+        } else if (pos === 1 && digit === 2) {
+          res += 'ยี่';
+        } else {
+          res += thaiDigits[digit];
+        }
+        res += thaiUnits[pos];
+      }
+    }
+    return res;
+  };
+
+  const fixed = Math.abs(num).toFixed(2);
+  const [intPart, decPart] = fixed.split('.');
+  let thaiStr = '';
+
+  if (intPart.length > 6) {
+    const millionsGroup = intPart.slice(0, -6);
+    const remainderGroup = intPart.slice(-6);
+    thaiStr += convertGroup(millionsGroup) + 'ล้าน' + convertGroup(remainderGroup);
+  } else {
+    thaiStr += convertGroup(intPart);
+  }
+
+  if (thaiStr === '') thaiStr = 'ศูนย์';
+  thaiStr += 'บาท';
+
+  const satangVal = parseInt(decPart, 10);
+  if (satangVal === 0) {
+    thaiStr += 'ถ้วน';
+  } else {
+    thaiStr += convertGroup(decPart) + 'สตางค์';
+  }
+
+  return (num < 0 ? 'ลบ' : '') + thaiStr;
+}

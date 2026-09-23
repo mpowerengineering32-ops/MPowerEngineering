@@ -214,3 +214,174 @@ VALUES
 (1, 3, 'เข้าสู่ระบบ (Login Success)', 'system', '0', 'ผู้ใช้งาน wiriya เข้าสู่ระบบโดยใช้เซสชันผ่านเว็บบราวเซอร์'),
 (2, 3, 'สร้างดีลประมูลใหม่', 'opportunity', '1', 'เปิดรหัสงาน OPP-260001 โครงการ Hydrotest ปั๊มแรงดันสูง ระยอง ยอดประเมิน 1,250,000 บาท')
 ON DUPLICATE KEY UPDATE `id`=`id`;
+
+-- ==========================================
+-- 9. Create SUPPLIERS Table (MySQL)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS `suppliers` (
+    `id` VARCHAR(50) PRIMARY KEY,
+    `supplier_code` VARCHAR(50) UNIQUE NOT NULL,
+    `supplier_name` VARCHAR(255) NOT NULL,
+    `tax_id` VARCHAR(50) NULL,
+    `address` TEXT NULL,
+    `phone` VARCHAR(50) NULL,
+    `email` VARCHAR(255) NULL,
+    `contact_person` VARCHAR(150) NULL,
+    `payment_term` VARCHAR(50) DEFAULT 'Credit 30 Days',
+    `status` VARCHAR(50) NOT NULL DEFAULT 'Active',
+    `notes` TEXT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `supplier_contacts` (
+    `id` VARCHAR(50) PRIMARY KEY,
+    `supplier_id` VARCHAR(50) NOT NULL,
+    `name` VARCHAR(150) NOT NULL,
+    `position` VARCHAR(100) NULL,
+    `department` VARCHAR(100) NULL,
+    `phone` VARCHAR(50) NULL,
+    `mobile` VARCHAR(50) NULL,
+    `email` VARCHAR(255) NULL,
+    `is_primary` TINYINT(1) NOT NULL DEFAULT 0,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- 10. Create PURCHASE REQUESTS Table (MySQL)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS `purchase_requests` (
+    `id` VARCHAR(50) PRIMARY KEY,
+    `pr_no` VARCHAR(50) UNIQUE NOT NULL,
+    `required_date` VARCHAR(50) NULL,
+    `due_date` VARCHAR(50) NULL,
+    `supplier_id` VARCHAR(50) NULL,
+    `supplier_name` VARCHAR(255) NULL,
+    `supplier_address` TEXT NULL,
+    `supplier_tax_id` VARCHAR(50) NULL,
+    `supplier_phone` VARCHAR(50) NULL,
+    `supplier_attn` VARCHAR(150) NULL,
+    `sales_name` VARCHAR(150) NULL,
+    `requestor` VARCHAR(150) NOT NULL,
+    `requested_by` VARCHAR(150) NULL,
+    `ref_customer` VARCHAR(255) NULL,
+    `remarks` TEXT NULL,
+    `delivery_note` TEXT NULL,
+    `items` JSON NULL,
+    `amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `vat_amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `total_amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `status` VARCHAR(50) NOT NULL DEFAULT 'Pending',
+    `approved_by` VARCHAR(150) NULL,
+    `approved_at` DATETIME NULL,
+    `converted_po_id` VARCHAR(50) NULL,
+    `converted_po_no` VARCHAR(50) NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `purchase_request_items` (
+    `id` VARCHAR(50) PRIMARY KEY,
+    `pr_id` VARCHAR(50) NOT NULL,
+    `item_no` INT NOT NULL DEFAULT 1,
+    `description` TEXT NOT NULL,
+    `qty` DECIMAL(10, 2) NOT NULL DEFAULT 1.00,
+    `unit` VARCHAR(50) NOT NULL DEFAULT 'EA',
+    `unit_price` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`pr_id`) REFERENCES `purchase_requests` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- 11. Create PURCHASE ORDERS Table (MySQL)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS `purchase_orders` (
+    `id` VARCHAR(50) PRIMARY KEY,
+    `po_no` VARCHAR(50) UNIQUE NOT NULL,
+    `pr_id` VARCHAR(50) NULL,
+    `pr_no` VARCHAR(50) NULL,
+    `date` VARCHAR(50) NOT NULL,
+    `due_date` VARCHAR(50) NULL,
+    `supplier_id` VARCHAR(50) NULL,
+    `supplier_name` VARCHAR(255) NOT NULL,
+    `supplier_address` TEXT NULL,
+    `supplier_tax_id` VARCHAR(50) NULL,
+    `supplier_phone` VARCHAR(50) NULL,
+    `supplier_attn` VARCHAR(150) NULL,
+    `sales_name` VARCHAR(150) NULL,
+    `ref_customer` VARCHAR(255) NULL,
+    `remarks` TEXT NULL,
+    `delivery_note` TEXT NULL,
+    `billing_delivery_date_note` VARCHAR(100) NULL,
+    `items` JSON NULL,
+    `amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `vat_amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `total_amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `status` VARCHAR(50) NOT NULL DEFAULT 'Approved',
+    `prepared_by` VARCHAR(150) NULL,
+    `approved_by` VARCHAR(150) NULL,
+    `approved_at` DATETIME NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`pr_id`) REFERENCES `purchase_requests` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `purchase_order_items` (
+    `id` VARCHAR(50) PRIMARY KEY,
+    `po_id` VARCHAR(50) NOT NULL,
+    `item_no` INT NOT NULL DEFAULT 1,
+    `description` TEXT NOT NULL,
+    `qty` DECIMAL(10, 2) NOT NULL DEFAULT 1.00,
+    `unit` VARCHAR(50) NOT NULL DEFAULT 'EA',
+    `unit_price` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`po_id`) REFERENCES `purchase_orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================
+-- 12. Create BILLING NOTES Table (MySQL)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS `billing_notes` (
+    `id` VARCHAR(50) PRIMARY KEY,
+    `billing_no` VARCHAR(50) UNIQUE NOT NULL,
+    `date` VARCHAR(50) NOT NULL,
+    `customer_name` VARCHAR(255) NOT NULL,
+    `customer_address` TEXT NULL,
+    `customer_tax_id` VARCHAR(50) NULL,
+    `due_of_payment` VARCHAR(50) NULL,
+    `total_amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `delivered_by` VARCHAR(150) NULL,
+    `delivered_date` VARCHAR(50) NULL,
+    `received_by` VARCHAR(150) NULL,
+    `received_date` VARCHAR(50) NULL,
+    `notes` TEXT NULL,
+    `items` JSON NULL,
+    `status` VARCHAR(50) NOT NULL DEFAULT 'Draft',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `billing_note_items` (
+    `id` VARCHAR(50) PRIMARY KEY,
+    `billing_id` VARCHAR(50) NOT NULL,
+    `no` INT NOT NULL DEFAULT 1,
+    `ref_no` VARCHAR(100) NULL,
+    `invoice_no` VARCHAR(100) NOT NULL,
+    `sales_order_no` VARCHAR(100) NULL,
+    `date` VARCHAR(50) NULL,
+    `description` TEXT NULL,
+    `quantity` DECIMAL(12, 2) NOT NULL DEFAULT 1.00,
+    `unit` VARCHAR(50) NOT NULL DEFAULT 'งาน',
+    `unit_price` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `paid_amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `outstanding_amount` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`billing_id`) REFERENCES `billing_notes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

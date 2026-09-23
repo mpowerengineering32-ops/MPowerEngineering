@@ -789,7 +789,7 @@ export default function SalesOrderView({
                             </span>
                           </div>
                           <div className="text-slate-500 font-medium">
-                            ออกบิลวันที่: {inv.invoice_date} | ครบดิวชำระ: {inv.due_date}
+                            ออกบิลวันที่: {(inv as any).invoice_date || inv.issue_date || '-'} | ครบดิวชำระ: {inv.due_date || '-'}
                           </div>
                         </div>
                         <div className="text-right">

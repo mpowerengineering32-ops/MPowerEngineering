@@ -1756,19 +1756,19 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
 
           {/* Right Quotation Details Cell */}
           <div className="p-2 space-y-1">
-            <div className="grid grid-cols-[90px_1fr]">
+            <div className="grid grid-cols-[105px_1fr]">
               <span className="font-semibold">Quotation No. :</span>
               <span className="font-bold">{quote.quotation_no || "QT2607001"}</span>
             </div>
-            <div className="grid grid-cols-[90px_1fr]">
+            <div className="grid grid-cols-[105px_1fr]">
               <span className="font-semibold">Date :</span>
               <span>{quote.quotation_date || quote.issue_date || "26-10-2025"}</span>
             </div>
-            <div className="grid grid-cols-[90px_1fr]">
-              <span className="font-semibold">Due Date :</span>
-              <span>{quote.validity_days ? `${quote.validity_days} Days` : (quote.payment_term || "30 Days")}</span>
+            <div className="grid grid-cols-[105px_1fr]">
+              <span className="font-semibold">Payment Term :</span>
+              <span>{quote.payment_term || (quote.validity_days ? `${quote.validity_days} Days` : "30 Days")}</span>
             </div>
-            <div className="grid grid-cols-[90px_1fr]">
+            <div className="grid grid-cols-[105px_1fr]">
               <span className="font-semibold">Sales Name :</span>
               <span>{quote.sales_person || quote.sales_representative || "Pronpicha"}</span>
             </div>

@@ -223,6 +223,132 @@ INSERT INTO \`invoices\` (\`id\`, \`invoice_no\`, \`customer_id\`, \`quotation_i
 INSERT INTO \`audit_logs\` (\`id\`, \`user_id\`, \`action\`, \`target_type\`, \`target_id\`, \`details\`) VALUES
 (1, 1, 'ติดตั้งระบบฐานข้อมูล (Database Seeding)', 'system', 0, 'ผู้ดูแลระบบทำการอัปโหลดสกีมา SQL และตั้งค่าสิทธิของตระกูลสิทธิ์เรียบร้อย'),
 (2, 3, 'อัปเกรดความคืบหน้าดีล (Opportunity Updated)', 'opportunity', 2, 'วิศวกร Chaloempon ทำการปรับสถานะโครงการของบริษัทไทยออยล์ เป็น [Won]');
+\`
+  },
+  {
+    category: 'Configuration',
+    filepath: '/schema_procurement_and_billing_mysql.sql',
+    description: 'ไฟล์สกีมาตาราง MySQL 8+ / phpMyAdmin รองรับทั้ง 3 ระบบ (1. ทะเบียนซัพพลายเออร์, 2. จัดซื้อ PR/PO, 3. ใบวางบิล)',
+    content: \`-- MySQL 8.0+ / MariaDB / phpMyAdmin Schema
+-- 1. ทะเบียนซัพพลายเออร์ (Suppliers & Contacts)
+CREATE TABLE IF NOT EXISTS \\\`suppliers\\\` (
+    \\\`id\\\` VARCHAR(50) NOT NULL PRIMARY KEY,
+    \\\`supplier_code\\\` VARCHAR(50) NOT NULL UNIQUE,
+    \\\`supplier_name\\\` VARCHAR(255) NOT NULL,
+    \\\`tax_id\\\` VARCHAR(50) NULL,
+    \\\`branch\\\` VARCHAR(100) NULL DEFAULT 'สำนักงานใหญ่',
+    \\\`address\\\` TEXT NULL,
+    \\\`phone\\\` VARCHAR(50) NULL,
+    \\\`mobile\\\` VARCHAR(50) NULL,
+    \\\`email\\\` VARCHAR(255) NULL,
+    \\\`contact_person\\\` VARCHAR(150) NULL,
+    \\\`payment_term\\\` VARCHAR(50) NOT NULL DEFAULT 'Credit 30 Days',
+    \\\`credit_limit\\\` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    \\\`status\\\` ENUM('Active', 'Inactive', 'Blacklisted') NOT NULL DEFAULT 'Active',
+    \\\`notes\\\` TEXT NULL,
+    \\\`created_at\\\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    \\\`updated_at\\\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS \\\`supplier_contacts\\\` (
+    \\\`id\\\` VARCHAR(50) NOT NULL PRIMARY KEY,
+    \\\`supplier_id\\\` VARCHAR(50) NOT NULL,
+    \\\`name\\\` VARCHAR(150) NOT NULL,
+    \\\`position\\\` VARCHAR(100) NULL,
+    \\\`department\\\` VARCHAR(100) NULL,
+    \\\`phone\\\` VARCHAR(50) NULL,
+    \\\`mobile\\\` VARCHAR(50) NULL,
+    \\\`email\\\` VARCHAR(255) NULL,
+    \\\`is_primary\\\` TINYINT(1) NOT NULL DEFAULT 0,
+    \\\`created_at\\\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (\\\`supplier_id\\\`) REFERENCES \\\`suppliers\\\` (\\\`id\\\`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. ใบขอซื้อและใบสั่งซื้อ (PR / PO)
+CREATE TABLE IF NOT EXISTS \\\`purchase_requests\\\` (
+    \\\`id\\\` VARCHAR(50) NOT NULL PRIMARY KEY,
+    \\\`pr_no\\\` VARCHAR(50) NOT NULL UNIQUE,
+    \\\`pr_date\\\` DATE NOT NULL,
+    \\\`required_date\\\` VARCHAR(50) NULL,
+    \\\`due_date\\\` VARCHAR(50) NULL,
+    \\\`supplier_id\\\` VARCHAR(50) NULL,
+    \\\`supplier_name\\\` VARCHAR(255) NULL,
+    \\\`requested_by\\\` VARCHAR(150) NOT NULL,
+    \\\`ref_customer\\\` VARCHAR(255) NULL,
+    \\\`remarks\\\` TEXT NULL,
+    \\\`items\\\` JSON NULL,
+    \\\`subtotal\\\` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    \\\`vat_amount\\\` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    \\\`total_amount\\\` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    \\\`status\\\` ENUM('Draft', 'Pending Approval', 'Approved', 'Rejected', 'Converted to PO', 'Cancelled') NOT NULL DEFAULT 'Pending Approval',
+    \\\`approved_by\\\` VARCHAR(150) NULL,
+    \\\`approved_at\\\` DATETIME NULL,
+    \\\`rejected_by\\\` VARCHAR(150) NULL,
+    \\\`rejected_at\\\` DATETIME NULL,
+    \\\`rejection_reason\\\` TEXT NULL,
+    \\\`converted_po_id\\\` VARCHAR(50) NULL,
+    \\\`converted_po_no\\\` VARCHAR(50) NULL,
+    \\\`created_at\\\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (\\\`supplier_id\\\`) REFERENCES \\\`suppliers\\\` (\\\`id\\\`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS \\\`purchase_orders\\\` (
+    \\\`id\\\` VARCHAR(50) NOT NULL PRIMARY KEY,
+    \\\`po_no\\\` VARCHAR(50) NOT NULL UNIQUE,
+    \\\`po_date\\\` DATE NOT NULL,
+    \\\`pr_id\\\` VARCHAR(50) NULL,
+    \\\`pr_no\\\` VARCHAR(50) NULL,
+    \\\`supplier_id\\\` VARCHAR(50) NULL,
+    \\\`supplier_name\\\` VARCHAR(255) NOT NULL,
+    \\\`payment_term\\\` VARCHAR(50) NOT NULL DEFAULT 'Credit 30 Days',
+    \\\`ref_customer\\\` VARCHAR(255) NULL,
+    \\\`items\\\` JSON NULL,
+    \\\`subtotal\\\` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    \\\`vat_amount\\\` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    \\\`total_amount\\\` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    \\\`status\\\` ENUM('Draft', 'Approved', 'Issued', 'Partial Delivered', 'Delivered', 'Completed', 'Cancelled') NOT NULL DEFAULT 'Approved',
+    \\\`prepared_by\\\` VARCHAR(150) NULL,
+    \\\`approved_by\\\` VARCHAR(150) NULL,
+    \\\`approved_at\\\` DATETIME NULL,
+    \\\`created_at\\\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (\\\`supplier_id\\\`) REFERENCES \\\`suppliers\\\` (\\\`id\\\`) ON DELETE SET NULL,
+    FOREIGN KEY (\\\`pr_id\\\`) REFERENCES \\\`purchase_requests\\\` (\\\`id\\\`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 3. ใบวางบิล (Billing Notes - สูงสุด 10 รายการต่อใบ)
+CREATE TABLE IF NOT EXISTS \\\`billing_notes\\\` (
+    \\\`id\\\` VARCHAR(50) NOT NULL PRIMARY KEY,
+    \\\`billing_no\\\` VARCHAR(50) NOT NULL UNIQUE,
+    \\\`billing_date\\\` DATE NOT NULL,
+    \\\`customer_id\\\` VARCHAR(50) NULL,
+    \\\`customer_name\\\` VARCHAR(255) NOT NULL,
+    \\\`customer_address\\\` TEXT NULL,
+    \\\`customer_tax_id\\\` VARCHAR(50) NULL,
+    \\\`due_of_payment\\\` VARCHAR(50) NULL,
+    \\\`total_amount\\\` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    \\\`delivered_by\\\` VARCHAR(150) NULL,
+    \\\`received_by\\\` VARCHAR(150) NULL,
+    \\\`received_date\\\` VARCHAR(50) NULL,
+    \\\`notes\\\` TEXT NULL,
+    \\\`items\\\` JSON NULL,
+    \\\`status\\\` ENUM('Draft', 'Issued', 'Delivered', 'Collected', 'Cancelled', 'Overdue') NOT NULL DEFAULT 'Draft',
+    \\\`created_at\\\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS \\\`billing_note_items\\\` (
+    \\\`id\\\` VARCHAR(50) NOT NULL PRIMARY KEY,
+    \\\`billing_id\\\` VARCHAR(50) NOT NULL,
+    \\\`no\\\` TINYINT NOT NULL DEFAULT 1,
+    \\\`invoice_no\\\` VARCHAR(100) NOT NULL,
+    \\\`sales_order_no\\\` VARCHAR(100) NULL,
+    \\\`description\\\` TEXT NULL,
+    \\\`quantity\\\` DECIMAL(12, 2) NOT NULL DEFAULT 1.00,
+    \\\`unit\\\` VARCHAR(50) NOT NULL DEFAULT 'งาน',
+    \\\`unit_price\\\` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    \`amount\` DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
+    \`created_at\` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (\`billing_id\`) REFERENCES \`billing_notes\` (\`id\`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 `
   },
   {

@@ -56,7 +56,8 @@ export default function InvoiceView({
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
 
-  // Document Toggle Controls for professional PRINT template
+  // Document Toggle Controls for professional PRINT template (3 exact forms requested by user)
+  const [activeInvoiceTemplate, setActiveInvoiceTemplate] = useState<'TAX_INVOICE_ORIGINAL' | 'TAX_INVOICE_COPY' | 'RECEIPT'>('TAX_INVOICE_ORIGINAL');
   const [printDocType, setPrintDocType] = useState<'INVOICE / TAX INVOICE' | 'INVOICE' | 'DEBIT NOTE'>('INVOICE / TAX INVOICE');
   const [printWatermark, setPrintWatermark] = useState<'ORIGINAL' | 'COPY'>('ORIGINAL');
 
@@ -733,7 +734,7 @@ export default function InvoiceView({
                               type="text"
                               required
                               placeholder="เช่น Job, Set"
-                              value={item.unit || 'Job'}
+                              value={(item as any).unit || 'Job'}
                               onChange={(e) => handleItemFieldChange(idx, 'unit' as any, e.target.value)}
                               className="w-full border border-slate-200 bg-white rounded p-1 text-center focus:outline-none"
                             />
@@ -744,7 +745,7 @@ export default function InvoiceView({
                               required
                               min="0"
                               placeholder="0.00"
-                              value={item.unit_rate !== undefined ? item.unit_rate : (item as any).unit_price}
+                              value={(item as any).unit_rate !== undefined ? (item as any).unit_rate : (item as any).unit_price}
                               onChange={(e) => handleItemFieldChange(idx, 'unit_price', e.target.value)}
                               className="w-full border border-slate-200 bg-white rounded p-1 text-right font-mono font-bold focus:outline-none"
                             />
@@ -853,59 +854,70 @@ export default function InvoiceView({
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-3xs flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in print:bg-white print:p-0 print:absolute">
           <div className="bg-white rounded-2xl shadow-3xl w-full max-w-4xl overflow-hidden my-8 animate-scale-up print:shadow-none print:my-0 print:rounded-none">
             
-            {/* Control header with real watermarks and copy options */}
-            <div className="bg-slate-900 px-6 py-4 border-b border-slate-850 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
-              <span className="text-sm font-black text-white flex items-center gap-1.5 font-sans">
-                <FileText className="w-5 h-5 text-rose-500 animate-pulse" />
-                ใบแจ้งหนี้ / ใบกำกับภาษีต้นฉบับ ({viewingInvoice.invoice_no})
+            {/* Control header with 3 Exact Forms matching user request */}
+            <div className="bg-slate-900 px-6 py-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-4 print:hidden">
+              <span className="text-sm font-bold text-white flex items-center gap-2 font-sans">
+                <FileText className="w-5 h-5 text-rose-500" />
+                เอกสารสำหรับ Invoice: <span className="font-mono text-amber-400">{viewingInvoice.invoice_no}</span>
               </span>
               
-              {/* Document Option toggles */}
+              {/* 3 Form Templates requested by user */}
               <div className="flex flex-wrap items-center gap-2.5">
-                
-                {/* Doc Type Selector */}
-                <div className="bg-slate-850 p-1 rounded-lg flex items-center gap-1.5 border border-slate-700">
-                  <span className="text-[10px] text-slate-450 font-bold px-1.5">DOC TYPE:</span>
-                  {(['INVOICE / TAX INVOICE', 'INVOICE', 'DEBIT NOTE'] as const).map(dt => (
-                    <button
-                      key={dt}
-                      type="button"
-                      onClick={() => setPrintDocType(dt)}
-                      className={`text-[10px] px-2 py-1 rounded font-bold transition-all cursor-pointer ${
-                        printDocType === dt ? 'bg-rose-600 text-white' : 'text-slate-400 hover:bg-slate-800'
-                      }`}
-                    >
-                      {dt === 'INVOICE / TAX INVOICE' ? 'Tax Invoice / Delivery Note' : dt}
-                    </button>
-                  ))}
-                </div>
+                <div className="bg-slate-950 p-1 rounded-xl flex items-center gap-1 border border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveInvoiceTemplate('TAX_INVOICE_ORIGINAL');
+                      setPrintWatermark('ORIGINAL');
+                    }}
+                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                      activeInvoiceTemplate === 'TAX_INVOICE_ORIGINAL'
+                        ? 'bg-rose-600 text-white shadow'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                    }`}
+                  >
+                    Tax Invoice ORIGINAL
+                  </button>
 
-                {/* Original or Copy toggle */}
-                <div className="bg-slate-850 p-1 rounded-lg flex items-center gap-1.5 border border-slate-700">
-                  <span className="text-[10px] text-slate-450 font-bold px-1.5">STAMP:</span>
-                  {(['ORIGINAL', 'COPY'] as const).map(wt => (
-                    <button
-                      key={wt}
-                      type="button"
-                      onClick={() => setPrintWatermark(wt)}
-                      className={`text-[10px] px-2 py-1 rounded font-bold transition-all cursor-pointer ${
-                        printWatermark === wt ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:bg-slate-800'
-                      }`}
-                      style={{ backgroundColor: printWatermark === wt ? '#f59e0b' : '' }}
-                    >
-                      {wt}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveInvoiceTemplate('TAX_INVOICE_COPY');
+                      setPrintWatermark('COPY');
+                    }}
+                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                      activeInvoiceTemplate === 'TAX_INVOICE_COPY'
+                        ? 'bg-amber-600 text-white shadow'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                    }`}
+                  >
+                    Tax Invoice COPY
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveInvoiceTemplate('RECEIPT');
+                      setPrintWatermark('ORIGINAL');
+                    }}
+                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                      activeInvoiceTemplate === 'RECEIPT'
+                        ? 'bg-emerald-600 text-white shadow'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                    }`}
+                  >
+                    Receipt (ใบเสร็จรับเงิน)
+                  </button>
                 </div>
 
                 <button
                   onClick={handlePrint}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-2 px-4.5 rounded-lg text-xs cursor-pointer flex items-center gap-1 shadow-md shadow-blue-500/10"
+                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-xl text-xs cursor-pointer flex items-center gap-1.5 shadow"
                 >
                   <Printer className="w-4 h-4" />
                   พิมพ์ / Print PDF
                 </button>
-                <button onClick={() => setViewingInvoice(null)} className="p-2 bg-slate-800 border border-slate-700 text-slate-400 hover:text-white rounded-lg">
+                <button onClick={() => setViewingInvoice(null)} className="p-2 bg-slate-800 border border-slate-700 text-slate-400 hover:text-white rounded-xl">
                   <X className="w-4 h-4" />
                 </button>
               </div>
@@ -923,128 +935,153 @@ export default function InvoiceView({
               const issueDateStr = viewingInvoice.issue_date || "07-01-2026";
               const dueDateStr = viewingInvoice.due_date || "30 Days";
               const salespersonName = (viewingInvoice as any).salesperson_name || "Pronpicha";
-              const referencePoStr = (viewingInvoice as any).reference_po || "";
+              const referencePoStr = (viewingInvoice as any).reference_po || "PO2609001";
 
               const invoiceItemsList = viewingInvoice.items && viewingInvoice.items.length > 0 ? viewingInvoice.items : [
                 {
-                  description: `Sky Lotech High Lift\nBrand : Skyy Lotech\nModel : M-380X-200\n - Length : 200 Meter\n - Length : 200 Meter\n - Diameter : 1/2"`,
+                  description: `Sky Lotech High Lift\nBrand : Skyy Lotech\nModel : M-380X-200\n- Length : 200 Meter\n- Diameter : 1/2"`,
                   quantity: 1,
-                  unit_price: viewingInvoice.total_amount || 2800,
-                  amount: viewingInvoice.total_amount || 2800
+                  unit_price: viewingInvoice.total_amount || 38200,
+                  amount: viewingInvoice.total_amount || 38200
                 }
               ];
 
-              const subtotalVal = viewingInvoice.total_amount || 2800;
+              const subtotalVal = viewingInvoice.total_amount || 38200;
               const vatVal = viewingInvoice.vat_amount || Math.round(subtotalVal * 0.07);
               const grandTotalVal = viewingInvoice.grand_total || (subtotalVal + vatVal);
-
               const grandTotalInWords = numberToEnglishWords(grandTotalVal);
+
+              const isReceipt = activeInvoiceTemplate === 'RECEIPT';
+              const isCopy = activeInvoiceTemplate === 'TAX_INVOICE_COPY';
 
               return (
                 <div className="bg-white print:p-0 print:m-0 text-black font-sans w-[210mm] min-h-[297mm] mx-auto relative select-none p-8 md:p-10" style={{ fontFamily: 'Arial, sans-serif' }}>
                   {/* Top Header Row */}
-                  <div className="flex justify-between items-start mb-4">
+                  <div className="flex justify-between items-start mb-3">
                     {/* Left: Logo & Company Address */}
-                    <div className="flex items-start gap-3">
-                      <div className="w-[180px] shrink-0 pt-1">
-                        <img src="/mpower-logo.png" alt="M Power Logo" className="w-full h-auto object-contain" referrerPolicy="no-referrer" onError={(e) => { (e.target as HTMLImageElement).onerror=null; (e.target as HTMLImageElement).src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q'; }} />
+                    <div className="flex items-start gap-4">
+                      <div className="w-[180px] shrink-0 pt-0.5">
+                        <img 
+                          src="/mpower-logo.png" 
+                          alt="M Power Logo" 
+                          className="w-full h-auto object-contain" 
+                          referrerPolicy="no-referrer" 
+                          onError={(e) => { 
+                            (e.target as HTMLImageElement).onerror=null; 
+                            (e.target as HTMLImageElement).src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q'; 
+                          }} 
+                        />
                       </div>
-                      <div className="text-[11.5px] leading-snug text-black">
-                        <div className="font-bold text-[13px] text-black">M Power Engineering Solutions Co., Ltd.</div>
+                      <div className="text-[11px] leading-tight text-black">
+                        <div className="font-bold text-[12px] text-black">M Power Engineering Solutions Co., Ltd.</div>
                         <div>53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</div>
                         <div>Tel. 033-641789 / 063-9359565 Email: sales@mpower-engineering.com , info@mpower-engineering.com</div>
                         <div>Tax ID Number. 0205569006956 (Head office)</div>
                       </div>
                     </div>
 
-                    {/* Right: Watermark */}
+                    {/* Right: Watermark Tag */}
                     <div className="text-right">
-                      <div className="text-[#dc2626] font-bold text-lg tracking-wider uppercase">
-                        {printWatermark === 'ORIGINAL' ? 'ORIGINAL' : printWatermark}
+                      <div className="text-[#dc2626] font-bold text-base tracking-wider uppercase">
+                        {isCopy ? 'COPY' : 'ORIGINAL'}
                       </div>
                     </div>
                   </div>
 
                   {/* Document Title Centered */}
-                  <div className="text-center my-4">
-                    <h2 className="text-xl font-bold text-black uppercase tracking-wide">
-                      {printDocType === 'INVOICE / TAX INVOICE' ? 'Tax Invoice / Delivery Note' : printDocType}
+                  <div className="text-center my-3">
+                    <h2 className="text-lg font-bold text-black uppercase tracking-wide">
+                      {isReceipt ? 'Receipt' : 'Tax Invoice / Delivery Note'}
                     </h2>
                   </div>
 
-                  {/* Metadata Box (2 Columns with Outer Border) */}
-                  <div className="border border-black grid grid-cols-2 text-[12px] leading-relaxed">
+                  {/* Metadata Box (2 Columns with 1px Outer Border) */}
+                  <div className="border border-black grid grid-cols-2 text-[11px] leading-snug mb-3">
                     {/* Left Box: Customer Details */}
-                    <div className="p-3 border-r border-black space-y-0.5">
-                      <div className="font-bold text-[13px] text-black">{customerName}</div>
+                    <div className="p-2.5 border-r border-black space-y-0.5">
+                      <div className="font-bold text-[11.5px] text-black">{customerName}</div>
                       <div className="whitespace-pre-line">{customerAddress}</div>
-                      <div>Tel.{customerPhone}</div>
+                      <div>Tel. {customerPhone}</div>
                       <div>Tax ID: {customerTaxId} (Head Office)</div>
                     </div>
 
                     {/* Right Box: Invoice Metadata */}
-                    <div className="p-3 space-y-1 text-[12px]">
-                      <div className="flex"><span className="w-36 font-semibold">Tax Invoice No. :</span> <span className="font-bold">{invoiceNumberStr}</span></div>
-                      <div className="flex"><span className="w-36 font-semibold">Date :</span> <span>{issueDateStr}</span></div>
-                      <div className="flex"><span className="w-36 font-semibold">Due Date :</span> <span>{dueDateStr}</span></div>
-                      <div className="flex"><span className="w-36 font-semibold">Sales Name :</span> <span>{salespersonName}</span></div>
-                      <div className="flex"><span className="w-36 font-semibold">Customer PO Ref:</span> <span>{referencePoStr}</span></div>
+                    <div className="p-2.5 space-y-0.5 text-[11px]">
+                      {isReceipt ? (
+                        <>
+                          <div className="flex"><span className="w-36 font-bold">Receipt No. :</span> <span className="font-bold">{invoiceNumberStr}</span></div>
+                          <div className="flex"><span className="w-36 font-bold">Date :</span> <span>{issueDateStr}</span></div>
+                          <div className="flex"><span className="w-36 font-bold">Customer PO Ref:</span> <span>{referencePoStr}</span></div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex"><span className="w-36 font-bold">Tax Invoice No. :</span> <span className="font-bold">{invoiceNumberStr}</span></div>
+                          <div className="flex"><span className="w-36 font-bold">Date :</span> <span>{issueDateStr}</span></div>
+                          <div className="flex"><span className="w-36 font-bold">Due Date :</span> <span>{dueDateStr}</span></div>
+                          <div className="flex"><span className="w-36 font-bold">Sales Name :</span> <span>{salespersonName}</span></div>
+                          <div className="flex"><span className="w-36 font-bold">Customer PO Ref:</span> <span>{referencePoStr}</span></div>
+                        </>
+                      )}
                     </div>
                   </div>
 
-                  {/* Items Table with Full-Height Vertical Lines */}
-                  <div className="border border-black border-t-0 text-[12px] min-h-[460px] flex flex-col justify-between">
-                    <table className="w-full border-collapse h-full" style={{ tableLayout: 'fixed' }}>
+                  {/* Table with continuous vertical lines and 1 outer box */}
+                  <div className="border border-black mb-3" style={{ borderWidth: '1px' }}>
+                    <table className="w-full border-collapse text-black" style={{ tableLayout: 'fixed' }}>
                       <thead>
-                        <tr className="border-b border-black text-center font-bold text-[12px] bg-white">
-                          <th className="py-2 px-1 w-[12%] border-r border-black align-middle">Quantity</th>
-                          <th className="py-2 px-2 w-[56%] border-r border-black text-center align-middle">Drescription</th>
-                          <th className="py-2 px-2 w-[16%] border-r border-black align-middle">
-                            <div>Unit Price</div>
-                            <div className="font-bold text-[11px] mt-0.5">THB</div>
+                        <tr style={{ borderBottom: '1px solid #000000' }}>
+                          <th className="py-1.5 px-2 text-center font-bold text-[11px]" style={{ width: '12%', borderRight: '1px solid #000000' }}>
+                            Quantity
                           </th>
-                          <th className="py-2 px-2 w-[16%] align-middle">
-                            <div>Amount</div>
-                            <div className="font-bold text-[11px] mt-0.5">THB</div>
+                          <th className="py-1.5 px-3 text-center font-bold text-[11px]" style={{ width: '58%', borderRight: '1px solid #000000' }}>
+                            {isCopy ? 'Descriptions' : 'Drescription'}
+                          </th>
+                          <th className="py-1.5 px-2 text-center font-bold text-[11px]" style={{ width: '15%', borderRight: '1px solid #000000' }}>
+                            Unit Price (THB)
+                          </th>
+                          <th className="py-1.5 px-2 text-center font-bold text-[11px]" style={{ width: '15%' }}>
+                            Amount (THB)
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-none h-full">
+                      <tbody>
                         {invoiceItemsList.map((item, idx) => (
-                          <tr key={idx} className="align-top">
-                            <td className="py-3 px-1 text-center font-semibold border-r border-black">
+                          <tr key={idx} style={{ border: 'none' }}>
+                            <td style={{ borderRight: '1px solid #000000', padding: '6px 4px', textAlign: 'center', verticalAlign: 'top', fontFamily: 'monospace', fontWeight: 'bold', fontSize: '11px' }}>
                               {item.quantity}
                             </td>
-                            <td className="py-3 px-3 border-r border-black whitespace-pre-wrap leading-snug">
-                              <div className="font-bold text-black">{item.description.split('\n')[0]}</div>
+                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'left', verticalAlign: 'top', lineHeight: '1.35', fontSize: '11px' }}>
+                              <div className="font-bold text-black">
+                                {item.description.split('\n')[0]}
+                              </div>
                               {item.description.split('\n').slice(1).map((line, lIdx) => (
-                                <div key={lIdx} className="text-black font-normal">{line}</div>
+                                <div key={lIdx} className="text-black text-[10.5px]">{line}</div>
                               ))}
                             </td>
-                            <td className="py-3 px-3 text-right font-semibold border-r border-black">
-                              {(item.unit_rate !== undefined ? item.unit_rate : (item.unit_price || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'right', verticalAlign: 'top', fontFamily: 'monospace', fontSize: '11px' }}>
+                              {(item.unit_rate !== undefined ? item.unit_rate : (item.unit_price || 0)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
-                            <td className="py-3 px-3 text-right font-semibold">
-                              {(item.amount || ((item.quantity || 1) * (item.unit_price || 0))).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <td style={{ padding: '6px 8px', textAlign: 'right', verticalAlign: 'top', fontFamily: 'monospace', fontSize: '11px' }}>
+                              {(item.amount || ((item.quantity || 1) * (item.unit_price || 0))).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
                           </tr>
                         ))}
 
                         {/* Mid-table marker row */}
-                        <tr>
-                          <td className="py-6 border-r border-black"></td>
-                          <td className="py-6 border-r border-black text-center font-bold italic text-black tracking-wider">
+                        <tr style={{ border: 'none' }}>
+                          <td style={{ borderRight: '1px solid #000000', padding: '4px' }}></td>
+                          <td style={{ borderRight: '1px solid #000000', padding: '16px 8px 8px', textAlign: 'center', fontWeight: 'bold', fontStyle: 'italic', color: '#000000', fontSize: '10.5px', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
                             ** LAST ENTRY **
                           </td>
-                          <td className="py-6 border-r border-black"></td>
-                          <td className="py-6"></td>
+                          <td style={{ borderRight: '1px solid #000000', padding: '4px' }}></td>
+                          <td style={{ padding: '4px' }}></td>
                         </tr>
 
-                        {/* Filler row to force vertical column borders to reach bottom */}
-                        <tr className="h-full">
-                          <td className="border-r border-black"></td>
-                          <td className="border-r border-black"></td>
-                          <td className="border-r border-black"></td>
+                        {/* Stretch vertical lines to bottom */}
+                        <tr style={{ border: 'none', height: '140px' }}>
+                          <td style={{ borderRight: '1px solid #000000' }}></td>
+                          <td style={{ borderRight: '1px solid #000000' }}></td>
+                          <td style={{ borderRight: '1px solid #000000' }}></td>
                           <td></td>
                         </tr>
                       </tbody>
@@ -1052,63 +1089,114 @@ export default function InvoiceView({
                   </div>
 
                   {/* Totals Section */}
-                  <div className="border border-black border-t-0 flex text-[12px]">
+                  <div className="flex justify-between items-end mb-2">
                     {/* Left: Total Amount in Words inside a rectangular frame box */}
-                    <div className="w-[68%] border-r border-black p-2 flex items-center justify-center">
-                      <div className="w-full mx-2 border border-black py-1.5 px-3 text-center font-bold text-[11.5px] uppercase tracking-wide">
-                        {grandTotalInWords}
-                      </div>
+                    <div className="w-[68%] border border-black py-1.5 px-3 text-center text-[10px] font-bold uppercase tracking-wider text-black">
+                      {grandTotalInWords}
                     </div>
 
                     {/* Right: Amounts Summary Table */}
-                    <div className="w-[32%] text-[12px] font-semibold divide-y divide-black">
-                      <div className="flex justify-between px-3 py-1.5">
-                        <span>AMOUNT</span>
-                        <span className="font-bold">{subtotalVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between px-3 py-1.5">
-                        <span>SALES VAT 7%</span>
-                        <span className="font-bold">{vatVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      </div>
-                      <div className="flex justify-between px-3 py-1.5 font-bold">
-                        <span>TOTAL AMOUNT</span>
-                        <span className="font-bold">{grandTotalVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      </div>
+                    <div className="w-[30%]">
+                      <table className="w-full border-collapse text-[10.5px]">
+                        <tbody>
+                          <tr>
+                            <td className="py-1 px-2 text-right font-bold text-black uppercase text-[10px]">
+                              AMOUNT
+                            </td>
+                            <td className="w-[110px] py-1 px-2 border border-black text-right font-mono text-[10.5px] text-black">
+                              {subtotalVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 px-2 text-right font-bold text-black uppercase text-[10px]">
+                              SALES VAT 7%
+                            </td>
+                            <td className="w-[110px] py-1 px-2 border border-black text-right font-mono text-[10.5px] text-black">
+                              {vatVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="py-1 px-2 text-right font-bold text-black uppercase text-[10px]">
+                              TOTAL AMOUNT
+                            </td>
+                            <td className="w-[110px] py-1 px-2 border border-black text-right font-mono font-bold text-[10.5px] text-black">
+                              {grandTotalVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 
                   {/* Page indicator */}
-                  <div className="text-right text-[11px] font-bold mt-1 text-black">
+                  <div className="text-right text-[10px] font-bold text-black mb-1">
                     Page 1/1
                   </div>
 
-                  {/* Payment Method & Bank Instructions */}
-                  <div className="mt-4 text-[11.5px] leading-relaxed text-black">
-                    <div className="font-bold">Method of payment :</div>
-                    <div className="pl-4">Cheque or transfer under name M Power Engineering Solutions Co., Ltd.</div>
-                    <div className="pl-4">Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</div>
-                    <div className="mt-3 font-semibold text-[11px]">
-                      After your processing payment Please let us know and attach poof document to account.mpower-engineering.com or call number + 66 33 641 789
-                    </div>
-                  </div>
-
-                  {/* Signatures Section */}
-                  <div className="mt-12 grid grid-cols-2 text-center text-[11.5px] font-bold">
-                    <div className="flex flex-col items-center justify-end h-20">
-                      <div className="relative w-full flex flex-col items-center">
-                        <svg className="w-28 h-10 text-blue-700 opacity-90 -mb-2" viewBox="0 0 120 40">
-                          <path d="M 10 28 C 25 5, 45 35, 60 15 C 75 -5, 85 30, 110 20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-                        </svg>
-                        <div>......................................................</div>
-                        <div className="mt-1">PREPARE BY</div>
+                  {/* Form-Specific Bottom Section */}
+                  {isReceipt ? (
+                    <>
+                      {/* Receipt Method of payment & Cheque details */}
+                      <div className="mt-3 text-[11px] leading-relaxed text-black">
+                        <div className="font-bold">Payment Method:</div>
+                        <div className="pl-2">Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</div>
+                        <div className="grid grid-cols-4 gap-2 mt-2 pt-1 border-t border-slate-200">
+                          <div>Cheque No. : .......................</div>
+                          <div>Date : .......................</div>
+                          <div>Bank : .......................</div>
+                          <div>Amount : .......................</div>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex flex-col items-center justify-end h-20">
-                      <div>......................................................</div>
-                      <div className="mt-1">CUSTOMER APPRROVE BY</div>
-                    </div>
-                  </div>
+                      {/* Receipt Signatures */}
+                      <div className="mt-10 grid grid-cols-2 text-center text-[11px] font-bold text-black">
+                        <div className="flex flex-col items-center justify-end">
+                          <div>......................................................</div>
+                          <div className="mt-1">Cashier Of Collector</div>
+                          <div className="mt-1 text-slate-600 font-normal">Date : ..... / ..... / .....</div>
+                        </div>
+
+                        <div className="flex flex-col items-center justify-end">
+                          <div>......................................................</div>
+                          <div className="mt-1">Authorized Signature</div>
+                          <div className="mt-1 text-slate-600 font-normal">Date : ..... / ..... / .....</div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Tax Invoice Confirmation text */}
+                      <div className="text-[10.5px] text-black leading-snug mb-2 font-normal">
+                        {isCopy 
+                          ? "Above mentioned goods/services has been received in correct quantity and good conditon. Price show is accepted."
+                          : "We hereby confirm that the above-mentioned goods/services have been received in the correct quantity and good condition, and the price indicated is accepted."
+                        }
+                      </div>
+
+                      {/* Payment Method & Bank Instructions */}
+                      <div className="text-[10.5px] leading-relaxed text-black mb-6">
+                        <div className="font-bold">Method of payment :</div>
+                        <div className="pl-2">Cheque or transfer under name M Power Engineering Solutions Co., Ltd.</div>
+                        <div className="pl-2">Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</div>
+                        <div className="mt-1 text-slate-700">
+                          After your processing payment Please let us know and attach poof document to account.mpower-engineering.com or call number + 66 33 641 789
+                        </div>
+                      </div>
+
+                      {/* Signatures Section */}
+                      <div className="grid grid-cols-2 text-center text-[11px] font-bold text-black pt-2">
+                        <div className="flex flex-col items-center justify-end">
+                          <div>......................................................</div>
+                          <div className="mt-1">{isCopy ? 'Received By' : 'PREPARE BY'}</div>
+                        </div>
+
+                        <div className="flex flex-col items-center justify-end">
+                          <div>......................................................</div>
+                          <div className="mt-1">{isCopy ? 'Authorized Signature' : 'CUSTOMER APPRROVE BY'}</div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               );
             })()}

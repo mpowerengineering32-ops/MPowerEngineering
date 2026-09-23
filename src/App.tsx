@@ -32,10 +32,23 @@ import {
   Send,
   XCircle,
   Ban,
-  Bell
+  Bell,
+  Truck,
+  ShoppingBag,
+  Receipt,
+  Building,
+  Activity
 } from 'lucide-react';
 import { phpCodebase, PHPFile } from './data/phpCodebase';
 import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import SupplierManagement from './components/SupplierManagement';
+import PurchaseManagement from './components/PurchaseManagement';
+import BillingManagement from './components/BillingManagement';
+import StatusTrackerHub from './components/StatusTrackerHub';
+import SetupView from './components/SetupView';
+import ErrorBoundary from './components/ErrorBoundary';
+import { Supplier, PurchaseRequest, PurchaseOrder, BillingNote } from './types';
+import { CRMService, LocalDB } from './supabaseService';
 
 // Define Interface types for simulation state
 interface CustomerSim {
@@ -134,8 +147,170 @@ export default function App() {
     setLangState(newLang);
     localStorage.setItem('crm_lang', newLang);
   };
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [oppSubView, setOppSubView] = useState<'list' | 'kanban'>('list');
+  // Valid tabs and alias mapping for deep linking
+  const VALID_TABS = useMemo(() => [
+    'dashboard',
+    'status_tracker',
+    'customers',
+    'opportunities',
+    'quotations',
+    'invoices',
+    'billing',
+    'suppliers',
+    'pr_po',
+    'reports',
+    'setup'
+  ], []);
+
+  const parseTabFromHash = (rawHash: string): string | null => {
+    if (!rawHash) return null;
+    let clean = rawHash.replace(/^#+/, '').trim().toLowerCase();
+    if (!clean) return null;
+
+    // Strip query parameters
+    clean = clean.split('?')[0].split('&')[0];
+    const parts = clean.split('/').filter(Boolean);
+    const primary = parts[0] || '';
+
+    const validList = [
+      'dashboard',
+      'status_tracker',
+      'customers',
+      'opportunities',
+      'quotations',
+      'invoices',
+      'billing',
+      'suppliers',
+      'pr_po',
+      'reports',
+      'setup'
+    ];
+
+    if (validList.includes(primary)) {
+      return primary;
+    }
+
+    // Common alias and sub-tab mappings
+    const aliasMap: Record<string, string> = {
+      'status': 'status_tracker',
+      'status_tracker': 'status_tracker',
+      'status-tracker': 'status_tracker',
+      'tracker': 'status_tracker',
+      'workflow': 'status_tracker',
+      'queue': 'status_tracker',
+      'action-queue': 'status_tracker',
+      'action_queue': 'status_tracker',
+      'status-updates': 'status_tracker',
+      'status_updates': 'status_tracker',
+      'action-center': 'status_tracker',
+      'action_center': 'status_tracker',
+      'customer': 'customers',
+      'customer-masters': 'customers',
+      'clients': 'customers',
+      'opportunity': 'opportunities',
+      'opp': 'opportunities',
+      'opps': 'opportunities',
+      'deals': 'opportunities',
+      'pipeline': 'opportunities',
+      'quotation': 'quotations',
+      'quote': 'quotations',
+      'quotes': 'quotations',
+      'invoice': 'invoices',
+      'billing-invoices': 'invoices',
+      'billing': 'billing',
+      'billing-notes': 'billing',
+      'billing_notes': 'billing',
+      'billingnote': 'billing',
+      'billingnotes': 'billing',
+      'receipts': 'billing',
+      'supplier': 'suppliers',
+      'supplier-accounts': 'suppliers',
+      'supplier_accounts': 'suppliers',
+      'vendors': 'suppliers',
+      'vendor': 'suppliers',
+      'pr_po': 'pr_po',
+      'pr-po': 'pr_po',
+      'prpo': 'pr_po',
+      'pr': 'pr_po',
+      'po': 'pr_po',
+      'purchase': 'pr_po',
+      'purchasing': 'pr_po',
+      'procurement': 'pr_po',
+      'purchase-requests': 'pr_po',
+      'purchase-orders': 'pr_po',
+      'purchase_requests': 'pr_po',
+      'purchase_orders': 'pr_po',
+      'report': 'reports',
+      'analytics': 'reports',
+      'bi': 'reports',
+      'bi-reports': 'reports',
+      'setup': 'setup',
+      'database': 'setup',
+      'sql': 'setup',
+      'schema': 'setup',
+      'db-setup': 'setup',
+      'settings': 'setup',
+      'dashboard': 'dashboard',
+      'home': 'dashboard',
+      'main': 'dashboard'
+    };
+
+    if (aliasMap[primary]) {
+      return aliasMap[primary];
+    }
+
+    // Check if any sub-part matches a valid tab or alias
+    for (const part of parts) {
+      if (validList.includes(part)) return part;
+      if (aliasMap[part]) return aliasMap[part];
+    }
+
+    return null;
+  };
+
+  const [activeTab, setActiveTabState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const hashTab = parseTabFromHash(window.location.hash);
+      if (hashTab) {
+        return hashTab;
+      }
+    }
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('crm_active_tab') : null;
+    if (saved && [
+      'dashboard',
+      'status_tracker',
+      'customers',
+      'opportunities',
+      'quotations',
+      'invoices',
+      'billing',
+      'suppliers',
+      'pr_po',
+      'reports',
+      'setup'
+    ].includes(saved)) {
+      return saved;
+    }
+    return 'dashboard';
+  });
+
+  const setActiveTab = (tab: string) => {
+    setActiveTabState(tab);
+    localStorage.setItem('crm_active_tab', tab);
+    if (typeof window !== 'undefined') {
+      const currentClean = window.location.hash.replace(/^#+/, '');
+      if (currentClean !== tab) {
+        window.location.hash = tab;
+      }
+    }
+  };
+
+  const [oppSubView, setOppSubView] = useState<'list' | 'kanban'>(() => {
+    if (typeof window !== 'undefined' && window.location.hash.toLowerCase().includes('kanban')) {
+      return 'kanban';
+    }
+    return 'list';
+  });
 
   // Multi-language translation helper
   const t = {
@@ -144,22 +319,32 @@ export default function App() {
       app_title: 'M Power Engineering Solutions CRM',
       local_time: 'เวลาในระบบ',
       dashboard: 'แดชบอร์ดสรุปยอด',
+      status_tracker: 'ติดตามสถานะ & รายการอัปเดต',
       customers: 'ทะเบียนกลุ่มลูกค้า',
       opportunities: 'ดีลและงานประมูล',
       quotations: 'ระบบเสนอราคา',
       invoices: 'การเงิน / แจ้งหนี้',
-      reports: 'สรุปรายงาน BI'
+      suppliers: 'Supplier Accounts',
+      pr_po: 'PR / PO',
+      billing: 'ใบวางบิล',
+      reports: 'สรุปรายงาน BI',
+      setup: 'ตั้งค่าระบบ & สกีมา SQL'
     },
     EN: {
       welcome_hi: 'Welcome',
       app_title: 'M Power Engineering Solutions CRM',
       local_time: 'System Time',
       dashboard: 'Sales Dashboard',
+      status_tracker: 'Status & Workflow Hub',
       customers: 'Customer Masters',
       opportunities: 'Deals & Pipeline',
       quotations: 'Quotation Center',
       invoices: 'Billing & Invoices',
-      reports: 'Reports & Analytics'
+      suppliers: 'Supplier Accounts',
+      pr_po: 'PR / PO',
+      billing: 'Billing Notes',
+      reports: 'Reports & Analytics',
+      setup: 'Database & SQL Setup'
     }
   }[lang];
 
@@ -168,7 +353,7 @@ export default function App() {
   const userRole = 'Administrator';
   const userEmail = 'Apiyut.noeikhiaw@th.ikm.com';
 
-  // --- Clock tick simulation ---
+  // --- Clock tick simulation & Hash listener ---
   const [systemTime, setSystemTime] = useState<string>('');
   useEffect(() => {
     const updateTime = () => {
@@ -177,7 +362,24 @@ export default function App() {
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
+
+    const handleHashChange = () => {
+      const parsed = parseTabFromHash(window.location.hash);
+      if (parsed) {
+        setActiveTabState(parsed);
+      }
+      if (window.location.hash.toLowerCase().includes('kanban')) {
+        setOppSubView('kanban');
+      } else if (window.location.hash.toLowerCase().includes('list')) {
+        setOppSubView('list');
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('hashchange', handleHashChange);
+    };
   }, []);
 
   // --- Simulated Database Tables ---
@@ -236,6 +438,37 @@ export default function App() {
     { id: 1, action: 'ติดตั้งระบบฐานข้อมูล (Database Seeding)', fullname: 'Apiyut Noeikhiaw', role: 'Administrator', created_at: '2026-06-30 08:00:00', details: 'ผู้ดูแลระบบทำการอัปโหลดสกีมา SQL และตั้งค่าสิทธิของตระกูลสิทธิ์เรียบร้อย', target_type: 'system' },
     { id: 2, action: 'อัปเกรดความคืบหน้าดีล (Opportunity Updated)', fullname: 'Chaloempon Kittisak', role: 'Sales Representative', created_at: '2026-06-30 09:12:45', details: 'วิศวกร Chaloempon ทำการปรับสถานะโครงการของบริษัทไทยออยล์ เป็น [Won]', target_type: 'opportunity' }
   ]);
+
+  // --- Procurement & Billing States ---
+  const [suppliers, setSuppliers] = useState<Supplier[]>(() => LocalDB.getSuppliers());
+  const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>(() => LocalDB.getPurchaseRequests());
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => LocalDB.getPurchaseOrders());
+  const [billingNotes, setBillingNotes] = useState<BillingNote[]>(() => LocalDB.getBillingNotes());
+  const [isLoadingProcurement, setIsLoadingProcurement] = useState(false);
+
+  const fetchProcurementData = async () => {
+    setIsLoadingProcurement(true);
+    try {
+      const [sups, prs, pos, bls] = await Promise.all([
+        CRMService.getSuppliers(),
+        CRMService.getPurchaseRequests(),
+        CRMService.getPurchaseOrders(),
+        CRMService.getBillingNotes()
+      ]);
+      setSuppliers(sups);
+      setPurchaseRequests(prs);
+      setPurchaseOrders(pos);
+      setBillingNotes(bls);
+    } catch (err) {
+      console.warn('Procurement cloud sync skipped, using local data:', err);
+    } finally {
+      setIsLoadingProcurement(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProcurementData();
+  }, []);
 
   // --- Feedback Notification Toast State ---
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -721,6 +954,20 @@ export default function App() {
                     <span>{t.dashboard}</span>
                   </button>
 
+                  {/* Link: Status Tracker & Workflow Hub */}
+                  <button 
+                    onClick={() => { setActiveTab('status_tracker'); }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-tight transition-all text-left cursor-pointer ${activeTab === 'status_tracker' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
+                      <span>{t.status_tracker}</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800 px-1.5 py-0.2 rounded font-mono">
+                      {(billingNotes?.length || 0) + (suppliers?.length || 0) + (purchaseRequests?.length || 0) + (purchaseOrders?.length || 0)}
+                    </span>
+                  </button>
+
                   <span className="px-3 text-[9px] uppercase font-bold text-slate-500 tracking-wider block pt-4 mb-2">{lang === 'TH' ? 'นิติบุคคล & โครงการ' : 'CUSTOMERS & PROJECTS'}</span>
 
                   {/* Link 2: Customers */}
@@ -761,15 +1008,75 @@ export default function App() {
                     <span>{t.invoices}</span>
                   </button>
 
-                  <span className="px-3 text-[9px] uppercase font-bold text-slate-500 tracking-wider block pt-4 mb-2">{lang === 'TH' ? 'รายงาน' : 'REPORTS & BI'}</span>
+                  {/* Link 6: Billing Notes (ใบวางบิล) */}
+                  <button 
+                    onClick={() => { setActiveTab('billing'); }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-tight transition-all text-left cursor-pointer ${activeTab === 'billing' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Receipt className="w-4 h-4 text-cyan-400" />
+                      <span>{t.billing}</span>
+                    </div>
+                    {billingNotes.length > 0 && (
+                      <span className="text-[10px] bg-cyan-950/80 text-cyan-300 border border-cyan-800 px-1.5 py-0.2 rounded font-mono">
+                        {billingNotes.length}
+                      </span>
+                    )}
+                  </button>
 
-                  {/* Link 6: Reports */}
+                  <span className="px-3 text-[9px] uppercase font-bold text-slate-500 tracking-wider block pt-4 mb-2">{lang === 'TH' ? 'จัดซื้อ & ซัพพลายเออร์' : 'PROCUREMENT & PURCHASING'}</span>
+
+                  {/* Link 7: Supplier Accounts */}
+                  <button 
+                    onClick={() => { setActiveTab('suppliers'); }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-tight transition-all text-left cursor-pointer ${activeTab === 'suppliers' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Truck className="w-4 h-4 text-amber-400" />
+                      <span>{t.suppliers}</span>
+                    </div>
+                    {suppliers.length > 0 && (
+                      <span className="text-[10px] bg-amber-950/80 text-amber-300 border border-amber-800 px-1.5 py-0.2 rounded font-mono">
+                        {suppliers.length}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Link 8: PR / PO */}
+                  <button 
+                    onClick={() => { setActiveTab('pr_po'); }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-tight transition-all text-left cursor-pointer ${activeTab === 'pr_po' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <ShoppingBag className="w-4 h-4 text-teal-400" />
+                      <span>{t.pr_po}</span>
+                    </div>
+                    <span className="text-[10px] bg-teal-950/80 text-teal-300 border border-teal-800 px-1.5 py-0.2 rounded font-mono">
+                      {purchaseRequests.length}/{purchaseOrders.length}
+                    </span>
+                  </button>
+
+                  <span className="px-3 text-[9px] uppercase font-bold text-slate-500 tracking-wider block pt-4 mb-2">{lang === 'TH' ? 'รายงาน & ระบบ' : 'REPORTS & SYSTEM'}</span>
+
+                  {/* Link 9: Reports */}
                   <button 
                     onClick={() => { setActiveTab('reports'); }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold tracking-tight transition-all text-left cursor-pointer ${activeTab === 'reports' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'}`}
                   >
                     <BarChart4 className="w-4 h-4 text-amber-400" />
                     <span>{t.reports}</span>
+                  </button>
+
+                  {/* Link 10: Database Setup & SQL */}
+                  <button 
+                    onClick={() => { setActiveTab('setup'); }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-tight transition-all text-left cursor-pointer ${activeTab === 'setup' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Database className="w-4 h-4 text-emerald-400" />
+                      <span>{t.setup}</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800 px-1.5 py-0.5 rounded font-mono">SQL</span>
                   </button>
                 </div>
               </div>
@@ -1106,6 +1413,185 @@ export default function App() {
                         </div>
                       </div>
 
+                    </div>
+
+                    {/* Procurement & Billing Documents Summary Table with Colored Badges (3 modules) */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 mt-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800 mb-4">
+                        <div>
+                          <h3 className="text-sm font-black text-white flex items-center gap-2">
+                            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                            สรุปเอกสารการจัดซื้อและวางบิล (PR, PO, Billing Notes & Suppliers)
+                          </h3>
+                          <span className="text-[11px] text-slate-400">
+                            ติดตามความเคลื่อนไหวล่าสุดของเอกสารและสถานะแยกตามรหัสสีมาตรฐาน
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setActiveTab('pr_po')}
+                            className="px-3 py-1.5 bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                          >
+                            <ShoppingBag className="w-3 h-3 text-indigo-400" />
+                            PR / PO ({purchaseRequests.length + purchaseOrders.length})
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('billing')}
+                            className="px-3 py-1.5 bg-emerald-950 hover:bg-emerald-900 border border-emerald-800 text-emerald-300 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                          >
+                            <Receipt className="w-3 h-3 text-emerald-400" />
+                            ใบวางบิล ({billingNotes.length})
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('suppliers')}
+                            className="px-3 py-1.5 bg-amber-950 hover:bg-amber-900 border border-amber-800 text-amber-300 rounded-xl text-[11px] font-bold transition flex items-center gap-1 cursor-pointer"
+                          >
+                            <Building className="w-3 h-3 text-amber-400" />
+                            คู่ค้า ({suppliers.length})
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Unified Document Table with Color-Coded Statuses */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-[700px] text-xs">
+                          <thead>
+                            <tr className="border-b border-slate-800 text-slate-400 uppercase font-bold text-[10px] tracking-wider bg-slate-950/40">
+                              <th className="py-2.5 px-3">ประเภทเอกสาร</th>
+                              <th className="py-2.5 px-3">เลขที่เอกสาร</th>
+                              <th className="py-2.5 px-3">วันที่</th>
+                              <th className="py-2.5 px-3">คู่ค้า / ลูกค้า</th>
+                              <th className="py-2.5 px-3 text-right">ยอดเงินรวม</th>
+                              <th className="py-2.5 px-3 text-center">สถานะเอกสาร (Status)</th>
+                              <th className="py-2.5 px-3 text-right">เปิดดู</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800/60">
+                            {/* Purchase Requests */}
+                            {purchaseRequests.slice(0, 3).map(pr => (
+                              <tr key={pr.id} className="hover:bg-slate-800/40 transition">
+                                <td className="py-3 px-3">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-indigo-950 text-indigo-300 border border-indigo-800">
+                                    <FileText className="w-3 h-3 text-indigo-400" />
+                                    ใบขอซื้อ (PR)
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 font-mono font-bold text-indigo-400">{pr.pr_no}</td>
+                                <td className="py-3 px-3 font-mono text-slate-300">{(pr.required_date || pr.date || pr.created_at?.split('T')[0] || '-')}</td>
+                                <td className="py-3 px-3">
+                                  <div className="font-bold text-white">{pr.supplier_name}</div>
+                                  <div className="text-[10px] text-slate-500">ผู้ขอ: {pr.requested_by || '-'}</div>
+                                </td>
+                                <td className="py-3 px-3 text-right font-mono font-bold text-white">
+                                  ฿{pr.total_amount?.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                                </td>
+                                <td className="py-3 px-3 text-center">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-extrabold ${
+                                    pr.status === 'Approved' || pr.status === 'Converted to PO'
+                                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                                      : pr.status === 'Rejected'
+                                      ? 'bg-rose-950 text-rose-400 border border-rose-800'
+                                      : 'bg-amber-950 text-amber-400 border border-amber-800'
+                                  }`}>
+                                    {pr.status === 'Pending Approval' ? 'Pending (รออนุมัติ)' : pr.status}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 text-right">
+                                  <button
+                                    onClick={() => setActiveTab('pr_po')}
+                                    className="p-1 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded transition cursor-pointer"
+                                    title="ไปยังหน้า PR / PO"
+                                  >
+                                    <ArrowRight className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+
+                            {/* Purchase Orders */}
+                            {purchaseOrders.slice(0, 3).map(po => (
+                              <tr key={po.id} className="hover:bg-slate-800/40 transition">
+                                <td className="py-3 px-3">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-cyan-950 text-cyan-300 border border-cyan-800">
+                                    <ShoppingBag className="w-3 h-3 text-cyan-400" />
+                                    ใบสั่งซื้อ (PO)
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 font-mono font-bold text-cyan-400">{po.po_no}</td>
+                                <td className="py-3 px-3 font-mono text-slate-300">{po.order_date || po.po_date}</td>
+                                <td className="py-3 px-3">
+                                  <div className="font-bold text-white">{po.supplier_name}</div>
+                                  {po.pr_no && <div className="text-[10px] text-slate-500 font-mono">อ้างอิง: {po.pr_no}</div>}
+                                </td>
+                                <td className="py-3 px-3 text-right font-mono font-bold text-white">
+                                  ฿{po.total_amount?.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                                </td>
+                                <td className="py-3 px-3 text-center">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-extrabold ${
+                                    (po.status as string) === 'Completed' || (po.status as string) === 'Delivered' || (po.status as string) === 'Received'
+                                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                                      : po.status === 'Cancelled'
+                                      ? 'bg-rose-950 text-rose-400 border border-rose-800'
+                                      : 'bg-cyan-950 text-cyan-400 border border-cyan-800'
+                                  }`}>
+                                    {po.status}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 text-right">
+                                  <button
+                                    onClick={() => setActiveTab('pr_po')}
+                                    className="p-1 text-slate-400 hover:text-cyan-400 hover:bg-slate-800 rounded transition cursor-pointer"
+                                    title="ไปยังหน้า PR / PO"
+                                  >
+                                    <ArrowRight className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+
+                            {/* Billing Notes */}
+                            {billingNotes.slice(0, 3).map(bl => (
+                              <tr key={bl.id} className="hover:bg-slate-800/40 transition">
+                                <td className="py-3 px-3">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-black bg-emerald-950 text-emerald-300 border border-emerald-800">
+                                    <Receipt className="w-3 h-3 text-emerald-400" />
+                                    ใบวางบิล (BL)
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 font-mono font-bold text-emerald-400">{bl.billing_no}</td>
+                                <td className="py-3 px-3 font-mono text-slate-300">{bl.date}</td>
+                                <td className="py-3 px-3">
+                                  <div className="font-bold text-white">{bl.customer_name}</div>
+                                  <div className="text-[10px] text-slate-500 font-mono">กำหนดชำระ: {bl.due_of_payment}</div>
+                                </td>
+                                <td className="py-3 px-3 text-right font-mono font-bold text-white">
+                                  ฿{bl.total_amount?.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                                </td>
+                                <td className="py-3 px-3 text-center">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[10px] font-extrabold ${
+                                    bl.status === 'Paid'
+                                      ? 'bg-blue-950 text-blue-400 border border-blue-800'
+                                      : bl.status === 'Delivered'
+                                      ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                                      : 'bg-amber-950 text-amber-400 border border-amber-800'
+                                  }`}>
+                                    {bl.status}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 text-right">
+                                  <button
+                                    onClick={() => setActiveTab('billing')}
+                                    className="p-1 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded transition cursor-pointer"
+                                    title="ไปยังหน้าใบวางบิล"
+                                  >
+                                    <ArrowRight className="w-4 h-4" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
 
                     {/* Recent Activities Feed (Audit Trail) at the very bottom, stretching fully */}
@@ -1629,7 +2115,7 @@ export default function App() {
                                     )}
 
                                     {/* Action Convert to Sales Order */}
-                                    {(q.status === 'Approved' || q.status === 'Accepted') && (
+                                    {((q.status as string) === 'Approved' || (q.status as string) === 'Accepted') && (
                                       <button 
                                         onClick={async () => {
                                           if (!true) {
@@ -1677,7 +2163,7 @@ export default function App() {
                                             total_amount: q.grand_total,
                                             status: 'Pending' as const,
                                             order_date: new Date().toISOString().slice(0, 10),
-                                            sales_person: q.sales_person || q.sales_representative || null,
+                                            sales_person: (q as any).sales_person || (q as any).sales_representative || null,
                                             items: mappedItems
                                           };
 
@@ -1959,6 +2445,251 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+                )}
+
+                {/* ========================================== */}
+                {/* 6. SUPPLIER ACCOUNTS TAB VIEW              */}
+                {/* ========================================== */}
+                {activeTab === 'suppliers' && (
+                  <ErrorBoundary fallbackTitle="เกิดข้อผิดพลาดในการแสดงผลหน้า Supplier Accounts" onReset={fetchProcurementData}>
+                    <SupplierManagement
+                      suppliers={suppliers || []}
+                      purchaseRequests={purchaseRequests || []}
+                      purchaseOrders={purchaseOrders || []}
+                      onAdd={async (sup) => {
+                        const created = await CRMService.insertSupplier(sup);
+                        setSuppliers(prev => [created, ...(prev || [])]);
+                        showSimToast(`เพิ่มซัพพลายเออร์ ${created.supplier_name} สำเร็จ`, 'success');
+                        return created;
+                      }}
+                      onUpdate={async (id, updates) => {
+                        const updated = await CRMService.updateSupplier(id, updates);
+                        setSuppliers(prev => (prev || []).map(s => s.id === id ? updated : s));
+                        showSimToast(`อัปเดตข้อมูล ${updated.supplier_name} เรียบร้อย`, 'success');
+                        return updated;
+                      }}
+                      onDelete={async (id) => {
+                        await CRMService.deleteSupplier(id);
+                        setSuppliers(prev => (prev || []).filter(s => s.id !== id));
+                        showSimToast('ลบซัพพลายเออร์สำเร็จ', 'info');
+                        return true;
+                      }}
+                      onToast={(msg, type) => showSimToast(msg, type === 'err' ? 'error' : 'success')}
+                      currentRole={(userRole as any)}
+                      currentUserId="admin-1"
+                      onRefresh={fetchProcurementData}
+                      isLoading={isLoadingProcurement}
+                      onNavigateToPR={(supplierId) => {
+                        setActiveTab('pr_po');
+                      }}
+                    />
+                  </ErrorBoundary>
+                )}
+
+                {/* ========================================== */}
+                {/* 7. PR / PO TAB VIEW                        */}
+                {/* ========================================== */}
+                {activeTab === 'pr_po' && (
+                  <ErrorBoundary fallbackTitle="เกิดข้อผิดพลาดในการแสดงผลหน้า PR / PO" onReset={fetchProcurementData}>
+                    <PurchaseManagement
+                      purchaseRequests={purchaseRequests || []}
+                      purchaseOrders={purchaseOrders || []}
+                      suppliers={suppliers || []}
+                      customers={(customers || []) as any}
+                      onAddPR={async (pr) => {
+                        const created = await CRMService.insertPurchaseRequest(pr);
+                        setPurchaseRequests(prev => [created, ...(prev || [])]);
+                        showSimToast(`สร้างใบขอซื้อ ${created.pr_no} สำเร็จ`, 'success');
+                        return created;
+                      }}
+                      onUpdatePR={async (id, updates) => {
+                        const updated = await CRMService.updatePurchaseRequest(id, updates);
+                        setPurchaseRequests(prev => (prev || []).map(p => p.id === id ? updated : p));
+                        showSimToast(`อัปเดตใบขอซื้อ ${updated.pr_no} สำเร็จ`, 'success');
+                        return updated;
+                      }}
+                      onDeletePR={async (id) => {
+                        await CRMService.deletePurchaseRequest(id);
+                        setPurchaseRequests(prev => (prev || []).filter(p => p.id !== id));
+                        showSimToast('ลบใบขอซื้อสำเร็จ', 'info');
+                        return true;
+                      }}
+                      onApprovePRtoPO={async (prId) => {
+                        const roleStr = userRole as string;
+                        const isAdm = roleStr === 'Admin' || roleStr === 'Administrator' || roleStr === 'System Administrator';
+                        if (!isAdm) {
+                          showSimToast('ขออภัย การอนุมัติ PR เป็น PO ทำได้โดย admin เท่านั้น', 'error');
+                          throw new Error('Unauthorized');
+                        }
+                        try {
+                          const newPO = await CRMService.approvePRtoPO(prId, userFullname);
+                          setPurchaseOrders(prev => [newPO, ...(prev || [])]);
+                          setPurchaseRequests(prev => (prev || []).map(p => {
+                            if (p.id === prId) {
+                              return {
+                                ...p,
+                                status: 'Approved',
+                                approved_by: userFullname,
+                                approved_at: new Date().toISOString(),
+                                converted_po_id: newPO.id,
+                                converted_po_no: newPO.po_no
+                              };
+                            }
+                            return p;
+                          }));
+                          showSimToast(`อนุมัติ PR สำเร็จ ออกใบสั่งซื้อ ${newPO.po_no} โดย ${userFullname}`, 'success');
+                          return newPO;
+                        } catch (err: any) {
+                          showSimToast(err?.message || 'การอนุมัติล้มเหลว', 'error');
+                          throw err;
+                        }
+                      }}
+                      onAddPO={async (po) => {
+                        const created = await CRMService.insertPurchaseOrder(po);
+                        setPurchaseOrders(prev => [created, ...(prev || [])]);
+                        showSimToast(`สร้างใบสั่งซื้อ ${created.po_no} สำเร็จ`, 'success');
+                        return created;
+                      }}
+                      onUpdatePO={async (id, updates) => {
+                        const updated = await CRMService.updatePurchaseOrder(id, updates);
+                        setPurchaseOrders(prev => (prev || []).map(p => p.id === id ? updated : p));
+                        showSimToast(`อัปเดตใบสั่งซื้อ ${updated.po_no} สำเร็จ`, 'success');
+                        return updated;
+                      }}
+                      onDeletePO={async (id) => {
+                        await CRMService.deletePurchaseOrder(id);
+                        setPurchaseOrders(prev => (prev || []).filter(p => p.id !== id));
+                        showSimToast('ลบใบสั่งซื้อสำเร็จ', 'info');
+                        return true;
+                      }}
+                      onToast={(msg, type) => showSimToast(msg, type === 'err' ? 'error' : 'success')}
+                      currentRole={(userRole as any)}
+                      currentUserId="admin-1"
+                      currentUserFullname={userFullname}
+                      onRefresh={fetchProcurementData}
+                      isLoading={isLoadingProcurement}
+                    />
+                  </ErrorBoundary>
+                )}
+
+                {/* ========================================== */}
+                {/* 8. BILLING MANAGEMENT (ใบวางบิล) TAB VIEW   */}
+                {/* ========================================== */}
+                {activeTab === 'billing' && (
+                  <ErrorBoundary fallbackTitle="เกิดข้อผิดพลาดในการแสดงผลหน้า ใบวางบิล (Billing Notes)" onReset={fetchProcurementData}>
+                    <BillingManagement
+                      billingNotes={billingNotes || []}
+                      customers={(customers || []) as any}
+                      invoices={(invoices || []) as any}
+                      onAdd={async (b) => {
+                        const created = await CRMService.insertBillingNote(b);
+                        setBillingNotes(prev => [created, ...(prev || [])]);
+                        showSimToast(`สร้างใบวางบิล ${created.billing_no} สำเร็จ`, 'success');
+                        return created;
+                      }}
+                      onUpdate={async (id, updates) => {
+                        const updated = await CRMService.updateBillingNote(id, updates);
+                        setBillingNotes(prev => (prev || []).map(b => b.id === id ? updated : b));
+                        showSimToast(`อัปเดตใบวางบิล ${updated.billing_no} สำเร็จ`, 'success');
+                        return updated;
+                      }}
+                      onDelete={async (id) => {
+                        await CRMService.deleteBillingNote(id);
+                        setBillingNotes(prev => (prev || []).filter(b => b.id !== id));
+                        showSimToast('ลบใบวางบิลสำเร็จ', 'info');
+                        return true;
+                      }}
+                      onToast={(msg, type) => showSimToast(msg, type === 'err' ? 'error' : 'success')}
+                      currentRole={(userRole as any)}
+                      currentUserId="admin-1"
+                      onRefresh={fetchProcurementData}
+                      isLoading={isLoadingProcurement}
+                    />
+                  </ErrorBoundary>
+                )}
+
+                {/* ========================================== */}
+                {/* 8.5 STATUS & WORKFLOW HUB TAB VIEW        */}
+                {/* ========================================== */}
+                {activeTab === 'status_tracker' && (
+                  <ErrorBoundary fallbackTitle="เกิดข้อผิดพลาดในการแสดงผลหน้า ติดตามสถานะ & อัปเดตรายการ" onReset={fetchProcurementData}>
+                    <StatusTrackerHub
+                      billingNotes={billingNotes || []}
+                      suppliers={suppliers || []}
+                      purchaseRequests={purchaseRequests || []}
+                      purchaseOrders={purchaseOrders || []}
+                      onUpdateBilling={async (id, updates) => {
+                        const updated = await CRMService.updateBillingNote(id, updates);
+                        setBillingNotes(prev => (prev || []).map(b => b.id === id ? updated : b));
+                        showSimToast(`อัปเดตใบวางบิล ${updated.billing_no} สำเร็จ`, 'success');
+                        return updated;
+                      }}
+                      onUpdateSupplier={async (id, updates) => {
+                        const updated = await CRMService.updateSupplier(id, updates);
+                        setSuppliers(prev => (prev || []).map(s => s.id === id ? updated : s));
+                        showSimToast(`อัปเดตซัพพลายเออร์ ${updated.supplier_name} เรียบร้อย`, 'success');
+                        return updated;
+                      }}
+                      onUpdatePR={async (id, updates) => {
+                        const updated = await CRMService.updatePurchaseRequest(id, updates);
+                        setPurchaseRequests(prev => (prev || []).map(p => p.id === id ? updated : p));
+                        showSimToast(`อัปเดตใบขอซื้อ ${updated.pr_no} สำเร็จ`, 'success');
+                        return updated;
+                      }}
+                      onUpdatePO={async (id, updates) => {
+                        const updated = await CRMService.updatePurchaseOrder(id, updates);
+                        setPurchaseOrders(prev => (prev || []).map(p => p.id === id ? updated : p));
+                        showSimToast(`อัปเดตใบสั่งซื้อ ${updated.po_no} สำเร็จ`, 'success');
+                        return updated;
+                      }}
+                      onApprovePRtoPO={async (prId) => {
+                        const roleStr = userRole as string;
+                        const isAdm = roleStr === 'Admin' || roleStr === 'Administrator' || roleStr === 'System Administrator';
+                        if (!isAdm) {
+                          showSimToast('ขออภัย การอนุมัติ PR เป็น PO ทำได้โดย admin เท่านั้น', 'error');
+                          throw new Error('Unauthorized');
+                        }
+                        try {
+                          const newPO = await CRMService.approvePRtoPO(prId, userFullname);
+                          setPurchaseOrders(prev => [newPO, ...(prev || [])]);
+                          setPurchaseRequests(prev => (prev || []).map(p => {
+                            if (p.id === prId) {
+                              return {
+                                ...p,
+                                status: 'Approved',
+                                approved_by: userFullname,
+                                approved_at: new Date().toISOString(),
+                                converted_po_id: newPO.id,
+                                converted_po_no: newPO.po_no
+                              };
+                            }
+                            return p;
+                          }));
+                          showSimToast(`อนุมัติ PR สำเร็จ ออกใบสั่งซื้อ ${newPO.po_no} โดย ${userFullname}`, 'success');
+                          return newPO;
+                        } catch (err: any) {
+                          showSimToast(err?.message || 'การอนุมัติล้มเหลว', 'error');
+                          throw err;
+                        }
+                      }}
+                      onNavigateToTab={(tab) => {
+                        setActiveTab(tab);
+                      }}
+                      onToast={(msg, type) => showSimToast(msg, type === 'err' ? 'error' : 'success')}
+                      onRefresh={fetchProcurementData}
+                      isLoading={isLoadingProcurement}
+                    />
+                  </ErrorBoundary>
+                )}
+
+                {/* ========================================== */}
+                {/* 9. DATABASE SETUP & SQL SCHEMA TAB VIEW    */}
+                {/* ========================================== */}
+                {activeTab === 'setup' && (
+                  <SetupView 
+                    onToast={(msg, type) => showSimToast(msg, type === 'err' ? 'error' : 'success')}
+                    onConnectivityChange={fetchProcurementData}
+                  />
                 )}
 
               </div>
@@ -2536,9 +3267,9 @@ export default function App() {
                         selectedViewQuotation.items.map((item, index) => (
                           <tr key={index} className="text-slate-900" style={{ border: 'none' }}>
                             <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>{item.qty || 1}</td>
-                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', fontWeight: 'bold', verticalAlign: 'top' }}>{item.name || item.description || selectedViewQuotation.title}</td>
-                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', verticalAlign: 'top' }}>{(item.price || item.unit_rate || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                            <td style={{ padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>{((item.qty || 1) * (item.price || item.unit_rate || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', fontWeight: 'bold', verticalAlign: 'top' }}>{(item as any).name || (item as any).description || selectedViewQuotation.title}</td>
+                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', verticalAlign: 'top' }}>{((item as any).price || (item as any).unit_rate || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                            <td style={{ padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>{(((item as any).qty || 1) * ((item as any).price || (item as any).unit_rate || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                           </tr>
                         ))
                       ) : (

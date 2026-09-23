@@ -126,6 +126,27 @@ async function startServer() {
     res.json({ success: true, id: "new-id" });
   });
 
+  // Clean route rewrites for MPA pages
+  const htmlPages = [
+    'billing',
+    'suppliers',
+    'pr_po',
+    'invoices',
+    'customers',
+    'quotations',
+    'opportunities',
+    'leads',
+    'users',
+    'search',
+    'executive'
+  ];
+  htmlPages.forEach(p => {
+    app.get(`/${p}`, (req, res, next) => {
+      req.url = `/${p}.html`;
+      next();
+    });
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");

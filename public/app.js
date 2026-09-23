@@ -110,6 +110,9 @@ function injectSharedShell() {
       quotations: "Quotations",
       sales_orders: "Sales Orders",
       invoices: "Invoices & Billings",
+      billing: "Billing Notes (ใบวางบิล)",
+      suppliers: "Supplier Accounts",
+      pr_po: "PR / PO",
       support_desk: "Service Tickets",
       reports: "BI Reports",
       users: "Users & Permissions"
@@ -176,6 +179,30 @@ function injectSharedShell() {
                   <i class="fas fa-file-invoice text-indigo" style="font-size:0.92rem; width: 18px;"></i>
                   <span data-i18n="menu_invoices" style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.invoices}</span>
                   <span id="badge-invoices" class="badge bg-danger ms-auto font-sans font-bold d-none new-count-badge" style="font-size: 10px; border-radius: 12px; padding: 2.5px 6.5px;">0</span>
+                </a>
+              </li>
+
+              <!-- Billing Notes -->
+              <li class="nav-item">
+                <a href="billing.html" id="menu-billing" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-file-invoice-dollar text-info" style="font-size:0.92rem; width: 18px;"></i>
+                  <span style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.billing}</span>
+                </a>
+              </li>
+
+              <!-- Supplier Accounts -->
+              <li class="nav-item">
+                <a href="suppliers.html" id="menu-suppliers" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-truck text-warning" style="font-size:0.92rem; width: 18px;"></i>
+                  <span style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.suppliers}</span>
+                </a>
+              </li>
+
+              <!-- PR / PO -->
+              <li class="nav-item">
+                <a href="pr_po.html" id="menu-pr_po" class="nav-link px-3 py-1.8 d-flex align-items-center gap-2 rounded text-decoration-none text-white-50 hover-bg-light transition-all">
+                  <i class="fas fa-shopping-cart text-success" style="font-size:0.92rem; width: 18px;"></i>
+                  <span style="font-weight: 500; color: #f3f4f6; font-size: 0.82rem;">${menuTitles.pr_po}</span>
                 </a>
               </li>
 
@@ -591,12 +618,27 @@ function highlightActiveMenu() {
     }
   }
 
+  // Highlight top-level single sidebar links
+  document.querySelectorAll('.app-sidebar .nav-sidebar > .nav-item > .nav-link').forEach(el => {
+    const href = el.getAttribute('href');
+    if (href) {
+      const cleanHref = href.split('#')[0].split('?')[0];
+      if (cleanHref === page || (cleanHref === 'billing.html' && page === 'billing.html') || (cleanHref === 'suppliers.html' && page === 'suppliers.html') || (cleanHref === 'pr_po.html' && page === 'pr_po.html')) {
+        el.classList.add('active', 'bg-primary', 'text-white');
+        el.classList.remove('text-white-50');
+      }
+    }
+  });
+
   // Mobile navigation active highlight
   const mobileMap = {
     'index.html': 'm-nav-dashboard',
     'customers.html': 'm-nav-customers',
     'search.html': 'm-nav-search',
-    'invoices.html': 'm-nav-invoices'
+    'invoices.html': 'm-nav-invoices',
+    'billing.html': 'm-nav-invoices',
+    'suppliers.html': 'm-nav-customers',
+    'pr_po.html': 'm-nav-invoices'
   };
 
   const mobileActiveId = mobileMap[page];

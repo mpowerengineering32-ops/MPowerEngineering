@@ -1,4 +1,4 @@
-import { Customer, Opportunity, ContactPerson, OpportunityStatus, Activity, OpportunityActivity, OpportunityTask, OpportunityAttachment, AuditLog, Quotation, SalesOrder, DeliveryJob, Invoice, Receipt, Project } from './types';
+import { Customer, Opportunity, ContactPerson, OpportunityStatus, Activity, OpportunityActivity, OpportunityTask, OpportunityAttachment, AuditLog, Quotation, SalesOrder, DeliveryJob, Invoice, Receipt, Project, Supplier, PurchaseRequest, PurchaseOrder, BillingNote } from './types';
 
 export function ensureUUID(id: string): string {
   if (!id) return id;
@@ -1055,6 +1055,257 @@ const DEFAULT_PROJECTS: Project[] = [
   }
 ];
 
+const DEFAULT_SUPPLIERS: Supplier[] = [
+  {
+    id: 's1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
+    supplier_code: 'SUP-26001',
+    supplier_name: 'Thai Pipe & Fittings Co., Ltd.',
+    tax_id: '0105531001234',
+    address: '88/12 Moo 3, Bangna-Trad Km.18, Bang Chalong, Bang Phli, Samut Prakan 10540',
+    phone: '02-316-4455',
+    email: 'sales@thaipipefittings.com',
+    contact_person: 'คุณสมชาย วิทยาพงษ์',
+    payment_term: 'Credit 30 Days',
+    status: 'Active',
+    notes: 'ซัพพลายเออร์ท่อสตีลและข้อต่อคุณภาพสูง ได้รับมาตรฐาน API 5L / ASTM A106',
+    created_at: new Date('2026-01-10T08:00:00Z').toISOString()
+  },
+  {
+    id: 's2ef4942-83b3-4f9e-bbb4-7a0df47a0002',
+    supplier_code: 'SUP-26002',
+    supplier_name: 'Eastern Technical Safety Equipment Ltd.',
+    tax_id: '0215549005678',
+    address: '140 Sukhumvit Rd., Map Ta Phut, Mueang Rayong, Rayong 21150',
+    phone: '038-683-112',
+    email: 'contact@easternequip.co.th',
+    contact_person: 'คุณกนกวรรณ จิตต์ดี',
+    payment_term: 'Credit 45 Days',
+    status: 'Active',
+    notes: 'อุปกรณ์เซฟตี้ วาล์วอุตสาหกรรม และเกจวัดความดันสำหรับโรงงานปิโตรเคมี',
+    created_at: new Date('2026-01-15T09:00:00Z').toISOString()
+  },
+  {
+    id: 'sup_ebara',
+    supplier_code: 'SUP-26003',
+    supplier_name: 'EBARA (THAILAND) CO.,LTD.',
+    tax_id: '0105536109921',
+    address: '123/45 Bangna-Trad Road, Bangna, Bangkok 10260',
+    phone: '02-748-8900',
+    email: 'sales@ebara.co.th',
+    contact_person: 'คุณสมเกียรติ พุ่มพวง',
+    payment_term: 'Credit 30 Days',
+    status: 'Active',
+    notes: 'Official distributor of industrial pumps & mechanical seals',
+    created_at: new Date('2026-01-20T09:00:00Z').toISOString()
+  },
+  {
+    id: 'sup_swagelok',
+    supplier_code: 'SUP-26004',
+    supplier_name: 'SWAGELOK (THAILAND) CO., LTD.',
+    tax_id: '0105541018244',
+    address: '888/21 Moo 19, Bangplee Industrial Estate, Samutprakarn 10540',
+    phone: '02-316-2500',
+    email: 'info@swagelokthailand.com',
+    contact_person: 'คุณณัฐภัทร วัฒนสุข',
+    payment_term: 'Credit 30 Days',
+    status: 'Active',
+    notes: 'Instrumentation valves, fittings, and tubing solutions',
+    created_at: new Date('2026-02-10T10:30:00Z').toISOString()
+  }
+];
+
+const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
+  {
+    id: 'p1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
+    pr_no: 'PR 26-001',
+    required_date: '25-Oct-26',
+    due_date: '30 Days',
+    supplier_id: 's1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
+    supplier_name: 'Thai Pipe & Fittings Co., Ltd.',
+    supplier_address: '88/12 Moo 3, Bangna-Trad Km.18, Bang Chalong, Bang Phli, Samut Prakan 10540',
+    supplier_tax_id: '0105531001234',
+    supplier_phone: '02-316-4455',
+    supplier_attn: 'คุณสมชาย วิทยาพงษ์',
+    sales_name: 'Pronpicha',
+    requestor: 'Pronpicha',
+    requested_by: 'Pronpicha',
+    ref_customer: 'PTT Tank Project',
+    remarks: 'โครงการปรับปรุงระบบท่อส่งน้ำมันหล่อลื่น แพลนต์ 2',
+    delivery_note: 'คลังสินค้า M Power นิคมอุตสาหกรรมมาบตาพุด จ.ระยอง',
+    items: [
+      {
+        id: 'pri_1',
+        item_no: 1,
+        description: 'Carbon Steel Pipe Seamless Sch 40 2" x 6M (ASTM A106 Gr.B)',
+        qty: 10,
+        unit: 'LENGHT',
+        unit_price: 1200,
+        amount: 12000
+      },
+      {
+        id: 'pri_2',
+        item_no: 2,
+        description: 'Flange ANSI 150# RF WN 2" A105',
+        qty: 10,
+        unit: 'PCS',
+        unit_price: 650,
+        amount: 6500
+      }
+    ],
+    amount: 18500,
+    vat_amount: 1295,
+    total_amount: 19795,
+    status: 'Approved',
+    approved_by: 'Saranya (Admin)',
+    approved_at: '2026-09-01T14:30:00Z',
+    converted_po_id: 'o1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
+    converted_po_no: 'PO 26-001',
+    created_at: '2026-09-01T09:15:00Z'
+  },
+  {
+    id: 'pr_26002',
+    pr_no: 'PR 26-002',
+    required_date: '08-Sep-26',
+    due_date: '30 Days',
+    supplier_id: 'sup_ebara',
+    supplier_name: 'EBARA (THAILAND) CO.,LTD.',
+    supplier_address: '123/45 Bangna-Trad Road, Bangna, Bangkok 10260',
+    supplier_tax_id: '0105536109921',
+    supplier_phone: '02-748-8900',
+    supplier_attn: 'คุณสมเกียรติ พุ่มพวง',
+    sales_name: 'Pronpicha',
+    requestor: 'Pronpicha',
+    requested_by: 'Pronpicha',
+    ref_customer: 'SCG Rayong Site',
+    remarks: 'ปั๊มแรงดันสูงสำรองระบบดับเพลิงและระบบล้างท่อ',
+    delivery_note: 'จัดส่งที่ไซต์งาน Map Ta Phut Industrial Estate',
+    items: [
+      {
+        id: 'pri_3',
+        item_no: 1,
+        description: 'Multi-Stage High Pressure Pump (Model: 3M 50-200/15, 15kW, 380V)',
+        qty: 1,
+        unit: 'EA',
+        unit_price: 185000,
+        amount: 185000
+      }
+    ],
+    amount: 185000,
+    vat_amount: 12950,
+    total_amount: 197950,
+    status: 'Pending',
+    created_at: '2026-09-05T10:00:00Z'
+  }
+];
+
+const DEFAULT_PURCHASE_ORDERS: PurchaseOrder[] = [
+  {
+    id: 'o1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
+    po_no: 'PO 26-001',
+    pr_id: 'p1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
+    pr_no: 'PR 26-001',
+    date: '20-Oct-26',
+    due_date: '30 Days',
+    supplier_id: 's1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
+    supplier_name: 'Thai Pipe & Fittings Co., Ltd.',
+    supplier_address: '88/12 Moo 3, Bangna-Trad Km.18, Bang Chalong, Bang Phli, Samut Prakan 10540',
+    supplier_tax_id: '0105531001234',
+    supplier_phone: '02-316-4455',
+    supplier_attn: 'คุณสมชาย วิทยาพงษ์',
+    sales_name: 'Somkiat',
+    ref_customer: 'PTT Tank Project',
+    remarks: 'Deliver to site Map Ta Phut, Rayong',
+    delivery_note: 'คลังสินค้า M Power นิคมอุตสาหกรรมมาบตาพุด จ.ระยอง',
+    billing_delivery_date_note: 'วางบิลภายในวันที่ 25 ของเดือน ชำระทุกวันศุกร์สุดท้ายของเดือนถัดไป',
+    items: [
+      {
+        id: 'poi_1',
+        item_no: 1,
+        description: 'Carbon Steel Pipe Seamless Sch 40 2" x 6M (ASTM A106 Gr.B)',
+        qty: 10,
+        unit: 'LENGHT',
+        unit_price: 1200,
+        amount: 12000
+      },
+      {
+        id: 'poi_2',
+        item_no: 2,
+        description: 'Flange ANSI 150# RF WN 2" A105',
+        qty: 10,
+        unit: 'PCS',
+        unit_price: 650,
+        amount: 6500
+      }
+    ],
+    amount: 18500,
+    vat_amount: 1295,
+    total_amount: 19795,
+    status: 'Approved',
+    prepared_by: 'Pronpicha',
+    approved_by: 'Saranya (Admin)',
+    approved_at: '2026-09-01T14:30:00Z',
+    created_at: '2026-09-01T09:15:00Z'
+  }
+];
+
+const DEFAULT_BILLING_NOTES: BillingNote[] = [
+  {
+    id: 'b1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
+    billing_no: 'BL2607001',
+    date: '2026-07-02',
+    customer_id: 'c1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
+    customer_name: 'IKM Testing (Thailand) Co., Ltd',
+    customer_address: '789/28 Moo 1, Pinthong Industrial Estate 1, Nongkham, Sriracha, Chonburi 20110',
+    customer_tax_id: '0205544001928',
+    due_of_payment: '2026-08-01',
+    total_amount: 185000,
+    delivered_by: 'Saranya (Admin)',
+    delivered_date: '2026-07-02',
+    received_by: 'กิตติศักดิ์ พูลสวัสดิ์ (เจ้าหน้าที่การเงิน)',
+    received_date: '2026-07-03',
+    status: 'Delivered',
+    notes: 'ส่งมอบเอกสารวางบิลพร้อมหลักฐานส่งมอบงาน Hydrotesting ประจำรอบ',
+    created_at: '2026-07-02T10:00:00Z',
+    items: [
+      {
+        id: 'bli_1',
+        no: 1,
+        ref_no: 'SO-26001',
+        invoice_no: 'INV-2026-001',
+        date: '2026-07-02',
+        amount: 185000
+      }
+    ]
+  },
+  {
+    id: 'bl_26001',
+    billing_no: 'BL 26-001',
+    date: '2026-09-01',
+    customer_name: 'บริษัท พร้อมท์ โซลูชั่น จำกัด',
+    customer_address: '123/45 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพมหานคร 10110',
+    customer_tax_id: '0105558012345',
+    due_of_payment: '2026-09-15',
+    total_amount: 47080,
+    delivered_by: 'Saranya.',
+    delivered_date: '2026-09-01',
+    received_by: '',
+    received_date: '',
+    status: 'Delivered',
+    notes: 'เอกสารวางบิลรอบเดือนกันยายน',
+    created_at: '2026-09-01T10:00:00Z',
+    items: [
+      {
+        id: 'bli_2',
+        no: 1,
+        ref_no: '',
+        invoice_no: 'INV2609001',
+        date: '2026-09-01',
+        amount: 47080
+      }
+    ]
+  }
+];
+
 // Helper to query Supabase REST API
 async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<any> {
   const config = getSupabaseConfig();
@@ -1147,7 +1398,7 @@ async function apiFetch(endpoint: string, options: RequestInit = {}): Promise<an
 /**
  * Service to manage local database backup / fallback
  */
-class LocalDB {
+export class LocalDB {
   static getCustomers(): Customer[] {
     const data = localStorage.getItem('crm_customers');
     if (!data) {
@@ -1677,6 +1928,126 @@ class LocalDB {
       sales_order_id: ensureUUID(p.sales_order_id)
     }));
     localStorage.setItem('crm_projects', JSON.stringify(mapped));
+  }
+
+  static getSuppliers(): Supplier[] {
+    const data = localStorage.getItem('crm_suppliers');
+    if (!data) {
+      localStorage.setItem('crm_suppliers', JSON.stringify(DEFAULT_SUPPLIERS));
+      return DEFAULT_SUPPLIERS;
+    }
+    try {
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        localStorage.setItem('crm_suppliers', JSON.stringify(DEFAULT_SUPPLIERS));
+        return DEFAULT_SUPPLIERS;
+      }
+      const existingIds = new Set(parsed.map((s: any) => s.id));
+      const missing = DEFAULT_SUPPLIERS.filter(s => !existingIds.has(s.id));
+      if (missing.length > 0) {
+        const merged = [...parsed, ...missing];
+        localStorage.setItem('crm_suppliers', JSON.stringify(merged));
+        return merged;
+      }
+      return parsed;
+    } catch {
+      localStorage.setItem('crm_suppliers', JSON.stringify(DEFAULT_SUPPLIERS));
+      return DEFAULT_SUPPLIERS;
+    }
+  }
+
+  static saveSuppliers(suppliers: Supplier[]) {
+    localStorage.setItem('crm_suppliers', JSON.stringify(suppliers));
+  }
+
+  static getPurchaseRequests(): PurchaseRequest[] {
+    const data = localStorage.getItem('crm_purchase_requests');
+    if (!data) {
+      localStorage.setItem('crm_purchase_requests', JSON.stringify(DEFAULT_PURCHASE_REQUESTS));
+      return DEFAULT_PURCHASE_REQUESTS;
+    }
+    try {
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        localStorage.setItem('crm_purchase_requests', JSON.stringify(DEFAULT_PURCHASE_REQUESTS));
+        return DEFAULT_PURCHASE_REQUESTS;
+      }
+      const existingIds = new Set(parsed.map((p: any) => p.id));
+      const missing = DEFAULT_PURCHASE_REQUESTS.filter(p => !existingIds.has(p.id));
+      if (missing.length > 0) {
+        const merged = [...parsed, ...missing];
+        localStorage.setItem('crm_purchase_requests', JSON.stringify(merged));
+        return merged;
+      }
+      return parsed;
+    } catch {
+      localStorage.setItem('crm_purchase_requests', JSON.stringify(DEFAULT_PURCHASE_REQUESTS));
+      return DEFAULT_PURCHASE_REQUESTS;
+    }
+  }
+
+  static savePurchaseRequests(requests: PurchaseRequest[]) {
+    localStorage.setItem('crm_purchase_requests', JSON.stringify(requests));
+  }
+
+  static getPurchaseOrders(): PurchaseOrder[] {
+    const data = localStorage.getItem('crm_purchase_orders');
+    if (!data) {
+      localStorage.setItem('crm_purchase_orders', JSON.stringify(DEFAULT_PURCHASE_ORDERS));
+      return DEFAULT_PURCHASE_ORDERS;
+    }
+    try {
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        localStorage.setItem('crm_purchase_orders', JSON.stringify(DEFAULT_PURCHASE_ORDERS));
+        return DEFAULT_PURCHASE_ORDERS;
+      }
+      const existingIds = new Set(parsed.map((p: any) => p.id));
+      const missing = DEFAULT_PURCHASE_ORDERS.filter(p => !existingIds.has(p.id));
+      if (missing.length > 0) {
+        const merged = [...parsed, ...missing];
+        localStorage.setItem('crm_purchase_orders', JSON.stringify(merged));
+        return merged;
+      }
+      return parsed;
+    } catch {
+      localStorage.setItem('crm_purchase_orders', JSON.stringify(DEFAULT_PURCHASE_ORDERS));
+      return DEFAULT_PURCHASE_ORDERS;
+    }
+  }
+
+  static savePurchaseOrders(orders: PurchaseOrder[]) {
+    localStorage.setItem('crm_purchase_orders', JSON.stringify(orders));
+  }
+
+  static getBillingNotes(): BillingNote[] {
+    const data = localStorage.getItem('crm_billing_notes');
+    if (!data) {
+      localStorage.setItem('crm_billing_notes', JSON.stringify(DEFAULT_BILLING_NOTES));
+      return DEFAULT_BILLING_NOTES;
+    }
+    try {
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        localStorage.setItem('crm_billing_notes', JSON.stringify(DEFAULT_BILLING_NOTES));
+        return DEFAULT_BILLING_NOTES;
+      }
+      const existingIds = new Set(parsed.map((b: any) => b.id));
+      const missing = DEFAULT_BILLING_NOTES.filter(b => !existingIds.has(b.id));
+      if (missing.length > 0) {
+        const merged = [...parsed, ...missing];
+        localStorage.setItem('crm_billing_notes', JSON.stringify(merged));
+        return merged;
+      }
+      return parsed;
+    } catch {
+      localStorage.setItem('crm_billing_notes', JSON.stringify(DEFAULT_BILLING_NOTES));
+      return DEFAULT_BILLING_NOTES;
+    }
+  }
+
+  static saveBillingNotes(notes: BillingNote[]) {
+    localStorage.setItem('crm_billing_notes', JSON.stringify(notes));
   }
 }
 
@@ -3325,6 +3696,676 @@ export const CRMService = {
     const list = LocalDB.getProjects();
     LocalDB.saveProjects(list.filter(p => p.id !== id));
     return true;
+  },
+
+  // ==========================================
+  // SUPPLIER ACCOUNTS API
+  // ==========================================
+  async getSuppliers(): Promise<Supplier[]> {
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const data = await apiFetch('/suppliers?order=supplier_code.asc');
+        if (Array.isArray(data) && data.length > 0) {
+          LocalDB.saveSuppliers(data);
+          return data;
+        }
+      } catch (err) {
+        console.warn('Failed remote getSuppliers, using local data:', err);
+      }
+    }
+    return LocalDB.getSuppliers();
+  },
+
+  async insertSupplier(payload: Omit<Supplier, 'id' | 'created_at'>): Promise<Supplier> {
+    const list = LocalDB.getSuppliers();
+    const currentYearShort = new Date().getFullYear().toString().substring(2);
+    let code = payload.supplier_code;
+    if (!code) {
+      const matches = list.filter(s => s.supplier_code?.startsWith(`SUP-${currentYearShort}`));
+      let nextSeq = 1;
+      if (matches.length > 0) {
+        const maxSeq = matches.reduce((max, s) => {
+          const num = parseInt(s.supplier_code.replace(`SUP-${currentYearShort}`, ''), 10);
+          return !isNaN(num) && num > max ? num : max;
+        }, 0);
+        nextSeq = maxSeq + 1;
+      }
+      code = `SUP-${currentYearShort}${String(nextSeq).padStart(3, '0')}`;
+    }
+
+    const newSupplier: Supplier = {
+      ...payload,
+      id: crypto.randomUUID(),
+      supplier_code: code,
+      created_at: new Date().toISOString()
+    };
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const responseList = await apiFetch('/suppliers', {
+          method: 'POST',
+          headers: { 'Prefer': 'return=representation' },
+          body: JSON.stringify({
+            id: newSupplier.id,
+            supplier_code: newSupplier.supplier_code,
+            supplier_name: newSupplier.supplier_name,
+            tax_id: newSupplier.tax_id || null,
+            address: newSupplier.address || null,
+            phone: newSupplier.phone || null,
+            email: newSupplier.email || null,
+            contact_person: newSupplier.contact_person || null,
+            payment_term: newSupplier.payment_term || 'Credit 30 Days',
+            status: newSupplier.status || 'Active',
+            notes: newSupplier.notes || null,
+            created_at: newSupplier.created_at
+          })
+        });
+        if (responseList && responseList[0]) {
+          const cloudOut = responseList[0];
+          const updated = [cloudOut, ...list.filter(s => s.id !== cloudOut.id)];
+          LocalDB.saveSuppliers(updated);
+          return cloudOut;
+        }
+      } catch (err) {
+        console.warn('Failed cloud insertSupplier, fallback local:', err);
+      }
+    }
+
+    const updated = [newSupplier, ...list];
+    LocalDB.saveSuppliers(updated);
+    return newSupplier;
+  },
+
+  async updateSupplier(id: string, updates: Partial<Supplier>): Promise<Supplier> {
+    const list = LocalDB.getSuppliers();
+    const updated = list.map(s => s.id === id ? { ...s, ...updates } : s);
+    LocalDB.saveSuppliers(updated);
+    const found = updated.find(s => s.id === id);
+    if (!found) throw new Error('Supplier not found');
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const body: any = { ...updates, updated_at: new Date().toISOString() };
+        delete body.id;
+        delete body.created_at;
+        await apiFetch(`/suppliers?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: { 'Prefer': 'return=representation' },
+          body: JSON.stringify(body)
+        });
+      } catch (err) {
+        console.warn('Failed cloud updateSupplier, updated locally:', err);
+      }
+    }
+
+    return found;
+  },
+
+  async deleteSupplier(id: string): Promise<boolean> {
+    const list = LocalDB.getSuppliers();
+    LocalDB.saveSuppliers(list.filter(s => s.id !== id));
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        await apiFetch(`/suppliers?id=eq.${id}`, { method: 'DELETE' });
+      } catch (err) {
+        console.warn('Failed cloud deleteSupplier, deleted locally:', err);
+      }
+    }
+
+    return true;
+  },
+
+  // ==========================================
+  // PR / PO (PURCHASE REQUESTS & ORDERS) API
+  // ==========================================
+  async getPurchaseRequests(): Promise<PurchaseRequest[]> {
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const data = await apiFetch('/purchase_requests?order=created_at.desc');
+        if (Array.isArray(data) && data.length > 0) {
+          const parsed = data.map((item: any) => ({
+            ...item,
+            items: typeof item.items === 'string' ? JSON.parse(item.items) : (item.items || [])
+          }));
+          LocalDB.savePurchaseRequests(parsed);
+          return parsed;
+        }
+      } catch (err) {
+        console.warn('Failed remote getPurchaseRequests, using local data:', err);
+      }
+    }
+    return LocalDB.getPurchaseRequests();
+  },
+
+  async insertPurchaseRequest(payload: Omit<PurchaseRequest, 'id' | 'created_at'>): Promise<PurchaseRequest> {
+    const list = LocalDB.getPurchaseRequests();
+    const currentYearShort = new Date().getFullYear().toString().substring(2);
+    let prNo = payload.pr_no;
+    if (!prNo) {
+      const matches = list.filter(p => p.pr_no.startsWith(`PR ${currentYearShort}-`));
+      let nextSeq = 1;
+      if (matches.length > 0) {
+        const maxSeq = matches.reduce((max, p) => {
+          const num = parseInt(p.pr_no.replace(`PR ${currentYearShort}-`, ''), 10);
+          return !isNaN(num) && num > max ? num : max;
+        }, 0);
+        nextSeq = maxSeq + 1;
+      }
+      prNo = `PR ${currentYearShort}-${String(nextSeq).padStart(3, '0')}`;
+    }
+
+    const newPR: PurchaseRequest = {
+      ...payload,
+      id: crypto.randomUUID(),
+      pr_no: prNo,
+      status: payload.status || 'Pending',
+      created_at: new Date().toISOString()
+    };
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const responseList = await apiFetch('/purchase_requests', {
+          method: 'POST',
+          headers: { 'Prefer': 'return=representation' },
+          body: JSON.stringify({
+            id: newPR.id,
+            pr_no: newPR.pr_no,
+            required_date: newPR.required_date || null,
+            due_date: newPR.due_date || null,
+            supplier_id: newPR.supplier_id || null,
+            supplier_name: newPR.supplier_name || null,
+            supplier_address: newPR.supplier_address || null,
+            supplier_tax_id: newPR.supplier_tax_id || null,
+            supplier_phone: newPR.supplier_phone || null,
+            supplier_attn: newPR.supplier_attn || null,
+            sales_name: newPR.sales_name || null,
+            requestor: newPR.requestor,
+            requested_by: newPR.requested_by || newPR.requestor,
+            ref_customer: newPR.ref_customer || null,
+            remarks: newPR.remarks || null,
+            delivery_note: newPR.delivery_note || null,
+            items: newPR.items || [],
+            amount: Number(newPR.amount) || 0,
+            vat_amount: Number(newPR.vat_amount) || 0,
+            total_amount: Number(newPR.total_amount) || 0,
+            status: newPR.status || 'Pending',
+            created_at: newPR.created_at
+          })
+        });
+        if (responseList && responseList[0]) {
+          const cloudOut = {
+            ...responseList[0],
+            items: newPR.items
+          };
+          const updated = [cloudOut, ...list.filter(p => p.id !== cloudOut.id)];
+          LocalDB.savePurchaseRequests(updated);
+          return cloudOut;
+        }
+      } catch (err) {
+        console.warn('Failed cloud insertPurchaseRequest, fallback local:', err);
+      }
+    }
+
+    const updated = [newPR, ...list];
+    LocalDB.savePurchaseRequests(updated);
+    return newPR;
+  },
+
+  async updatePurchaseRequest(id: string, updates: Partial<PurchaseRequest>): Promise<PurchaseRequest> {
+    const list = LocalDB.getPurchaseRequests();
+    const updated = list.map(p => p.id === id ? { ...p, ...updates } : p);
+    LocalDB.savePurchaseRequests(updated);
+    const found = updated.find(p => p.id === id);
+    if (!found) throw new Error('Purchase Request not found');
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const body: any = { ...updates, updated_at: new Date().toISOString() };
+        delete body.id;
+        delete body.created_at;
+        await apiFetch(`/purchase_requests?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: { 'Prefer': 'return=representation' },
+          body: JSON.stringify(body)
+        });
+      } catch (err) {
+        console.warn('Failed cloud updatePurchaseRequest, updated locally:', err);
+      }
+    }
+
+    return found;
+  },
+
+  async deletePurchaseRequest(id: string): Promise<boolean> {
+    const list = LocalDB.getPurchaseRequests();
+    LocalDB.savePurchaseRequests(list.filter(p => p.id !== id));
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        await apiFetch(`/purchase_requests?id=eq.${id}`, { method: 'DELETE' });
+      } catch (err) {
+        console.warn('Failed cloud deletePurchaseRequest, deleted locally:', err);
+      }
+    }
+
+    return true;
+  },
+
+  async getPurchaseOrders(): Promise<PurchaseOrder[]> {
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const data = await apiFetch('/purchase_orders?order=created_at.desc');
+        if (Array.isArray(data) && data.length > 0) {
+          const parsed = data.map((item: any) => ({
+            ...item,
+            items: typeof item.items === 'string' ? JSON.parse(item.items) : (item.items || [])
+          }));
+          LocalDB.savePurchaseOrders(parsed);
+          return parsed;
+        }
+      } catch (err) {
+        console.warn('Failed remote getPurchaseOrders, using local data:', err);
+      }
+    }
+    return LocalDB.getPurchaseOrders();
+  },
+
+  async insertPurchaseOrder(payload: Omit<PurchaseOrder, 'id' | 'created_at'>): Promise<PurchaseOrder> {
+    const list = LocalDB.getPurchaseOrders();
+    const currentYearShort = new Date().getFullYear().toString().substring(2);
+    let poNo = payload.po_no;
+    if (!poNo) {
+      const matches = list.filter(p => p.po_no.startsWith(`PO ${currentYearShort}-`));
+      let nextSeq = 1;
+      if (matches.length > 0) {
+        const maxSeq = matches.reduce((max, p) => {
+          const num = parseInt(p.po_no.replace(`PO ${currentYearShort}-`, ''), 10);
+          return !isNaN(num) && num > max ? num : max;
+        }, 0);
+        nextSeq = maxSeq + 1;
+      }
+      poNo = `PO ${currentYearShort}-${String(nextSeq).padStart(3, '0')}`;
+    }
+
+    const newPO: PurchaseOrder = {
+      ...payload,
+      id: crypto.randomUUID(),
+      po_no: poNo,
+      created_at: new Date().toISOString()
+    };
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const responseList = await apiFetch('/purchase_orders', {
+          method: 'POST',
+          headers: { 'Prefer': 'return=representation' },
+          body: JSON.stringify({
+            id: newPO.id,
+            po_no: newPO.po_no,
+            pr_id: newPO.pr_id || null,
+            pr_no: newPO.pr_no || null,
+            date: newPO.date,
+            due_date: newPO.due_date || null,
+            supplier_id: newPO.supplier_id || null,
+            supplier_name: newPO.supplier_name,
+            supplier_address: newPO.supplier_address || null,
+            supplier_tax_id: newPO.supplier_tax_id || null,
+            supplier_phone: newPO.supplier_phone || null,
+            supplier_attn: newPO.supplier_attn || null,
+            sales_name: newPO.sales_name || null,
+            ref_customer: newPO.ref_customer || null,
+            remarks: newPO.remarks || null,
+            delivery_note: newPO.delivery_note || null,
+            billing_delivery_date_note: newPO.billing_delivery_date_note || null,
+            items: newPO.items || [],
+            amount: Number(newPO.amount) || 0,
+            vat_amount: Number(newPO.vat_amount) || 0,
+            total_amount: Number(newPO.total_amount) || 0,
+            status: newPO.status || 'Approved',
+            prepared_by: newPO.prepared_by || null,
+            approved_by: newPO.approved_by || null,
+            approved_at: newPO.approved_at || null,
+            created_at: newPO.created_at
+          })
+        });
+        if (responseList && responseList[0]) {
+          const cloudOut = {
+            ...responseList[0],
+            items: newPO.items
+          };
+          const updated = [cloudOut, ...list.filter(p => p.id !== cloudOut.id)];
+          LocalDB.savePurchaseOrders(updated);
+          return cloudOut;
+        }
+      } catch (err) {
+        console.warn('Failed cloud insertPurchaseOrder, fallback local:', err);
+      }
+    }
+
+    const updated = [newPO, ...list];
+    LocalDB.savePurchaseOrders(updated);
+    return newPO;
+  },
+
+  async updatePurchaseOrder(id: string, updates: Partial<PurchaseOrder>): Promise<PurchaseOrder> {
+    const list = LocalDB.getPurchaseOrders();
+    const updated = list.map(p => p.id === id ? { ...p, ...updates } : p);
+    LocalDB.savePurchaseOrders(updated);
+    const found = updated.find(p => p.id === id);
+    if (!found) throw new Error('Purchase Order not found');
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const body: any = { ...updates, updated_at: new Date().toISOString() };
+        delete body.id;
+        delete body.created_at;
+        await apiFetch(`/purchase_orders?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: { 'Prefer': 'return=representation' },
+          body: JSON.stringify(body)
+        });
+      } catch (err) {
+        console.warn('Failed cloud updatePurchaseOrder, updated locally:', err);
+      }
+    }
+
+    return found;
+  },
+
+  async deletePurchaseOrder(id: string): Promise<boolean> {
+    const list = LocalDB.getPurchaseOrders();
+    LocalDB.savePurchaseOrders(list.filter(p => p.id !== id));
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        await apiFetch(`/purchase_orders?id=eq.${id}`, { method: 'DELETE' });
+      } catch (err) {
+        console.warn('Failed cloud deletePurchaseOrder, deleted locally:', err);
+      }
+    }
+
+    return true;
+  },
+
+  /**
+   * Approve PR to PO: Admin only
+   */
+  async approvePRtoPO(prId: string, adminName: string): Promise<PurchaseOrder> {
+    const prList = LocalDB.getPurchaseRequests();
+    const pr = prList.find(p => p.id === prId);
+    if (!pr) throw new Error('Purchase Request not found');
+
+    const poList = LocalDB.getPurchaseOrders();
+    const currentYearShort = new Date().getFullYear().toString().substring(2);
+    const matches = poList.filter(p => p.po_no.startsWith(`PO ${currentYearShort}-`));
+    let nextSeq = 1;
+    if (matches.length > 0) {
+      const maxSeq = matches.reduce((max, p) => {
+        const num = parseInt(p.po_no.replace(`PO ${currentYearShort}-`, ''), 10);
+        return !isNaN(num) && num > max ? num : max;
+      }, 0);
+      nextSeq = maxSeq + 1;
+    }
+    const newPoNo = `PO ${currentYearShort}-${String(nextSeq).padStart(3, '0')}`;
+    const newPoId = crypto.randomUUID();
+    const nowIso = new Date().toISOString();
+
+    const newPO: PurchaseOrder = {
+      id: newPoId,
+      po_no: newPoNo,
+      pr_id: pr.id,
+      pr_no: pr.pr_no,
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }).replace(/ /g, '-'),
+      due_date: pr.due_date || '30 Days',
+      supplier_id: pr.supplier_id || '',
+      supplier_name: pr.supplier_name || '',
+      supplier_address: pr.supplier_address || '',
+      supplier_tax_id: pr.supplier_tax_id || '',
+      supplier_phone: pr.supplier_phone || '',
+      supplier_attn: pr.supplier_attn || '',
+      sales_name: pr.sales_name || pr.requestor,
+      ref_customer: pr.ref_customer || '',
+      remarks: pr.remarks || '',
+      delivery_note: pr.delivery_note || '',
+      billing_delivery_date_note: 'วางบิลภายในวันที่ 25 ของเดือน ชำระทุกวันศุกร์สุดท้ายของเดือน',
+      items: pr.items.map(i => ({ ...i })),
+      amount: pr.amount,
+      vat_amount: pr.vat_amount,
+      total_amount: pr.total_amount,
+      status: 'Approved',
+      prepared_by: pr.requestor,
+      approved_by: adminName,
+      approved_at: nowIso,
+      created_at: nowIso
+    };
+
+    // Update PR in local
+    const updatedPrList = prList.map(p => {
+      if (p.id === prId) {
+        return {
+          ...p,
+          status: 'Approved' as const,
+          approved_by: adminName,
+          approved_at: nowIso,
+          converted_po_id: newPoId,
+          converted_po_no: newPoNo
+        };
+      }
+      return p;
+    });
+
+    LocalDB.savePurchaseRequests(updatedPrList);
+    LocalDB.savePurchaseOrders([newPO, ...poList]);
+
+    // Attempt cloud synchronization
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        // 1. Update PR in Supabase
+        await apiFetch(`/purchase_requests?id=eq.${prId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: 'Approved',
+            approved_by: adminName,
+            approved_at: nowIso,
+            converted_po_id: newPoId,
+            converted_po_no: newPoNo,
+            updated_at: nowIso
+          })
+        });
+
+        // 2. Insert PO in Supabase
+        await apiFetch('/purchase_orders', {
+          method: 'POST',
+          body: JSON.stringify({
+            id: newPO.id,
+            po_no: newPO.po_no,
+            pr_id: newPO.pr_id,
+            pr_no: newPO.pr_no,
+            date: newPO.date,
+            due_date: newPO.due_date,
+            supplier_id: newPO.supplier_id || null,
+            supplier_name: newPO.supplier_name,
+            supplier_address: newPO.supplier_address,
+            supplier_tax_id: newPO.supplier_tax_id,
+            supplier_phone: newPO.supplier_phone,
+            supplier_attn: newPO.supplier_attn,
+            sales_name: newPO.sales_name,
+            ref_customer: newPO.ref_customer,
+            remarks: newPO.remarks,
+            delivery_note: newPO.delivery_note,
+            billing_delivery_date_note: newPO.billing_delivery_date_note,
+            items: newPO.items,
+            amount: Number(newPO.amount) || 0,
+            vat_amount: Number(newPO.vat_amount) || 0,
+            total_amount: Number(newPO.total_amount) || 0,
+            status: 'Approved',
+            prepared_by: newPO.prepared_by,
+            approved_by: newPO.approved_by,
+            approved_at: nowIso,
+            created_at: nowIso
+          })
+        });
+      } catch (err) {
+        console.warn('Failed cloud sync on approvePRtoPO, local backup saved:', err);
+      }
+    }
+
+    return newPO;
+  },
+
+  // ==========================================
+  // BILLING NOTES (ใบวางบิล) API
+  // ==========================================
+  async getBillingNotes(): Promise<BillingNote[]> {
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const data = await apiFetch('/billing_notes?order=created_at.desc');
+        if (Array.isArray(data) && data.length > 0) {
+          const parsed = data.map((item: any) => ({
+            ...item,
+            items: typeof item.items === 'string' ? JSON.parse(item.items) : (item.items || [])
+          }));
+          LocalDB.saveBillingNotes(parsed);
+          return parsed;
+        }
+      } catch (err) {
+        console.warn('Failed remote getBillingNotes, using local data:', err);
+      }
+    }
+    return LocalDB.getBillingNotes();
+  },
+
+  async insertBillingNote(payload: Omit<BillingNote, 'id' | 'created_at'>): Promise<BillingNote> {
+    const list = LocalDB.getBillingNotes();
+    const currentYearShort = new Date().getFullYear().toString().substring(2);
+    let billingNo = payload.billing_no;
+    if (!billingNo) {
+      const matches = list.filter(b => b.billing_no.startsWith(`BL ${currentYearShort}-`));
+      let nextSeq = 1;
+      if (matches.length > 0) {
+        const maxSeq = matches.reduce((max, b) => {
+          const num = parseInt(b.billing_no.replace(`BL ${currentYearShort}-`, ''), 10);
+          return !isNaN(num) && num > max ? num : max;
+        }, 0);
+        nextSeq = maxSeq + 1;
+      }
+      billingNo = `BL ${currentYearShort}-${String(nextSeq).padStart(3, '0')}`;
+    }
+
+    const newBilling: BillingNote = {
+      ...payload,
+      id: crypto.randomUUID(),
+      billing_no: billingNo,
+      created_at: new Date().toISOString()
+    };
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const responseList = await apiFetch('/billing_notes', {
+          method: 'POST',
+          headers: { 'Prefer': 'return=representation' },
+          body: JSON.stringify({
+            id: newBilling.id,
+            billing_no: newBilling.billing_no,
+            date: newBilling.date,
+            customer_id: newBilling.customer_id || null,
+            customer_name: newBilling.customer_name,
+            customer_address: newBilling.customer_address || null,
+            customer_tax_id: newBilling.customer_tax_id || null,
+            due_of_payment: newBilling.due_of_payment || null,
+            total_amount: Number(newBilling.total_amount) || 0,
+            delivered_by: newBilling.delivered_by || null,
+            delivered_date: newBilling.delivered_date || null,
+            received_by: newBilling.received_by || null,
+            received_date: newBilling.received_date || null,
+            notes: newBilling.notes || null,
+            items: newBilling.items || [],
+            status: newBilling.status || 'Draft',
+            created_at: newBilling.created_at
+          })
+        });
+        if (responseList && responseList[0]) {
+          const cloudOut = {
+            ...responseList[0],
+            items: newBilling.items
+          };
+          const updated = [cloudOut, ...list.filter(b => b.id !== cloudOut.id)];
+          LocalDB.saveBillingNotes(updated);
+          return cloudOut;
+        }
+      } catch (err) {
+        console.warn('Failed cloud insertBillingNote, fallback local:', err);
+      }
+    }
+
+    const updated = [newBilling, ...list];
+    LocalDB.saveBillingNotes(updated);
+    return newBilling;
+  },
+
+  async updateBillingNote(id: string, updates: Partial<BillingNote>): Promise<BillingNote> {
+    const list = LocalDB.getBillingNotes();
+    const updated = list.map(b => b.id === id ? { ...b, ...updates } : b);
+    LocalDB.saveBillingNotes(updated);
+    const found = updated.find(b => b.id === id);
+    if (!found) throw new Error('Billing Note not found');
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        const body: any = { ...updates, updated_at: new Date().toISOString() };
+        delete body.id;
+        delete body.created_at;
+        await apiFetch(`/billing_notes?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: { 'Prefer': 'return=representation' },
+          body: JSON.stringify(body)
+        });
+      } catch (err) {
+        console.warn('Failed cloud updateBillingNote, updated locally:', err);
+      }
+    }
+
+    return found;
+  },
+
+  async deleteBillingNote(id: string): Promise<boolean> {
+    const list = LocalDB.getBillingNotes();
+    LocalDB.saveBillingNotes(list.filter(b => b.id !== id));
+
+    const isCloud = await this.checkCloudConnection();
+    if (isCloud && getConnectivityMode()) {
+      try {
+        await apiFetch(`/billing_notes?id=eq.${id}`, { method: 'DELETE' });
+      } catch (err) {
+        console.warn('Failed cloud deleteBillingNote, deleted locally:', err);
+      }
+    }
+
+    return true;
   }
 };
+
+if (typeof window !== 'undefined') {
+  window.SupabaseDB = {
+    ...CRMService,
+    LocalDB
+  };
+}
 

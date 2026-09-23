@@ -195,3 +195,172 @@ INSERT INTO public.quotation_items (quotation_id, item_name, quantity, unit, uni
 VALUES 
     ('q1ef4942-83b3-4f9e-bbb4-7a0df47a0001', 'Sky Lotech High Lift (Brand: Skyy Lotech, Model: M-380X-200, Length: 200m, Diameter: 1/2")', 1.00, 'Unit', 2800.00, 2800.00)
 ON CONFLICT DO NOTHING;
+
+-- ============================================================================
+-- 13. SUPPLIERS TABLE (คู่ค้า / ซัพพลายเออร์)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.suppliers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    supplier_code VARCHAR(50) UNIQUE NOT NULL,
+    supplier_name VARCHAR(255) NOT NULL,
+    tax_id VARCHAR(50),
+    address TEXT,
+    phone VARCHAR(50),
+    email VARCHAR(255),
+    contact_person VARCHAR(150),
+    payment_term VARCHAR(50) DEFAULT 'Credit 30 Days',
+    status VARCHAR(50) NOT NULL DEFAULT 'Active',
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================================
+-- 14. PURCHASE REQUESTS & ITEMS TABLE (ใบขอซื้อ PR)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.purchase_requests (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pr_no VARCHAR(50) UNIQUE NOT NULL,
+    required_date VARCHAR(50),
+    due_date VARCHAR(50),
+    supplier_id UUID REFERENCES public.suppliers(id) ON DELETE SET NULL,
+    supplier_name VARCHAR(255),
+    supplier_address TEXT,
+    supplier_tax_id VARCHAR(50),
+    supplier_phone VARCHAR(50),
+    supplier_attn VARCHAR(150),
+    sales_name VARCHAR(150),
+    requestor VARCHAR(150) NOT NULL,
+    requested_by VARCHAR(150),
+    ref_customer VARCHAR(255),
+    remarks TEXT,
+    delivery_note TEXT,
+    items JSONB DEFAULT '[]'::jsonb,
+    amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    vat_amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    total_amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+    approved_by VARCHAR(150),
+    approved_at TIMESTAMP WITH TIME ZONE,
+    converted_po_id UUID,
+    converted_po_no VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.purchase_request_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pr_id UUID NOT NULL REFERENCES public.purchase_requests(id) ON DELETE CASCADE,
+    item_no INT NOT NULL DEFAULT 1,
+    description TEXT NOT NULL,
+    qty NUMERIC(10, 2) NOT NULL DEFAULT 1.00,
+    unit VARCHAR(50) NOT NULL DEFAULT 'EA',
+    unit_price NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================================
+-- 15. PURCHASE ORDERS & ITEMS TABLE (ใบสั่งซื้อ PO)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.purchase_orders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    po_no VARCHAR(50) UNIQUE NOT NULL,
+    pr_id UUID REFERENCES public.purchase_requests(id) ON DELETE SET NULL,
+    pr_no VARCHAR(50),
+    date VARCHAR(50) NOT NULL,
+    due_date VARCHAR(50),
+    supplier_id UUID REFERENCES public.suppliers(id) ON DELETE SET NULL,
+    supplier_name VARCHAR(255) NOT NULL,
+    supplier_address TEXT,
+    supplier_tax_id VARCHAR(50),
+    supplier_phone VARCHAR(50),
+    supplier_attn VARCHAR(150),
+    sales_name VARCHAR(150),
+    ref_customer VARCHAR(255),
+    remarks TEXT,
+    delivery_note TEXT,
+    billing_delivery_date_note VARCHAR(100),
+    items JSONB DEFAULT '[]'::jsonb,
+    amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    vat_amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    total_amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    status VARCHAR(50) NOT NULL DEFAULT 'Approved',
+    prepared_by VARCHAR(150),
+    approved_by VARCHAR(150),
+    approved_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.purchase_order_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    po_id UUID NOT NULL REFERENCES public.purchase_orders(id) ON DELETE CASCADE,
+    item_no INT NOT NULL DEFAULT 1,
+    description TEXT NOT NULL,
+    qty NUMERIC(10, 2) NOT NULL DEFAULT 1.00,
+    unit VARCHAR(50) NOT NULL DEFAULT 'EA',
+    unit_price NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================================================
+-- 16. BILLING NOTES & ITEMS TABLE (ใบวางบิล)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.billing_notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    billing_no VARCHAR(50) UNIQUE NOT NULL,
+    date VARCHAR(50) NOT NULL,
+    customer_id UUID REFERENCES public.customers(id) ON DELETE SET NULL,
+    customer_name VARCHAR(255) NOT NULL,
+    customer_address TEXT,
+    customer_tax_id VARCHAR(50),
+    due_of_payment VARCHAR(50),
+    total_amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    delivered_by VARCHAR(150),
+    delivered_date VARCHAR(50),
+    received_by VARCHAR(150),
+    received_date VARCHAR(50),
+    notes TEXT,
+    items JSONB DEFAULT '[]'::jsonb,
+    status VARCHAR(50) NOT NULL DEFAULT 'Draft',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.billing_note_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    billing_id UUID NOT NULL REFERENCES public.billing_notes(id) ON DELETE CASCADE,
+    no INT NOT NULL DEFAULT 1,
+    ref_no VARCHAR(100),
+    invoice_no VARCHAR(100) NOT NULL,
+    invoice_id UUID REFERENCES public.invoices(id) ON DELETE SET NULL,
+    date VARCHAR(50),
+    amount NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes for new tables
+CREATE INDEX IF NOT EXISTS idx_suppliers_code ON public.suppliers(supplier_code);
+CREATE INDEX IF NOT EXISTS idx_pr_no ON public.purchase_requests(pr_no);
+CREATE INDEX IF NOT EXISTS idx_po_no ON public.purchase_orders(po_no);
+CREATE INDEX IF NOT EXISTS idx_billing_no ON public.billing_notes(billing_no);
+
+-- Enable RLS & Policies
+ALTER TABLE public.suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_request_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.purchase_order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.billing_notes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.billing_note_items ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public access on suppliers" ON public.suppliers FOR ALL USING (true);
+CREATE POLICY "Allow public access on purchase_requests" ON public.purchase_requests FOR ALL USING (true);
+CREATE POLICY "Allow public access on purchase_request_items" ON public.purchase_request_items FOR ALL USING (true);
+CREATE POLICY "Allow public access on purchase_orders" ON public.purchase_orders FOR ALL USING (true);
+CREATE POLICY "Allow public access on purchase_order_items" ON public.purchase_order_items FOR ALL USING (true);
+CREATE POLICY "Allow public access on billing_notes" ON public.billing_notes FOR ALL USING (true);
+CREATE POLICY "Allow public access on billing_note_items" ON public.billing_note_items FOR ALL USING (true);
+

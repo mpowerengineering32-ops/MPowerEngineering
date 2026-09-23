@@ -321,6 +321,222 @@ export interface Receipt {
   customer_name?: string;
 }
 
+export interface SupplierContact {
+  id: string;
+  name: string;
+  role: string;
+  position?: string;
+  department?: string;
+  phone: string;
+  mobile?: string;
+  email: string;
+  notes?: string;
+  is_primary?: boolean;
+}
+
+export interface SupplierAddress {
+  type: 'Headquarters' | 'Shipping' | 'Tax Invoice';
+  address: string;
+}
+
+export interface SupplierDocument {
+  id: string;
+  name: string;
+  type: string;
+  uploaded_at: string;
+  file_size?: string;
+}
+
+export interface SupplierActivityLog {
+  id: string;
+  action: string;
+  user: string;
+  timestamp: string;
+  details?: string;
+}
+
+export interface Supplier {
+  id: string;
+  supplier_code: string;
+  supplier_name: string;
+  tax_id: string;
+  address: string;
+  phone: string;
+  email: string;
+  contact_person: string;
+  supplier_type?: 'Distributor' | 'Manufacturer' | 'Wholesaler' | 'Service Provider' | 'Subcontractor';
+  payment_term?: string;
+  credit_limit?: number;
+  outstanding_balance?: number;
+  last_purchase_date?: string;
+  bank_account?: {
+    bank_name: string;
+    account_number: string;
+    account_name: string;
+  };
+  contacts?: SupplierContact[];
+  addresses?: SupplierAddress[];
+  documents?: SupplierDocument[];
+  activity_logs?: SupplierActivityLog[];
+  status: 'Active' | 'Inactive' | 'Pending';
+  notes?: string;
+  created_at?: string;
+}
+
+export interface PurchaseRequestItem {
+  id?: string;
+  item_no: number;
+  description: string;
+  quantity?: number;
+  qty?: number;
+  unit?: string;
+  unit_price: number;
+  amount: number;
+}
+
+export interface PurchaseRequest {
+  id: string;
+  pr_no: string;
+  date?: string;
+  pr_date?: string;
+  required_date?: string;
+  due_date?: string;
+  supplier_id?: string;
+  supplier_name?: string;
+  supplier_address?: string;
+  supplier_tax_id?: string;
+  supplier_phone?: string;
+  supplier_attn?: string;
+  department?: string;
+  project?: string;
+  sales_name?: string;
+  requestor?: string;
+  requested_by?: string;
+  ref_customer?: string;
+  remarks?: string;
+  delivery_note?: string;
+  items: PurchaseRequestItem[];
+  amount: number;
+  vat_amount: number;
+  total_amount: number;
+  status: 'Draft' | 'Pending' | 'Pending Approval' | 'Approved' | 'Rejected' | 'Converted to PO';
+  approval_status?: 'Draft' | 'Pending Approval' | 'Approved' | 'Rejected';
+  approved_by?: string;
+  approved_at?: string;
+  rejected_by?: string;
+  rejected_at?: string;
+  rejection_reason?: string;
+  po_no?: string;
+  converted_po_id?: string;
+  converted_po_no?: string;
+  created_at: string;
+}
+
+export interface PurchaseOrderItem {
+  id?: string;
+  item_no: number;
+  description: string;
+  quantity?: number;
+  qty?: number;
+  unit?: string;
+  unit_price: number;
+  amount: number;
+  received_qty?: number;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  po_no: string;
+  pr_id?: string;
+  pr_no?: string;
+  date: string;
+  po_date?: string;
+  order_date?: string;
+  due_date: string;
+  delivery_date?: string;
+  supplier_id: string;
+  supplier_name: string;
+  supplier_address?: string;
+  supplier_tax_id?: string;
+  supplier_phone?: string;
+  supplier_attn?: string;
+  sales_name: string;
+  department?: string;
+  project?: string;
+  ref_customer: string;
+  payment_term?: string;
+  remarks?: string;
+  delivery_note?: string;
+  billing_delivery_date_note?: string;
+  items: PurchaseOrderItem[];
+  amount: number;
+  vat_amount: number;
+  total_amount: number;
+  received_amount?: number;
+  outstanding_amount?: number;
+  status: 'Pending' | 'Approved' | 'PO Issued' | 'Partially Received' | 'Received' | 'Completed' | 'Cancelled';
+  approval_status?: 'Pending' | 'Approved' | 'Rejected';
+  po_status?: 'PO Issued' | 'Partially Received' | 'Received' | 'Completed' | 'Cancelled';
+  prepared_by: string;
+  approved_by: string;
+  approved_at?: string;
+  created_at: string;
+}
+
+export interface BillingNoteItem {
+  id?: string;
+  no: number;
+  ref_no?: string;
+  invoice_no: string;
+  sales_order_no?: string;
+  description?: string;
+  quantity?: number;
+  unit?: string;
+  unit_price?: number;
+  date: string;
+  amount: number;
+  paid_amount?: number;
+  outstanding_amount?: number;
+}
+
+export interface BillingNotePaymentRecord {
+  id: string;
+  date: string;
+  amount: number;
+  payment_method: 'Transfer' | 'Cash' | 'Cheque' | 'Credit Card';
+  reference_no?: string;
+  recorded_by: string;
+  notes?: string;
+}
+
+export interface BillingNote {
+  id: string;
+  billing_no: string;
+  date: string;
+  billing_date?: string;
+  customer_id?: string;
+  customer_name: string;
+  customer_address?: string;
+  customer_tax_id?: string;
+  sales_order_no?: string;
+  salesperson?: string;
+  due_of_payment: string;
+  due_date?: string;
+  total_amount: number;
+  paid_amount?: number;
+  outstanding_amount?: number;
+  payment_method?: 'Transfer' | 'Cash' | 'Cheque' | 'Credit Card';
+  delivered_by: string;
+  delivered_date: string;
+  received_by?: string;
+  received_date?: string;
+  notes?: string;
+  items: BillingNoteItem[];
+  payments?: BillingNotePaymentRecord[];
+  status: 'Draft' | 'Issued' | 'Pending' | 'Delivered' | 'Partially Paid' | 'Paid' | 'Overdue' | 'Cancelled';
+  created_at: string;
+}
+
 declare global {
   interface Window {
     SupabaseDB: any;

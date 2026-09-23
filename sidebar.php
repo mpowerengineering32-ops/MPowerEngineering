@@ -93,9 +93,30 @@ $st = $sidebarTranslations[$lang];
         </li>
 
         <li class="nav-item">
-          <a href="invoices.php" class="nav-link py-2.5 d-flex align-items-center gap-3 rounded-2 text-white opacity-85 hover-opacity-100 <?php echo $currentPage === 'invoices.php' ? 'active bg-primary' : ''; ?>" style="transition: all 0.2s;">
+          <a href="invoices.html" class="nav-link py-2.5 d-flex align-items-center gap-3 rounded-2 text-white opacity-85 hover-opacity-100 <?php echo ($currentPage === 'invoices.php' || $currentPage === 'invoices.html') ? 'active bg-primary' : ''; ?>" style="transition: all 0.2s;">
             <i class="nav-icon fas fa-wallet text-danger" style="width: 20px;"></i>
             <span style="font-size: 0.9rem;"><?php echo $st['menu_invoices']; ?></span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="billing.html" class="nav-link py-2.5 d-flex align-items-center gap-3 rounded-2 text-white opacity-85 hover-opacity-100 <?php echo ($currentPage === 'billing.html') ? 'active bg-primary' : ''; ?>" style="transition: all 0.2s;">
+            <i class="nav-icon fas fa-file-invoice-dollar text-info" style="width: 20px;"></i>
+            <span style="font-size: 0.9rem;">Billing Notes (ใบวางบิล)</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="suppliers.html" class="nav-link py-2.5 d-flex align-items-center gap-3 rounded-2 text-white opacity-85 hover-opacity-100 <?php echo ($currentPage === 'suppliers.html') ? 'active bg-primary' : ''; ?>" style="transition: all 0.2s;">
+            <i class="nav-icon fas fa-truck text-warning" style="width: 20px;"></i>
+            <span style="font-size: 0.9rem;">Supplier Accounts</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a href="pr_po.html" class="nav-link py-2.5 d-flex align-items-center gap-3 rounded-2 text-white opacity-85 hover-opacity-100 <?php echo ($currentPage === 'pr_po.html') ? 'active bg-primary' : ''; ?>" style="transition: all 0.2s;">
+            <i class="nav-icon fas fa-shopping-cart text-success" style="width: 20px;"></i>
+            <span style="font-size: 0.9rem;">PR / PO Management</span>
           </a>
         </li>
 

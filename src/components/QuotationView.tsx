@@ -51,7 +51,7 @@ export default function QuotationView({
     return d.toISOString().split('T')[0];
   });
   const [remarks, setRemarks] = useState('');
-  const [status, setStatus] = useState<'Draft' | 'Sent' | 'Approved' | 'Rejected' | 'Expired'>('Draft');
+  const [status, setStatus] = useState<'Draft' | 'Sent' | 'Approved' | 'Invoiced' | 'Rejected' | 'Expired'>('Draft');
   const [attention, setAttention] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -909,7 +909,7 @@ export default function QuotationView({
                                 <div className="text-left py-1">
                                   <div className="font-bold text-black text-[10.5px] mb-1">Note :</div>
                                   <div className="whitespace-pre-wrap text-slate-700 font-medium font-sans leading-relaxed text-[10px] pl-3">
-                                    {viewingQuote.remarks || viewingQuote.notes || "Air Compressor, Electrical, Water, Loading and Lifting Equipment at Client Side By client."}
+                                    {viewingQuote.remarks || (viewingQuote as any).notes || "Air Compressor, Electrical, Water, Loading and Lifting Equipment at Client Side By client."}
                                   </div>
                                   <div className="text-center font-bold text-black text-[10px] tracking-[0.2em] mt-4 uppercase">
                                     ** LAST ENTRY **
