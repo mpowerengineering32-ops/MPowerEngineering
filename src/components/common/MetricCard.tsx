@@ -13,44 +13,44 @@ interface MetricCardProps {
 
 const colorMap = {
   indigo: {
-    iconBg: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-    valueText: 'text-white',
-    badgeBg: 'bg-indigo-950 text-indigo-300 border-indigo-800'
+    iconBg: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+    valueText: 'text-slate-900',
+    badgeBg: 'bg-indigo-50 text-indigo-700 border-indigo-200'
   },
   emerald: {
-    iconBg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    valueText: 'text-emerald-400',
-    badgeBg: 'bg-emerald-950 text-emerald-300 border-emerald-800'
+    iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+    valueText: 'text-emerald-700',
+    badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200'
   },
   amber: {
-    iconBg: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-    valueText: 'text-amber-400',
-    badgeBg: 'bg-amber-950 text-amber-300 border-amber-800'
+    iconBg: 'bg-amber-50 text-amber-600 border-amber-100',
+    valueText: 'text-amber-700',
+    badgeBg: 'bg-amber-50 text-amber-800 border-amber-200'
   },
   blue: {
-    iconBg: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    valueText: 'text-blue-400',
-    badgeBg: 'bg-blue-950 text-blue-300 border-blue-800'
+    iconBg: 'bg-blue-50 text-blue-600 border-blue-100',
+    valueText: 'text-blue-700',
+    badgeBg: 'bg-blue-50 text-blue-700 border-blue-200'
   },
   rose: {
-    iconBg: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    valueText: 'text-rose-400',
-    badgeBg: 'bg-rose-950 text-rose-300 border-rose-800'
+    iconBg: 'bg-rose-50 text-rose-600 border-rose-100',
+    valueText: 'text-rose-700',
+    badgeBg: 'bg-rose-50 text-rose-700 border-rose-200'
   },
   purple: {
-    iconBg: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-    valueText: 'text-purple-400',
-    badgeBg: 'bg-purple-950 text-purple-300 border-purple-800'
+    iconBg: 'bg-purple-50 text-purple-600 border-purple-100',
+    valueText: 'text-purple-700',
+    badgeBg: 'bg-purple-50 text-purple-700 border-purple-200'
   },
   cyan: {
-    iconBg: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-    valueText: 'text-cyan-400',
-    badgeBg: 'bg-cyan-950 text-cyan-300 border-cyan-800'
+    iconBg: 'bg-cyan-50 text-cyan-600 border-cyan-100',
+    valueText: 'text-cyan-700',
+    badgeBg: 'bg-cyan-50 text-cyan-700 border-cyan-200'
   },
   slate: {
-    iconBg: 'bg-slate-800 text-slate-300 border-slate-700',
-    valueText: 'text-white',
-    badgeBg: 'bg-slate-800 text-slate-400 border-slate-700'
+    iconBg: 'bg-slate-100 text-slate-700 border-slate-200',
+    valueText: 'text-slate-900',
+    badgeBg: 'bg-slate-100 text-slate-700 border-slate-200'
   }
 };
 
@@ -66,18 +66,18 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   const styles = colorMap[colorScheme] || colorMap.indigo;
 
   return (
-    <div id={id} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between transition-all hover:border-slate-700">
+    <div id={id} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex items-center justify-between transition-all hover:shadow-md hover:border-slate-300">
       <div className="flex items-center gap-3.5">
-        <div className={`p-2.5 rounded-xl border ${styles.iconBg} shrink-0`}>
+        <div className={`p-2.5 rounded-xl border ${styles.iconBg} shrink-0 shadow-xs`}>
           <Icon className="w-5 h-5" />
         </div>
         <div>
-          <div className="text-[11px] font-medium text-slate-400">{title}</div>
+          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{title}</div>
           <div className={`text-base sm:text-xl font-black font-mono tracking-tight ${styles.valueText}`}>
             {value}
           </div>
           {subtext && (
-            <div className="text-[10px] text-slate-500 mt-0.5">{subtext}</div>
+            <div className="text-[11px] text-slate-500 mt-0.5">{subtext}</div>
           )}
         </div>
       </div>

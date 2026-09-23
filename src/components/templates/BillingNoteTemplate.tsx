@@ -452,19 +452,19 @@ export const BillingNoteTemplate: React.FC<BillingNoteTemplateProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-[220mm] max-h-[96vh] flex flex-col shadow-2xl overflow-hidden my-auto print:shadow-none print:border-none print:max-w-none print:max-h-none print:rounded-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto print:p-0 print:bg-white">
+      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-[220mm] max-h-[96vh] flex flex-col shadow-2xl overflow-hidden my-auto print:shadow-none print:border-none print:max-w-none print:max-h-none print:rounded-none">
         {/* Modal Controls Header */}
-        <div className="p-4 bg-slate-950/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 no-print">
+        <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 no-print">
           <div className="flex items-center gap-2">
-            <span className="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl">
+            <span className="p-2 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl">
               <FileText className="w-4 h-4" />
             </span>
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 แบบฟอร์มเทมเพลตใบวางบิลทางการ (Official Billing Note Form)
               </h3>
-              <p className="text-[10px] text-slate-400 font-mono">
+              <p className="text-[10px] text-slate-500 font-mono">
                 {billingNote.billing_no} • {billingNote.customer_name}
               </p>
             </div>
@@ -472,14 +472,14 @@ export const BillingNoteTemplate: React.FC<BillingNoteTemplateProps> = ({
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Template Selector Tabs */}
-            <div className="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center gap-1">
+            <div className="bg-slate-200/80 p-1 rounded-xl border border-slate-300 flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => setTemplateType('ORIGINAL')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                   templateType === 'ORIGINAL'
                     ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 ต้นฉบับ (Original)
@@ -490,7 +490,7 @@ export const BillingNoteTemplate: React.FC<BillingNoteTemplateProps> = ({
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                   templateType === 'COPY'
                     ? 'bg-amber-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 สำเนา (Copy)
@@ -501,7 +501,7 @@ export const BillingNoteTemplate: React.FC<BillingNoteTemplateProps> = ({
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                   templateType === 'RECEIPT_SLIP'
                     ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 ใบรับวางบิล (Receipt Slip)
@@ -519,7 +519,7 @@ export const BillingNoteTemplate: React.FC<BillingNoteTemplateProps> = ({
             {onClose && (
               <button
                 onClick={onClose}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -528,7 +528,7 @@ export const BillingNoteTemplate: React.FC<BillingNoteTemplateProps> = ({
         </div>
 
         {/* Scrollable Printable Document Canvas */}
-        <div className="p-4 sm:p-6 overflow-y-auto bg-slate-950/50 flex justify-center print:p-0 print:bg-white print:overflow-visible">
+        <div className="p-4 sm:p-6 overflow-y-auto bg-slate-100 flex justify-center print:p-0 print:bg-white print:overflow-visible">
           {content}
         </div>
       </div>

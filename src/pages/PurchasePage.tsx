@@ -154,15 +154,15 @@ export default function PurchasePage() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-slate-950 text-slate-100 p-4 md:p-6 font-sans">
+    <div className="w-full min-h-screen bg-[#f4f6f9] text-slate-800 p-4 md:p-6 font-sans">
       {/* Toast Notification */}
       {toast && (
         <div className="fixed bottom-5 right-5 z-[9999] animate-bounce">
           <div
-            className={`px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-semibold border ${
+            className={`px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-sm font-semibold border ${
               toast.type === 'err'
-                ? 'bg-rose-950/90 text-rose-200 border-rose-700'
-                : 'bg-emerald-950/90 text-emerald-200 border-emerald-700'
+                ? 'bg-rose-50 text-rose-800 border-rose-200'
+                : 'bg-emerald-50 text-emerald-800 border-emerald-200'
             }`}
           >
             <span>{toast.message}</span>

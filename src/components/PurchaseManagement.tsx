@@ -850,20 +850,20 @@ export default function PurchaseManagement({
       <div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
           <div>
-            <h1 className="text-xl font-black text-white flex items-center gap-2">
-              <span className="p-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl">
+            <h1 className="text-xl font-black text-slate-900 flex items-center gap-2">
+              <span className="p-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl">
                 <ShoppingCart className="w-5 h-5" />
               </span>
               PR / PO Management — จัดซื้อและสั่งจ้าง
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Procurement Workflow • ขอซื้อ (PR) → ตรวจสอบและอนุมัติ (Admin) → ออกใบสั่งซื้อ (PO) → ตรวจรับสินค้า (Receipt)
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-mono text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
-              สิทธิ์ของคุณ: <b className="text-amber-400">{currentRole}</b> | สั่งซื้อสะสม <b className="text-emerald-400">฿{poTotalAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</b>
+            <span className="text-[11px] font-mono text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-xs">
+              สิทธิ์ของคุณ: <b className="text-amber-700">{currentRole}</b> | สั่งซื้อสะสม <b className="text-emerald-700">฿{poTotalAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</b>
             </span>
           </div>
         </div>
@@ -930,53 +930,53 @@ export default function PurchaseManagement({
         </div>
 
         {/* Workflow Lifecycle Step Indicator */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 mt-4 shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 mt-4 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-amber-400" />
+            <span className="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-amber-600" />
               Procurement Lifecycle & Audit Flow (กระบวนการจัดซื้อ)
             </span>
-            <span className="text-[11px] text-slate-400">ระบบควบคุมสิทธิ์และขั้นตอนอัตโนมัติ</span>
+            <span className="text-[11px] text-slate-500">ระบบควบคุมสิทธิ์และขั้นตอนอัตโนมัติ</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2">
-            <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-amber-200">
                 1
               </span>
               <div>
-                <div className="text-xs font-bold text-white">1. ขอซื้อ (PR)</div>
-                <div className="text-[10px] text-slate-400">ผู้ขอซื้อสร้างใบขอราคา/เสนอซื้อ</div>
+                <div className="text-xs font-bold text-slate-900">1. ขอซื้อ (PR)</div>
+                <div className="text-[10px] text-slate-500">ผู้ขอซื้อสร้างใบขอราคา/เสนอซื้อ</div>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-indigo-500/20 text-indigo-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-200">
                 2
               </span>
               <div>
-                <div className="text-xs font-bold text-white">2. อนุมัติ (Admin)</div>
-                <div className="text-[10px] text-slate-400">ตรวจสอบงบประมาณและกดอนุมัติ</div>
+                <div className="text-xs font-bold text-slate-900">2. อนุมัติ (Admin)</div>
+                <div className="text-[10px] text-slate-500">ตรวจสอบงบประมาณและกดอนุมัติ</div>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-blue-200">
                 3
               </span>
               <div>
-                <div className="text-xs font-bold text-white">3. สั่งซื้อ (PO)</div>
-                <div className="text-[10px] text-slate-400">ระบบสร้าง PO อ้างอิง PR ส่งคู่ค้า</div>
+                <div className="text-xs font-bold text-slate-900">3. สั่งซื้อ (PO)</div>
+                <div className="text-[10px] text-slate-500">ระบบสร้าง PO อ้างอิง PR ส่งคู่ค้า</div>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-xl flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold text-xs flex items-center justify-center shrink-0">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 font-mono font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-200">
                 4
               </span>
               <div>
-                <div className="text-xs font-bold text-white">4. รับสินค้า & ตรวจรับ</div>
-                <div className="text-[10px] text-slate-400">บันทึกรับของเข้าคลัง (Completed)</div>
+                <div className="text-xs font-bold text-slate-900">4. รับสินค้า & ตรวจรับ</div>
+                <div className="text-[10px] text-slate-500">บันทึกรับของเข้าคลัง (Completed)</div>
               </div>
             </div>
           </div>
@@ -985,8 +985,8 @@ export default function PurchaseManagement({
 
       {/* Role Alert Banner for Non-Admin */}
       {!isAdmin && (
-        <div className="bg-amber-950/30 border border-amber-800/60 rounded-xl p-3 text-amber-300 text-xs flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 shrink-0 text-amber-400" />
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-amber-800 text-xs flex items-center gap-2">
+          <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600" />
           <span>
             คุณกำลังใช้งานในบทบาท <strong>{currentRole}</strong> (สามารถสร้างใบขอซื้อ PR ได้ แต่สิทธิ์การ <strong>Approve อนุมัติ PR เป็น PO สงวนไว้สำหรับ Admin เท่านั้น</strong>)
           </span>
@@ -996,7 +996,7 @@ export default function PurchaseManagement({
       {/* ============================================================ */}
       {/* SECTION 2: TOOLBAR                                           */}
       {/* ============================================================ */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
           {canCreate && (
             <button
@@ -1026,20 +1026,20 @@ export default function PurchaseManagement({
           <button
             id="btn-export-procurement-excel"
             onClick={handleExportExcel}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition cursor-pointer"
             title="ส่งออกรายการเป็น Excel"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
             <span>Export Excel</span>
           </button>
 
           <button
             id="btn-print-procurement"
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition cursor-pointer"
             title="พิมพ์หน้ารายการ"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-300" />
+            <Printer className="w-3.5 h-3.5 text-slate-600" />
             <span>Print</span>
           </button>
 
@@ -1048,10 +1048,10 @@ export default function PurchaseManagement({
               id="btn-refresh-procurement"
               onClick={() => onRefresh()}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition cursor-pointer disabled:opacity-50"
               title="รีเฟรชข้อมูล"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 text-amber-600 ${isLoading ? 'animate-spin' : ''}`} />
               <span>{isLoading ? 'กำลังโหลด...' : 'Refresh'}</span>
             </button>
           )}
@@ -1061,9 +1061,9 @@ export default function PurchaseManagement({
       {/* ============================================================ */}
       {/* SECTION 3: TABS & FILTER PANEL                               */}
       {/* ============================================================ */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-4">
         {/* Navigation Tabs (6 requested tabs) */}
-        <div className="flex overflow-x-auto border-b border-slate-800 pb-3 gap-1.5 text-xs">
+        <div className="flex overflow-x-auto border-b border-slate-200 pb-3 gap-1.5 text-xs">
           {[
             { id: 'ALL', label: 'ทั้งหมด (All)', count: combinedDocuments.length },
             { id: 'PR_LIST', label: 'ใบขอซื้อ (PRs)', count: prTotalCount },
@@ -1079,17 +1079,17 @@ export default function PurchaseManagement({
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl whitespace-nowrap font-medium transition cursor-pointer ${
                   isActive
-                    ? 'bg-amber-600 text-white font-bold shadow'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-amber-600 text-white font-bold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
                 <span>{tab.label}</span>
                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
                   isActive
-                    ? 'bg-amber-950 text-amber-200 border border-amber-800'
+                    ? 'bg-amber-700 text-amber-100 border border-amber-500'
                     : tab.highlight
-                    ? 'bg-rose-950 text-rose-300 border border-rose-800'
-                    : 'bg-slate-800 text-slate-400'
+                    ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                    : 'bg-slate-100 text-slate-600'
                 }`}>
                   {tab.count}
                 </span>
@@ -1102,26 +1102,26 @@ export default function PurchaseManagement({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
           {/* Search Term */}
           <div className="lg:col-span-2">
-            <label className="text-[10px] text-slate-400 font-semibold mb-1 block">ค้นหา (เลขที่, คู่ค้า, ผู้ขอ, โครงการ)</label>
+            <label className="text-[10px] text-slate-600 font-semibold mb-1 block">ค้นหา (เลขที่, คู่ค้า, ผู้ขอ, โครงการ)</label>
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 placeholder="ค้นหาเลขที่ PR, PO, ซัพพลายเออร์..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+                className="w-full bg-white border border-slate-300 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-amber-500"
               />
             </div>
           </div>
 
           {/* Supplier */}
           <div>
-            <label className="text-[10px] text-slate-400 font-semibold mb-1 block">Supplier (คู่ค้า)</label>
+            <label className="text-[10px] text-slate-600 font-semibold mb-1 block">Supplier (คู่ค้า)</label>
             <select
               value={filterSupplier}
               onChange={e => setFilterSupplier(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
             >
               <option value="All">ทุกซัพพลายเออร์</option>
               {suppliers.map(s => (
@@ -1132,11 +1132,11 @@ export default function PurchaseManagement({
 
           {/* Requester */}
           <div>
-            <label className="text-[10px] text-slate-400 font-semibold mb-1 block">ผู้ขอซื้อ / Sales</label>
+            <label className="text-[10px] text-slate-600 font-semibold mb-1 block">ผู้ขอซื้อ / Sales</label>
             <select
               value={filterRequester}
               onChange={e => setFilterRequester(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
             >
               <option value="All">ทุกคน</option>
               {requestersList.map((req, idx) => (
@@ -1147,11 +1147,11 @@ export default function PurchaseManagement({
 
           {/* Document Type */}
           <div>
-            <label className="text-[10px] text-slate-400 font-semibold mb-1 block">ประเภทเอกสาร</label>
+            <label className="text-[10px] text-slate-600 font-semibold mb-1 block">ประเภทเอกสาร</label>
             <select
               value={filterDocType}
               onChange={e => setFilterDocType(e.target.value as any)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+              className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-amber-500 cursor-pointer"
             >
               <option value="All">ทั้ง PR และ PO</option>
               <option value="PR">เฉพาะ PR (ใบขอซื้อ)</option>
@@ -1172,7 +1172,7 @@ export default function PurchaseManagement({
                 setFilterDateFrom('');
                 setFilterDateTo('');
               }}
-              className="w-full px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700 transition cursor-pointer"
+              className="w-full px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition cursor-pointer"
             >
               ล้างตัวกรอง
             </button>
@@ -1183,23 +1183,23 @@ export default function PurchaseManagement({
       {/* ============================================================ */}
       {/* SECTION 4: PROCUREMENT WORKFLOW TABLE                        */}
       {/* ============================================================ */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
-        <div className="p-4 bg-slate-950/40 border-b border-slate-800 flex items-center justify-between">
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Layers className="w-4 h-4 text-amber-400" />
-            <span className="text-xs font-bold text-white">
+            <Layers className="w-4 h-4 text-amber-600" />
+            <span className="text-xs font-bold text-slate-900">
               รายการเอกสารจัดซื้อ ({filteredList.length} รายการ)
             </span>
           </div>
-          <span className="text-[11px] text-slate-400">
-            แสดงตามแท็บ <b className="text-amber-400">{activeTab}</b>
+          <span className="text-[11px] text-slate-500">
+            แสดงตามแท็บ <b className="text-amber-700">{activeTab}</b>
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-950/70 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-600 uppercase tracking-wider">
                 <th className="py-3 px-3 w-16 text-center">ประเภท</th>
                 <th className="py-3 px-3 font-mono">เลขที่เอกสาร</th>
                 <th className="py-3 px-3 font-mono">อ้างอิง PR/PO</th>
@@ -1213,10 +1213,10 @@ export default function PurchaseManagement({
                 <th className="py-3 px-3 text-center w-28">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {filteredList.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="text-center py-10 text-slate-500 text-xs">
+                  <td colSpan={11} className="text-center py-10 text-slate-400 text-xs">
                     ไม่พบเอกสารจัดซื้อตามเงื่อนไขที่เลือก
                   </td>
                 </tr>
@@ -1228,7 +1228,7 @@ export default function PurchaseManagement({
                   return (
                     <tr
                       key={`${doc.type}-${doc.id}`}
-                      className="hover:bg-slate-850/40 transition-colors cursor-pointer"
+                      className="hover:bg-slate-50/80 transition-colors cursor-pointer"
                       onClick={() => {
                         if (isPR) setViewingPR(doc.raw as PurchaseRequest);
                         else setViewingPO(doc.raw as PurchaseOrder);
@@ -1238,8 +1238,8 @@ export default function PurchaseManagement({
                       <td className="py-3.5 px-3 text-center">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-extrabold font-mono ${
                           isPR
-                            ? 'bg-amber-950 text-amber-400 border border-amber-800'
-                            : 'bg-indigo-950 text-indigo-400 border border-indigo-800'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                            : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                         }`}>
                           {doc.type}
                         </span>
@@ -1247,13 +1247,13 @@ export default function PurchaseManagement({
 
                       {/* Document Number */}
                       <td className="py-3.5 px-3 font-mono font-bold">
-                        <span className={isPR ? 'text-amber-400' : 'text-indigo-400'}>
+                        <span className={isPR ? 'text-amber-700' : 'text-indigo-700'}>
                           {doc.docNo}
                         </span>
                       </td>
 
                       {/* Linked Reference */}
-                      <td className="py-3.5 px-3 font-mono text-slate-400" onClick={e => e.stopPropagation()}>
+                      <td className="py-3.5 px-3 font-mono text-slate-500" onClick={e => e.stopPropagation()}>
                         {doc.refNo && doc.refNo !== '-' ? (
                           <button
                             type="button"
@@ -1268,40 +1268,40 @@ export default function PurchaseManagement({
                                 else onToast(`ไม่พบเอกสาร ${doc.refNo}`, 'err');
                               }
                             }}
-                            className="inline-flex items-center gap-1 text-xs hover:underline text-amber-400 hover:text-amber-300 font-bold transition cursor-pointer"
+                            className="inline-flex items-center gap-1 text-xs hover:underline text-amber-600 hover:text-amber-700 font-bold transition cursor-pointer"
                             title={`คลิกเพื่อดูเอกสารอ้างอิง ${doc.refNo}`}
                           >
-                            <Link2 className="w-3 h-3 text-amber-400/70" />
+                            <Link2 className="w-3 h-3 text-amber-600" />
                             {doc.refNo}
                           </button>
                         ) : (
-                          <span className="text-slate-600">-</span>
+                          <span className="text-slate-400">-</span>
                         )}
                       </td>
 
                       {/* Date */}
-                      <td className="py-3.5 px-3 font-mono text-slate-300 whitespace-nowrap">
+                      <td className="py-3.5 px-3 font-mono text-slate-600 whitespace-nowrap">
                         {doc.date}
                       </td>
 
                       {/* Supplier */}
                       <td className="py-3.5 px-3 max-w-[200px]">
-                        <div className="font-bold text-white truncate">{doc.supplierName}</div>
+                        <div className="font-bold text-slate-900 truncate">{doc.supplierName}</div>
                         <div className="text-[10px] text-slate-500">Attn: {doc.supplierAttn}</div>
                       </td>
 
                       {/* Requester */}
-                      <td className="py-3.5 px-3 text-slate-300">
+                      <td className="py-3.5 px-3 text-slate-700">
                         {doc.requester}
                       </td>
 
                       {/* Project / Ref Customer */}
-                      <td className="py-3.5 px-3 text-slate-300 truncate max-w-[140px]">
+                      <td className="py-3.5 px-3 text-slate-700 truncate max-w-[140px]">
                         {doc.refCustomer}
                       </td>
 
                       {/* Total Amount */}
-                      <td className="py-3.5 px-3 text-right font-mono font-bold text-white whitespace-nowrap">
+                      <td className="py-3.5 px-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
                         ฿{doc.totalAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                       </td>
 
@@ -1309,12 +1309,12 @@ export default function PurchaseManagement({
                       <td className="py-3.5 px-3 text-center whitespace-nowrap">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
                           doc.status === 'Approved' || doc.status === 'Converted to PO' || doc.status === 'Completed'
-                            ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : doc.status === 'Rejected'
-                            ? 'bg-rose-950 text-rose-400 border border-rose-800'
+                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
                             : doc.status === 'Pending Approval'
-                            ? 'bg-amber-950 text-amber-400 border border-amber-800'
-                            : 'bg-indigo-950 text-indigo-400 border border-indigo-800'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                            : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
                         }`}>
                           {doc.status}
                         </span>
@@ -1345,7 +1345,7 @@ export default function PurchaseManagement({
                                 <button
                                   onClick={() => handleRejectPR(doc.raw as PurchaseRequest)}
                                   title="ปฏิเสธ (Reject) PR"
-                                  className="p-1 text-slate-400 hover:text-rose-400 rounded transition cursor-pointer"
+                                  className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
@@ -1353,9 +1353,9 @@ export default function PurchaseManagement({
                             ) : (
                               <span
                                 title="รอผู้ดูแลระบบ (Admin) อนุมัติ จึงจะสามารถแปลงเป็น PO ได้"
-                                className="px-2.5 py-1 bg-slate-900 border border-slate-800 text-amber-400 rounded text-[11px] font-medium flex items-center gap-1 cursor-not-allowed"
+                                className="px-2.5 py-1 bg-slate-100 border border-slate-200 text-amber-700 rounded text-[11px] font-medium flex items-center gap-1 cursor-not-allowed"
                               >
-                                <Lock className="w-3 h-3 text-amber-500" />
+                                <Lock className="w-3 h-3 text-amber-600" />
                                 รอ Admin อนุมัติ
                               </span>
                             )}
@@ -1380,23 +1380,23 @@ export default function PurchaseManagement({
                               else onToast(`ไม่พบเอกสาร PO ที่ผูกกับ ${doc.docNo}`, 'err');
                             }}
                             title="เปิดดูใบสั่งซื้อ PO ที่แปลงแล้ว"
-                            className="px-2.5 py-0.5 bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900 rounded text-[10.5px] font-bold flex items-center gap-1 mx-auto transition cursor-pointer"
+                            className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded text-[10.5px] font-bold flex items-center gap-1 mx-auto transition cursor-pointer"
                           >
-                            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                             แปลงเป็น PO แล้ว
                           </button>
                         ) : isPO && doc.status !== 'Completed' && doc.status !== 'Cancelled' ? (
                           <button
                             onClick={() => handleReceivePO(doc.raw as PurchaseOrder)}
-                            className="px-2.5 py-1 bg-cyan-950 text-cyan-300 border border-cyan-800 hover:bg-cyan-900 rounded text-[11px] font-bold flex items-center gap-1 mx-auto transition cursor-pointer"
+                            className="px-2.5 py-1 bg-cyan-50 text-cyan-700 border border-cyan-200 hover:bg-cyan-100 rounded text-[11px] font-bold flex items-center gap-1 mx-auto transition cursor-pointer"
                             title="บันทึกการรับสินค้าครบถ้วน"
                           >
-                            <PackageCheck className="w-3 h-3 text-cyan-400" />
+                            <PackageCheck className="w-3 h-3 text-cyan-600" />
                             รับของ (Receive)
                           </button>
                         ) : (
-                          <span className="text-[11px] text-slate-500 flex items-center justify-center gap-1">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                          <span className="text-[11px] text-emerald-600 font-medium flex items-center justify-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                             สมบูรณ์
                           </span>
                         )}
@@ -1410,7 +1410,7 @@ export default function PurchaseManagement({
                               if (isPR) setViewingPR(doc.raw as PurchaseRequest);
                               else setViewingPO(doc.raw as PurchaseOrder);
                             }}
-                            className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition cursor-pointer"
                             title="ดูเอกสาร"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -1420,7 +1420,7 @@ export default function PurchaseManagement({
                           {isPR ? (
                             <button
                               onClick={() => handleDuplicatePR(doc.raw as PurchaseRequest)}
-                              className="p-1 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded transition cursor-pointer"
+                              className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition cursor-pointer"
                               title="ทำสำเนาใบขอซื้อ PR (Duplicate)"
                             >
                               <Copy className="w-3.5 h-3.5" />
@@ -1428,7 +1428,7 @@ export default function PurchaseManagement({
                           ) : (
                             <button
                               onClick={() => handleDuplicatePO(doc.raw as PurchaseOrder)}
-                              className="p-1 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 rounded transition cursor-pointer"
+                              className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition cursor-pointer"
                               title="ทำสำเนาใบสั่งซื้อ PO (Duplicate)"
                             >
                               <Copy className="w-3.5 h-3.5" />
@@ -1438,7 +1438,7 @@ export default function PurchaseManagement({
                           {canCreate && isPR && doc.status === 'Pending Approval' && (
                             <button
                               onClick={() => handleOpenEditPR(doc.raw as PurchaseRequest)}
-                              className="p-1 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded transition cursor-pointer"
+                              className="p-1 text-slate-400 hover:text-amber-600 hover:bg-slate-100 rounded transition cursor-pointer"
                               title="แก้ไข PR"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -1451,7 +1451,7 @@ export default function PurchaseManagement({
                               else setViewingPO(doc.raw as PurchaseOrder);
                               setTimeout(() => window.print(), 300);
                             }}
-                            className="p-1 text-slate-400 hover:text-white hover:bg-slate-800 rounded transition cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition cursor-pointer"
                             title="พิมพ์เอกสาร PDF"
                           >
                             <Printer className="w-3.5 h-3.5" />
@@ -1466,7 +1466,7 @@ export default function PurchaseManagement({
                                   onToast(`ลบเอกสาร ${doc.docNo} เรียบร้อย`, 'success');
                                 }
                               }}
-                              className="p-1 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded transition cursor-pointer"
+                              className="p-1 text-slate-400 hover:text-rose-600 hover:bg-slate-100 rounded transition cursor-pointer"
                               title="ลบเอกสาร"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -1483,7 +1483,7 @@ export default function PurchaseManagement({
         </div>
 
         {/* Table footer */}
-        <div className="p-3 bg-slate-950/60 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+        <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
           <div>
             แสดง {filteredList.length} จากทั้งหมด {combinedDocuments.length} รายการ
           </div>
@@ -1497,16 +1497,16 @@ export default function PurchaseManagement({
       {/* MODAL 1: VIEW PR DETAILS (OFFICIAL FORM)                     */}
       {/* ============================================================ */}
       {viewingPR && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
-            <div className="p-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="p-2 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl">
+                <span className="p-2 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl">
                   <FileCheck2 className="w-4 h-4" />
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-white">ใบขอซื้อ (Purchase Request - PR)</h3>
-                  <p className="text-[10px] text-slate-400 font-mono">{viewingPR.pr_no}</p>
+                  <h3 className="text-sm font-bold text-slate-900">ใบขอซื้อ (Purchase Request - PR)</h3>
+                  <p className="text-[10px] text-slate-500 font-mono">{viewingPR.pr_no}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -1521,7 +1521,7 @@ export default function PurchaseManagement({
                           setViewingPR(null);
                           setViewingPO(linkedPO);
                         }}
-                        className="px-3 py-1.5 bg-indigo-950 text-indigo-300 border border-indigo-700 hover:bg-indigo-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                        className="px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                         title="เปิดดูใบสั่งซื้อที่ออกแล้ว"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -1579,7 +1579,7 @@ export default function PurchaseManagement({
                               setViewingPR(null);
                               handleRejectPR(pr);
                             }}
-                            className="px-3 py-1.5 bg-rose-950 text-rose-400 border border-rose-800 hover:bg-rose-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                            className="px-3 py-1.5 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                             title="ไม่อนุมัติ (Reject PR)"
                           >
                             <X className="w-3.5 h-3.5" />
@@ -1590,10 +1590,10 @@ export default function PurchaseManagement({
                     } else {
                       return (
                         <div
-                          className="px-3 py-1.5 bg-slate-900 border border-slate-800 text-amber-400 rounded-xl text-xs font-medium flex items-center gap-1.5 cursor-not-allowed"
+                          className="px-3 py-1.5 bg-slate-100 border border-slate-200 text-amber-700 rounded-xl text-xs font-medium flex items-center gap-1.5 cursor-not-allowed"
                           title="รอผู้ดูแลระบบ (Admin) อนุมัติ จึงจะสามารถแปลงเป็น PO ได้"
                         >
-                          <Lock className="w-3.5 h-3.5 text-amber-500" />
+                          <Lock className="w-3.5 h-3.5 text-amber-600" />
                           <span>รอ Admin อนุมัติ</span>
                         </div>
                       );
@@ -1603,14 +1603,14 @@ export default function PurchaseManagement({
                 })()}
                 <button
                   onClick={handlePrint}
-                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-slate-200"
                 >
-                  <Printer className="w-3.5 h-3.5 text-amber-400" />
+                  <Printer className="w-3.5 h-3.5 text-amber-600" />
                   <span>พิมพ์ PR</span>
                 </button>
                 <button
                   onClick={() => setViewingPR(null)}
-                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1618,44 +1618,44 @@ export default function PurchaseManagement({
             </div>
 
             {/* PR Printable Sheet */}
-            <div className="p-6 overflow-y-auto space-y-6 text-slate-300 text-xs">
-              <div className="border border-slate-800 rounded-xl p-4 bg-slate-950/40 space-y-3">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-3">
+            <div className="p-6 overflow-y-auto space-y-6 text-slate-700 text-xs">
+              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-3">
                   <div>
-                    <h2 className="text-base font-black text-white">บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด</h2>
-                    <p className="text-[11px] text-slate-400">ใบขออนุมัติจัดซื้อ (Purchase Request Requisition Form)</p>
+                    <h2 className="text-base font-black text-slate-900">บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด</h2>
+                    <p className="text-[11px] text-slate-500">ใบขออนุมัติจัดซื้อ (Purchase Request Requisition Form)</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-black uppercase text-amber-400 px-3 py-1 bg-amber-950/60 border border-amber-800 rounded-lg">
+                    <span className="text-xs font-black uppercase text-amber-700 px-3 py-1 bg-amber-50 border border-amber-200 rounded-lg">
                       PURCHASE REQUEST (PR)
                     </span>
-                    <div className="font-mono text-sm font-bold text-white mt-1.5">{viewingPR.pr_no}</div>
-                    <div className="text-[10px] text-slate-400">วันที่: {viewingPR.date}</div>
+                    <div className="font-mono text-sm font-bold text-slate-900 mt-1.5">{viewingPR.pr_no}</div>
+                    <div className="text-[10px] text-slate-500">วันที่: {viewingPR.date}</div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-0.5">Supplier / ผู้ขายที่เสนอ</span>
-                    <div className="font-bold text-white text-xs">{viewingPR.supplier_name}</div>
-                    <div className="text-[11px] text-slate-400">{viewingPR.supplier_address || '-'}</div>
-                    <div className="text-[10px] text-slate-400 font-mono mt-1">Tax ID: {viewingPR.supplier_tax_id || '-'}</div>
-                    <div className="text-[10px] text-slate-400">ผู้ติดต่อ: {viewingPR.supplier_attn || '-'} • เบอร์โทร: {viewingPR.supplier_phone || '-'}</div>
+                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-0.5">Supplier / ผู้ขายที่เสนอ</span>
+                    <div className="font-bold text-slate-900 text-xs">{viewingPR.supplier_name}</div>
+                    <div className="text-[11px] text-slate-600">{viewingPR.supplier_address || '-'}</div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-1">Tax ID: {viewingPR.supplier_tax_id || '-'}</div>
+                    <div className="text-[10px] text-slate-500">ผู้ติดต่อ: {viewingPR.supplier_attn || '-'} • เบอร์โทร: {viewingPR.supplier_phone || '-'}</div>
                   </div>
                   <div className="space-y-1 md:text-right">
-                    <div className="text-[11px]"><span className="text-slate-400">ผู้ขอซื้อ (Requested By):</span> <b className="text-white">{viewingPR.requested_by || viewingPR.sales_name}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-400">ลูกค้าอ้างอิง (Project):</span> <b className="text-amber-400">{viewingPR.ref_customer}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-400">เงื่อนไขการค้า:</span> <b className="text-white">{viewingPR.due_date}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-400">สถานะ:</span> <b className="text-amber-400">{viewingPR.status}</b></div>
+                    <div className="text-[11px]"><span className="text-slate-500">ผู้ขอซื้อ (Requested By):</span> <b className="text-slate-900">{viewingPR.requested_by || viewingPR.sales_name}</b></div>
+                    <div className="text-[11px]"><span className="text-slate-500">ลูกค้าอ้างอิง (Project):</span> <b className="text-amber-700">{viewingPR.ref_customer}</b></div>
+                    <div className="text-[11px]"><span className="text-slate-500">เงื่อนไขการค้า:</span> <b className="text-slate-900">{viewingPR.due_date}</b></div>
+                    <div className="text-[11px]"><span className="text-slate-500">สถานะ:</span> <b className="text-amber-700">{viewingPR.status}</b></div>
                   </div>
                 </div>
               </div>
 
               {/* PR Items Table */}
-              <div className="border border-slate-800 rounded-xl overflow-hidden">
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-slate-950/80 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase">
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-600 uppercase">
                       <th className="py-2.5 px-3 w-10 text-center">Item</th>
                       <th className="py-2.5 px-3">รายละเอียดสินค้า / Spec</th>
                       <th className="py-2.5 px-3 text-center w-20">จำนวน</th>
@@ -1663,29 +1663,29 @@ export default function PurchaseManagement({
                       <th className="py-2.5 px-3 text-right w-32">จำนวนเงิน</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-slate-100">
                     {(viewingPR.items || []).map((it, idx) => (
                       <tr key={idx}>
-                        <td className="py-2.5 px-3 text-center font-mono text-slate-400">{it.item_no || idx + 1}</td>
-                        <td className="py-2.5 px-3 text-white font-medium whitespace-pre-line">{it.description}</td>
-                        <td className="py-2.5 px-3 text-center font-mono text-slate-300">{it.quantity}</td>
-                        <td className="py-2.5 px-3 text-right font-mono text-slate-300">฿{Number(it.unit_price).toLocaleString()}</td>
-                        <td className="py-2.5 px-3 text-right font-mono font-bold text-white">฿{Number(it.amount).toLocaleString()}</td>
+                        <td className="py-2.5 px-3 text-center font-mono text-slate-500">{it.item_no || idx + 1}</td>
+                        <td className="py-2.5 px-3 text-slate-900 font-medium whitespace-pre-line">{it.description}</td>
+                        <td className="py-2.5 px-3 text-center font-mono text-slate-700">{it.quantity}</td>
+                        <td className="py-2.5 px-3 text-right font-mono text-slate-700">฿{Number(it.unit_price).toLocaleString()}</td>
+                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">฿{Number(it.amount).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr className="bg-slate-950/40 border-t border-slate-800">
-                      <td colSpan={4} className="py-2 px-3 text-right text-slate-400">ยอดรวมก่อนภาษี (Subtotal):</td>
-                      <td className="py-2 px-3 text-right font-mono text-white">฿{(viewingPR.amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                    <tr className="bg-slate-50 border-t border-slate-200">
+                      <td colSpan={4} className="py-2 px-3 text-right text-slate-600">ยอดรวมก่อนภาษี (Subtotal):</td>
+                      <td className="py-2 px-3 text-right font-mono text-slate-900">฿{(viewingPR.amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                     </tr>
-                    <tr className="bg-slate-950/40 border-t border-slate-800/60">
-                      <td colSpan={4} className="py-2 px-3 text-right text-slate-400">ภาษีมูลค่าเพิ่ม (VAT 7%):</td>
-                      <td className="py-2 px-3 text-right font-mono text-white">฿{(viewingPR.vat_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                    <tr className="bg-slate-50 border-t border-slate-200">
+                      <td colSpan={4} className="py-2 px-3 text-right text-slate-600">ภาษีมูลค่าเพิ่ม (VAT 7%):</td>
+                      <td className="py-2 px-3 text-right font-mono text-slate-900">฿{(viewingPR.vat_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                     </tr>
-                    <tr className="bg-slate-950/80 border-t border-slate-800 font-bold">
-                      <td colSpan={4} className="py-3 px-3 text-right text-amber-400">ยอดสุทธิทั้งสิ้น (Grand Total):</td>
-                      <td className="py-3 px-3 text-right font-mono text-base text-amber-400">฿{(viewingPR.total_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                    <tr className="bg-slate-100 border-t border-slate-200 font-bold">
+                      <td colSpan={4} className="py-3 px-3 text-right text-amber-700">ยอดสุทธิทั้งสิ้น (Grand Total):</td>
+                      <td className="py-3 px-3 text-right font-mono text-base text-amber-700">฿{(viewingPR.total_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -1693,9 +1693,9 @@ export default function PurchaseManagement({
 
               {/* Delivery & Remarks */}
               {viewingPR.delivery_note && (
-                <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-[11px]">
-                  <span className="font-bold text-slate-400 block mb-0.5">สถานที่และข้อกำหนดการจัดส่ง:</span>
-                  <p className="text-slate-300">{viewingPR.delivery_note}</p>
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px]">
+                  <span className="font-bold text-slate-700 block mb-0.5">สถานที่และข้อกำหนดการจัดส่ง:</span>
+                  <p className="text-slate-600">{viewingPR.delivery_note}</p>
                 </div>
               )}
             </div>
@@ -1707,16 +1707,16 @@ export default function PurchaseManagement({
       {/* MODAL 2: VIEW PO DETAILS (OFFICIAL FORM)                     */}
       {/* ============================================================ */}
       {viewingPO && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
-            <div className="p-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="p-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl">
+                <span className="p-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl">
                   <ShoppingCart className="w-4 h-4" />
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-white">ใบสั่งซื้อ (Purchase Order - PO)</h3>
-                  <p className="text-[10px] text-slate-400 font-mono">{viewingPO.po_no} {viewingPO.pr_no ? `(อ้างอิง PR: ${viewingPO.pr_no})` : ''}</p>
+                  <h3 className="text-sm font-bold text-slate-900">ใบสั่งซื้อ (Purchase Order - PO)</h3>
+                  <p className="text-[10px] text-slate-500 font-mono">{viewingPO.po_no} {viewingPO.pr_no ? `(อ้างอิง PR: ${viewingPO.pr_no})` : ''}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -1730,7 +1730,7 @@ export default function PurchaseManagement({
                             setViewingPO(null);
                             setViewingPR(linkedPR);
                           }}
-                          className="px-3 py-1.5 bg-amber-950 text-amber-300 border border-amber-700 hover:bg-amber-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+                          className="px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
                           title="เปิดดูใบขอซื้อที่อ้างอิง"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
@@ -1756,14 +1756,14 @@ export default function PurchaseManagement({
                 )}
                 <button
                   onClick={handlePrint}
-                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-slate-200"
                 >
-                  <Printer className="w-3.5 h-3.5 text-indigo-400" />
+                  <Printer className="w-3.5 h-3.5 text-indigo-600" />
                   <span>พิมพ์ PO</span>
                 </button>
                 <button
                   onClick={() => setViewingPO(null)}
-                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1771,45 +1771,45 @@ export default function PurchaseManagement({
             </div>
 
             {/* PO Printable Sheet */}
-            <div className="p-6 overflow-y-auto space-y-6 text-slate-300 text-xs">
-              <div className="border border-slate-800 rounded-xl p-4 bg-slate-950/40 space-y-3">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-3">
+            <div className="p-6 overflow-y-auto space-y-6 text-slate-700 text-xs">
+              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-3">
                   <div>
-                    <h2 className="text-base font-black text-white">บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด</h2>
-                    <p className="text-[11px] text-slate-400">140 Sukhumvit Rd., Map Ta Phut, Mueang Rayong, Rayong 21150</p>
-                    <p className="text-[11px] text-slate-400 font-mono">Tax ID: 0105562001928</p>
+                    <h2 className="text-base font-black text-slate-900">บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด</h2>
+                    <p className="text-[11px] text-slate-500">140 Sukhumvit Rd., Map Ta Phut, Mueang Rayong, Rayong 21150</p>
+                    <p className="text-[11px] text-slate-500 font-mono">Tax ID: 0105562001928</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-xs font-black uppercase text-indigo-400 px-3 py-1 bg-indigo-950/60 border border-indigo-800 rounded-lg">
+                    <span className="text-xs font-black uppercase text-indigo-700 px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-lg">
                       PURCHASE ORDER (PO)
                     </span>
-                    <div className="font-mono text-sm font-bold text-white mt-1.5">{viewingPO.po_no}</div>
-                    <div className="text-[10px] text-slate-400">วันที่: {viewingPO.date}</div>
+                    <div className="font-mono text-sm font-bold text-slate-900 mt-1.5">{viewingPO.po_no}</div>
+                    <div className="text-[10px] text-slate-500">วันที่: {viewingPO.date}</div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block mb-0.5">ผู้จำหน่าย / Vendor</span>
-                    <div className="font-bold text-white text-xs">{viewingPO.supplier_name}</div>
-                    <div className="text-[11px] text-slate-400">{viewingPO.supplier_address || '-'}</div>
-                    <div className="text-[10px] text-slate-400 font-mono mt-1">Tax ID: {viewingPO.supplier_tax_id || '-'}</div>
-                    <div className="text-[10px] text-slate-400">Attn: {viewingPO.supplier_attn || '-'} • Tel: {viewingPO.supplier_phone || '-'}</div>
+                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-0.5">ผู้จำหน่าย / Vendor</span>
+                    <div className="font-bold text-slate-900 text-xs">{viewingPO.supplier_name}</div>
+                    <div className="text-[11px] text-slate-600">{viewingPO.supplier_address || '-'}</div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-1">Tax ID: {viewingPO.supplier_tax_id || '-'}</div>
+                    <div className="text-[10px] text-slate-500">Attn: {viewingPO.supplier_attn || '-'} • Tel: {viewingPO.supplier_phone || '-'}</div>
                   </div>
                   <div className="space-y-1 md:text-right">
-                    <div className="text-[11px]"><span className="text-slate-400">ผู้อนุมัติ (Approved By):</span> <b className="text-emerald-400 font-bold">{viewingPO.approved_by || 'Admin'}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-400">อ้างอิง PR:</span> <b className="text-amber-400 font-mono">{viewingPO.pr_no || '-'}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-400">โครงการ / ลูกค้า:</span> <b className="text-white">{viewingPO.ref_customer}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-400">สถานะคำสั่งซื้อ:</span> <b className="text-indigo-400">{viewingPO.status || 'Issued'}</b></div>
+                    <div className="text-[11px]"><span className="text-slate-500">ผู้อนุมัติ (Approved By):</span> <b className="text-emerald-700 font-bold">{viewingPO.approved_by || 'Admin'}</b></div>
+                    <div className="text-[11px]"><span className="text-slate-500">อ้างอิง PR:</span> <b className="text-amber-700 font-mono">{viewingPO.pr_no || '-'}</b></div>
+                    <div className="text-[11px]"><span className="text-slate-500">โครงการ / ลูกค้า:</span> <b className="text-slate-900">{viewingPO.ref_customer}</b></div>
+                    <div className="text-[11px]"><span className="text-slate-500">สถานะคำสั่งซื้อ:</span> <b className="text-indigo-700">{viewingPO.status || 'Issued'}</b></div>
                   </div>
                 </div>
               </div>
 
               {/* PO Items Table */}
-              <div className="border border-slate-800 rounded-xl overflow-hidden">
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-slate-950/80 border-b border-slate-800 text-[10px] font-bold text-slate-400 uppercase">
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-600 uppercase">
                       <th className="py-2.5 px-3 w-10 text-center">Item</th>
                       <th className="py-2.5 px-3">Description</th>
                       <th className="py-2.5 px-3 text-center w-20">Qty</th>
@@ -1817,29 +1817,29 @@ export default function PurchaseManagement({
                       <th className="py-2.5 px-3 text-right w-32">Amount</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-slate-100">
                     {(viewingPO.items || []).map((it, idx) => (
                       <tr key={idx}>
-                        <td className="py-2.5 px-3 text-center font-mono text-slate-400">{it.item_no || idx + 1}</td>
-                        <td className="py-2.5 px-3 text-white font-medium whitespace-pre-line">{it.description}</td>
-                        <td className="py-2.5 px-3 text-center font-mono text-slate-300">{it.quantity}</td>
-                        <td className="py-2.5 px-3 text-right font-mono text-slate-300">฿{Number(it.unit_price).toLocaleString()}</td>
-                        <td className="py-2.5 px-3 text-right font-mono font-bold text-white">฿{Number(it.amount).toLocaleString()}</td>
+                        <td className="py-2.5 px-3 text-center font-mono text-slate-500">{it.item_no || idx + 1}</td>
+                        <td className="py-2.5 px-3 text-slate-900 font-medium whitespace-pre-line">{it.description}</td>
+                        <td className="py-2.5 px-3 text-center font-mono text-slate-700">{it.quantity}</td>
+                        <td className="py-2.5 px-3 text-right font-mono text-slate-700">฿{Number(it.unit_price).toLocaleString()}</td>
+                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">฿{Number(it.amount).toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr className="bg-slate-950/40 border-t border-slate-800">
-                      <td colSpan={4} className="py-2 px-3 text-right text-slate-400">Subtotal:</td>
-                      <td className="py-2 px-3 text-right font-mono text-white">฿{(viewingPO.amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                    <tr className="bg-slate-50 border-t border-slate-200">
+                      <td colSpan={4} className="py-2 px-3 text-right text-slate-600">Subtotal:</td>
+                      <td className="py-2 px-3 text-right font-mono text-slate-900">฿{(viewingPO.amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                     </tr>
-                    <tr className="bg-slate-950/40 border-t border-slate-800/60">
-                      <td colSpan={4} className="py-2 px-3 text-right text-slate-400">VAT (7%):</td>
-                      <td className="py-2 px-3 text-right font-mono text-white">฿{(viewingPO.vat_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                    <tr className="bg-slate-50 border-t border-slate-200">
+                      <td colSpan={4} className="py-2 px-3 text-right text-slate-600">VAT (7%):</td>
+                      <td className="py-2 px-3 text-right font-mono text-slate-900">฿{(viewingPO.vat_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                     </tr>
-                    <tr className="bg-slate-950/80 border-t border-slate-800 font-bold">
-                      <td colSpan={4} className="py-3 px-3 text-right text-indigo-400">Grand Total:</td>
-                      <td className="py-3 px-3 text-right font-mono text-base text-indigo-400">฿{(viewingPO.total_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
+                    <tr className="bg-slate-100 border-t border-slate-200 font-bold">
+                      <td colSpan={4} className="py-3 px-3 text-right text-indigo-700">Grand Total:</td>
+                      <td className="py-3 px-3 text-right font-mono text-base text-indigo-700">฿{(viewingPO.total_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -1853,16 +1853,16 @@ export default function PurchaseManagement({
       {/* MODAL 3: CREATE / EDIT PR FORM                               */}
       {/* ============================================================ */}
       {isPRFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
-            <div className="p-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <FileCheck2 className="w-4 h-4 text-amber-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <FileCheck2 className="w-4 h-4 text-amber-600" />
                 {editingPR ? `แก้ไขใบขอซื้อ: ${prNo}` : 'สร้างใบขอซื้อใหม่ (New Purchase Request - PR)'}
               </h3>
               <button
                 onClick={() => setIsPRFormOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1871,32 +1871,32 @@ export default function PurchaseManagement({
             <form onSubmit={handleSavePR} className="p-5 overflow-y-auto space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[10px] text-slate-400 font-semibold mb-1 block">เลขที่ PR</label>
+                  <label className="text-[10px] text-slate-600 font-semibold mb-1 block">เลขที่ PR</label>
                   <input
                     type="text"
                     required
                     value={prNo}
                     onChange={e => setPrNo(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-amber-400 font-bold focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-amber-700 font-bold focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-400 font-semibold mb-1 block">วันที่ขอซื้อ</label>
+                  <label className="text-[10px] text-slate-600 font-semibold mb-1 block">วันที่ขอซื้อ</label>
                   <input
                     type="date"
                     required
                     value={prDate}
                     onChange={e => setPrDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-400 font-semibold mb-1 block">เงื่อนไขชำระเงิน (Due / Term)</label>
+                  <label className="text-[10px] text-slate-600 font-semibold mb-1 block">เงื่อนไขชำระเงิน (Due / Term)</label>
                   <input
                     type="text"
                     value={prDueDate}
                     onChange={e => setPrDueDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                   />
                 </div>
               </div>
@@ -1904,11 +1904,11 @@ export default function PurchaseManagement({
               {/* Supplier Selection */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-slate-400 font-semibold mb-1 block">เลือก Supplier จากทะเบียนคู่ค้า</label>
+                  <label className="text-[10px] text-slate-600 font-semibold mb-1 block">เลือก Supplier จากทะเบียนคู่ค้า</label>
                   <select
                     value={prSupplierId}
                     onChange={e => handleSupplierSelectInPR(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500 cursor-pointer"
                   >
                     <option value="">-- เลือกคู่ค้า (Auto-fill) --</option>
                     {suppliers.map(s => (
@@ -1917,21 +1917,21 @@ export default function PurchaseManagement({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-400 font-semibold mb-1 block">ชื่อคู่ค้า (Vendor Name)</label>
+                  <label className="text-[10px] text-slate-600 font-semibold mb-1 block">ชื่อคู่ค้า (Vendor Name)</label>
                   <input
                     type="text"
                     required
                     value={prSupplierName}
                     onChange={e => setPrSupplierName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-amber-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-hidden focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
                   />
                 </div>
               </div>
 
               {/* Items Section */}
-              <div className="border border-slate-800 rounded-xl p-3 bg-slate-950/40 space-y-3">
+              <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">รายการสินค้าที่ขอซื้อ (PR Items)</span>
+                  <span className="text-xs font-bold text-slate-800">รายการสินค้าที่ขอซื้อ (PR Items)</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -1946,16 +1946,16 @@ export default function PurchaseManagement({
                         }
                       ]);
                     }}
-                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 shadow-xs"
                   >
-                    <Plus className="w-3 h-3 text-amber-400" />
+                    <Plus className="w-3 h-3 text-amber-600" />
                     เพิ่มรายการสินค้า
                   </button>
                 </div>
 
                 <div className="space-y-2">
                   {prItems.map((it, idx) => (
-                    <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-slate-900 p-2 rounded-xl border border-slate-800">
+                    <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2 rounded-xl border border-slate-200">
                       <div className="col-span-1 text-center font-mono text-slate-400">{idx + 1}</div>
                       <div className="col-span-5">
                         <input
@@ -1967,7 +1967,7 @@ export default function PurchaseManagement({
                             arr[idx].description = e.target.value;
                             setPrItems(arr);
                           }}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-white"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-900 focus:bg-white focus:outline-hidden focus:border-amber-500"
                         />
                       </div>
                       <div className="col-span-2">
@@ -1981,7 +1981,7 @@ export default function PurchaseManagement({
                             arr[idx].amount = arr[idx].quantity * arr[idx].unit_price;
                             setPrItems(arr);
                           }}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-white text-center"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-900 text-center focus:bg-white focus:outline-hidden focus:border-amber-500"
                         />
                       </div>
                       <div className="col-span-3">
@@ -1995,7 +1995,7 @@ export default function PurchaseManagement({
                             arr[idx].amount = arr[idx].quantity * arr[idx].unit_price;
                             setPrItems(arr);
                           }}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-amber-400 font-mono font-bold text-right"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-amber-700 font-mono font-bold text-right focus:bg-white focus:outline-hidden focus:border-amber-500"
                         />
                       </div>
                       <div className="col-span-1 text-center">
@@ -2003,7 +2003,7 @@ export default function PurchaseManagement({
                           <button
                             type="button"
                             onClick={() => setPrItems(prItems.filter((_, i) => i !== idx))}
-                            className="p-1 text-slate-500 hover:text-rose-400 rounded transition cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2013,20 +2013,20 @@ export default function PurchaseManagement({
                   ))}
                 </div>
 
-                <div className="flex justify-between items-center pt-2 border-t border-slate-800">
-                  <span className="text-xs font-bold text-slate-400">ยอดรวมสุทธิ (Grand Total รวม VAT 7%):</span>
-                  <span className="text-sm font-mono font-black text-amber-400">
+                <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                  <span className="text-xs font-bold text-slate-600">ยอดรวมสุทธิ (Grand Total รวม VAT 7%):</span>
+                  <span className="text-sm font-mono font-black text-amber-700">
                     ฿{calculatedPRTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
 
               {/* Submit Buttons */}
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsPRFormOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-200"
                 >
                   ยกเลิก
                 </button>
@@ -2046,16 +2046,16 @@ export default function PurchaseManagement({
       {/* MODAL 4: DIRECT CREATE PO FORM                               */}
       {/* ============================================================ */}
       {isPOFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
-            <div className="p-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <ShoppingCart className="w-4 h-4 text-indigo-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden my-auto">
+            <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4 text-indigo-600" />
                 สร้างใบสั่งซื้อ (Purchase Order - PO)
               </h3>
               <button
                 onClick={() => setIsPOFormOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -2064,33 +2064,33 @@ export default function PurchaseManagement({
             <form onSubmit={handleSavePO} className="p-5 overflow-y-auto space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[10px] text-slate-400 font-semibold mb-1 block">เลขที่ PO</label>
+                  <label className="text-[10px] text-slate-600 font-semibold mb-1 block">เลขที่ PO</label>
                   <input
                     type="text"
                     required
                     value={poNo}
                     onChange={e => setPoNo(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-indigo-400 font-bold focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-indigo-700 font-bold focus:outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-400 font-semibold mb-1 block">วันที่สั่งซื้อ</label>
+                  <label className="text-[10px] text-slate-600 font-semibold mb-1 block">วันที่สั่งซื้อ</label>
                   <input
                     type="date"
                     required
                     value={poDate}
                     onChange={e => setPoDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-400 font-semibold mb-1 block">
+                  <label className="text-[10px] text-slate-600 font-semibold mb-1 block">
                     ดึงข้อมูลจาก PR (Link from PR)
                   </label>
                   <select
                     value={poRefPR}
                     onChange={e => handlePRSelectInPO(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-amber-400 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-amber-700 focus:outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                   >
                     <option value="">-- ไม่ผูกกับ PR (Direct PO) --</option>
                     {purchaseRequests.filter(pr => pr.status === 'Approved').length > 0 && (
@@ -2133,11 +2133,11 @@ export default function PurchaseManagement({
               {/* Supplier Selection */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-slate-400 font-semibold mb-1 block">เลือก Supplier</label>
+                  <label className="text-[10px] text-slate-600 font-semibold mb-1 block">เลือก Supplier</label>
                   <select
                     value={poSupplierId}
                     onChange={e => handleSupplierSelectInPO(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 cursor-pointer"
                   >
                     <option value="">-- เลือกคู่ค้า (Auto-fill) --</option>
                     {suppliers.map(s => (
@@ -2146,21 +2146,21 @@ export default function PurchaseManagement({
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] text-slate-400 font-semibold mb-1 block">ชื่อคู่ค้า (Vendor Name)</label>
+                  <label className="text-[10px] text-slate-600 font-semibold mb-1 block">ชื่อคู่ค้า (Vendor Name)</label>
                   <input
                     type="text"
                     required
                     value={poSupplierName}
                     onChange={e => setPoSupplierName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 font-bold focus:outline-hidden focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                   />
                 </div>
               </div>
 
               {/* Items Section */}
-              <div className="border border-slate-800 rounded-xl p-3 bg-slate-950/40 space-y-3">
+              <div className="border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">รายการสั่งซื้อ (PO Items)</span>
+                  <span className="text-xs font-bold text-slate-800">รายการสั่งซื้อ (PO Items)</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -2175,16 +2175,16 @@ export default function PurchaseManagement({
                         }
                       ]);
                     }}
-                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 shadow-xs"
                   >
-                    <Plus className="w-3 h-3 text-indigo-400" />
+                    <Plus className="w-3 h-3 text-indigo-600" />
                     เพิ่มรายการสินค้า
                   </button>
                 </div>
 
                 <div className="space-y-2">
                   {poItems.map((it, idx) => (
-                    <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-slate-900 p-2 rounded-xl border border-slate-800">
+                    <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-white p-2 rounded-xl border border-slate-200">
                       <div className="col-span-1 text-center font-mono text-slate-400">{idx + 1}</div>
                       <div className="col-span-5">
                         <input
@@ -2196,7 +2196,7 @@ export default function PurchaseManagement({
                             arr[idx].description = e.target.value;
                             setPoItems(arr);
                           }}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-white"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-900 focus:bg-white focus:outline-hidden focus:border-indigo-500"
                         />
                       </div>
                       <div className="col-span-2">
@@ -2210,7 +2210,7 @@ export default function PurchaseManagement({
                             arr[idx].amount = arr[idx].quantity * arr[idx].unit_price;
                             setPoItems(arr);
                           }}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-white text-center"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-900 text-center focus:bg-white focus:outline-hidden focus:border-indigo-500"
                         />
                       </div>
                       <div className="col-span-3">
@@ -2224,7 +2224,7 @@ export default function PurchaseManagement({
                             arr[idx].amount = arr[idx].quantity * arr[idx].unit_price;
                             setPoItems(arr);
                           }}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-xs text-indigo-400 font-mono font-bold text-right"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-indigo-700 font-mono font-bold text-right focus:bg-white focus:outline-hidden focus:border-indigo-500"
                         />
                       </div>
                       <div className="col-span-1 text-center">
@@ -2232,7 +2232,7 @@ export default function PurchaseManagement({
                           <button
                             type="button"
                             onClick={() => setPoItems(poItems.filter((_, i) => i !== idx))}
-                            className="p-1 text-slate-500 hover:text-rose-400 rounded transition cursor-pointer"
+                            className="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -2242,20 +2242,20 @@ export default function PurchaseManagement({
                   ))}
                 </div>
 
-                <div className="flex justify-between items-center pt-2 border-t border-slate-800">
-                  <span className="text-xs font-bold text-slate-400">ยอดรวมสุทธิ (Grand Total รวม VAT 7%):</span>
-                  <span className="text-sm font-mono font-black text-indigo-400">
+                <div className="flex justify-between items-center pt-2 border-t border-slate-200">
+                  <span className="text-xs font-bold text-slate-600">ยอดรวมสุทธิ (Grand Total รวม VAT 7%):</span>
+                  <span className="text-sm font-mono font-black text-indigo-700">
                     ฿{calculatedPOTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
 
               {/* Submit Buttons */}
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsPOFormOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer border border-slate-200"
                 >
                   ยกเลิก
                 </button>

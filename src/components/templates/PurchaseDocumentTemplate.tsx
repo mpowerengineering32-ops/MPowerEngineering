@@ -438,27 +438,27 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
     return (
       <div className="space-y-4">
         {/* Controls Bar */}
-        <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 no-print">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 shadow-xs no-print">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              {isPR ? <FileText className="w-4 h-4 text-amber-400" /> : <ShoppingCart className="w-4 h-4 text-indigo-400" />}
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              {isPR ? <FileText className="w-4 h-4 text-amber-600" /> : <ShoppingCart className="w-4 h-4 text-indigo-600" />}
               {isPR ? 'เทมเพลตใบขอซื้อ (PR):' : 'เทมเพลตใบสั่งซื้อ (PO):'}
             </span>
-            <span className="font-mono text-white font-bold text-xs bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-700">
+            <span className="font-mono text-slate-900 font-bold text-xs bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">
               {isPR ? (data as PurchaseRequest).pr_no : (data as PurchaseOrder).po_no}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Sub-template Switcher */}
-            <div className="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center gap-1">
+            <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center gap-1">
               {isPR ? (
                 <>
                   <button
                     type="button"
                     onClick={() => setPrTemplateType('PR_PROJECT')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      prTemplateType === 'PR_PROJECT' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      prTemplateType === 'PR_PROJECT' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     ขอซื้อโครงการ
@@ -467,7 +467,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                     type="button"
                     onClick={() => setPrTemplateType('PR_SERVICE')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      prTemplateType === 'PR_SERVICE' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      prTemplateType === 'PR_SERVICE' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     ขอจัดจ้างบริการ
@@ -476,7 +476,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                     type="button"
                     onClick={() => setPrTemplateType('PR_INTERNAL')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      prTemplateType === 'PR_INTERNAL' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      prTemplateType === 'PR_INTERNAL' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     ขอซื้อทั่วไป
@@ -488,7 +488,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                     type="button"
                     onClick={() => setPoTemplateType('PO_VENDOR')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      poTemplateType === 'PO_VENDOR' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      poTemplateType === 'PO_VENDOR' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     ต้นฉบับผู้ขาย (Original)
@@ -497,7 +497,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                     type="button"
                     onClick={() => setPoTemplateType('PO_ACCOUNTING')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      poTemplateType === 'PO_ACCOUNTING' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      poTemplateType === 'PO_ACCOUNTING' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     สำเนาบัญชี (Copy)
@@ -506,7 +506,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                     type="button"
                     onClick={() => setPoTemplateType('PO_WAREHOUSE')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      poTemplateType === 'PO_WAREHOUSE' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      poTemplateType === 'PO_WAREHOUSE' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     สำเนาคลัง/ตรวจรับ
@@ -517,7 +517,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
 
             <button
               onClick={handlePrint}
-              className={`px-4 py-2 font-bold rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer text-white shadow-sm ${
+              className={`px-4 py-2 font-bold rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer text-white shadow-xs ${
                 isPR ? 'bg-amber-600 hover:bg-amber-500' : 'bg-indigo-600 hover:bg-indigo-500'
               }`}
             >
@@ -528,7 +528,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
         </div>
 
         {/* Canvas */}
-        <div className="bg-slate-950/40 p-4 sm:p-6 rounded-2xl border border-slate-800 flex justify-center overflow-x-auto">
+        <div className="bg-slate-100/60 p-4 sm:p-6 rounded-2xl border border-slate-200 flex justify-center overflow-x-auto">
           {content}
         </div>
       </div>
@@ -536,19 +536,19 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-[220mm] max-h-[96vh] flex flex-col shadow-2xl overflow-hidden my-auto print:shadow-none print:border-none print:max-w-none print:max-h-none print:rounded-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto print:p-0 print:bg-white">
+      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-[220mm] max-h-[96vh] flex flex-col shadow-2xl overflow-hidden my-auto print:shadow-none print:border-none print:max-w-none print:max-h-none print:rounded-none">
         {/* Header Controls */}
-        <div className="p-4 bg-slate-950/90 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 no-print">
+        <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 no-print">
           <div className="flex items-center gap-2">
-            <span className={`p-2 rounded-xl ${isPR ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'}`}>
+            <span className={`p-2 rounded-xl ${isPR ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}`}>
               {isPR ? <FileText className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
             </span>
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 {isPR ? 'แบบฟอร์มเทมเพลตใบขอซื้อ (Purchase Request Form)' : 'แบบฟอร์มเทมเพลตใบสั่งซื้อ (Purchase Order Form)'}
               </h3>
-              <p className="text-[10px] text-slate-400 font-mono">
+              <p className="text-[10px] text-slate-500 font-mono">
                 {isPR ? (data as PurchaseRequest).pr_no : (data as PurchaseOrder).po_no}
               </p>
             </div>
@@ -556,14 +556,14 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Template Selector */}
-            <div className="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center gap-1">
+            <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center gap-1">
               {isPR ? (
                 <>
                   <button
                     type="button"
                     onClick={() => setPrTemplateType('PR_PROJECT')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      prTemplateType === 'PR_PROJECT' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      prTemplateType === 'PR_PROJECT' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     ขอซื้อโครงการ
@@ -572,7 +572,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                     type="button"
                     onClick={() => setPrTemplateType('PR_SERVICE')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      prTemplateType === 'PR_SERVICE' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      prTemplateType === 'PR_SERVICE' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     ขอจ้างบริการ
@@ -581,7 +581,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                     type="button"
                     onClick={() => setPrTemplateType('PR_INTERNAL')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      prTemplateType === 'PR_INTERNAL' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      prTemplateType === 'PR_INTERNAL' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     ขอซื้อทั่วไป
@@ -593,7 +593,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                     type="button"
                     onClick={() => setPoTemplateType('PO_VENDOR')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      poTemplateType === 'PO_VENDOR' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      poTemplateType === 'PO_VENDOR' ? 'bg-indigo-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     ต้นฉบับผู้ขาย
@@ -602,7 +602,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                     type="button"
                     onClick={() => setPoTemplateType('PO_ACCOUNTING')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      poTemplateType === 'PO_ACCOUNTING' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      poTemplateType === 'PO_ACCOUNTING' ? 'bg-amber-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     สำเนาบัญชี
@@ -611,7 +611,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                     type="button"
                     onClick={() => setPoTemplateType('PO_WAREHOUSE')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                      poTemplateType === 'PO_WAREHOUSE' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      poTemplateType === 'PO_WAREHOUSE' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
                     }`}
                   >
                     สำเนาตรวจรับ
@@ -622,7 +622,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
 
             <button
               onClick={handlePrint}
-              className={`px-3.5 py-1.5 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
+              className={`px-3.5 py-1.5 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs ${
                 isPR ? 'bg-amber-600 hover:bg-amber-500' : 'bg-indigo-600 hover:bg-indigo-500'
               }`}
             >
@@ -633,7 +633,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
             {onClose && (
               <button
                 onClick={onClose}
-                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -642,7 +642,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
         </div>
 
         {/* Scrollable Printable Document Canvas */}
-        <div className="p-4 sm:p-6 overflow-y-auto bg-slate-950/50 flex justify-center print:p-0 print:bg-white print:overflow-visible">
+        <div className="p-4 sm:p-6 overflow-y-auto bg-slate-100/50 flex justify-center print:p-0 print:bg-white print:overflow-visible">
           {content}
         </div>
       </div>
