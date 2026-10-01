@@ -62,6 +62,27 @@ const DEFAULT_CUSTOMERS: Customer[] = [
     created_at: new Date('2026-01-10T08:00:00Z').toISOString()
   },
   {
+    id: 'c_ikm',
+    customer_code: 'CUS-260901',
+    customer_name: 'IKM Testing (Thailand) Co., Ltd',
+    tax_id: '0215552000909 (Head Office)',
+    industry_type: 'Oil & Gas',
+    address: '155/167 Moo 5, Samnakthon Sub-District\nBanchang District, Rayong, Thailand 21130',
+    province: 'ระยอง',
+    country: 'ประเทศไทย',
+    phone: '038-601 996-8',
+    email: 'info@ikmtesting.co.th',
+    website: 'https://www.ikm.com',
+    payment_term: '30 Days',
+    credit_limit: 10000000,
+    status: 'Active',
+    contact_person: 'Khun Apiyut',
+    contacts: [
+      { contact_name: 'Khun Apiyut', position: 'Technical Operations Manager', department: 'Engineering & Operations', phone: '038-601 996-8', email: 'apiyut@ikmtesting.co.th', preferred_contact: 'Phone', status: 'Active' }
+    ],
+    created_at: new Date('2026-01-01T08:00:00Z').toISOString()
+  },
+  {
     id: 'c2',
     customer_code: 'CUS-260002',
     customer_name: 'บริษัท ปูนซิเมนต์ไทย จำกัด (มหาชน) (SCG)',
@@ -887,6 +908,52 @@ const DEFAULT_QUOTATIONS: Quotation[] = [
 
 const DEFAULT_SALES_ORDERS: SalesOrder[] = [
   {
+    id: 'so_master_demo',
+    so_no: 'SO-2609001',
+    customer_id: 'c_ikm',
+    customer_name: 'IKM Testing (Thailand) Co., Ltd',
+    project_name: 'Sky Lotech High Lift',
+    total_amount: 2800,
+    status: 'In Progress',
+    order_date: '2026-09-01',
+    target_delivery_date: '2026-09-30',
+    sales_person: 'Pornpicha O.',
+    created_at: new Date('2026-09-01T08:30:00Z').toISOString(),
+    items: [
+      {
+        item_no: 1,
+        qty: 1,
+        remaining_qty: 1,
+        unit: 'Unit',
+        description: 'Sky Lotech High Lift\nBrand : Skyy Lotech\nModel : M-380X-200\n- Length : 200 Meter\n- Length : 200 Meter\n- Diameter : 1/2"',
+        unit_price: 2800
+      }
+    ]
+  },
+  {
+    id: 'so_master_demo_2',
+    so_no: 'SO-2026-0001',
+    customer_id: 'c_ikm',
+    customer_name: 'IKM Testing (Thailand) Co., Ltd',
+    project_name: 'Sky Lotech High Lift Package',
+    total_amount: 2800,
+    status: 'In Progress',
+    order_date: '2026-09-01',
+    target_delivery_date: '2026-09-30',
+    sales_person: 'Pornpicha O.',
+    created_at: new Date('2026-09-01T08:30:00Z').toISOString(),
+    items: [
+      {
+        item_no: 1,
+        qty: 1,
+        remaining_qty: 1,
+        unit: 'Unit',
+        description: 'Sky Lotech High Lift\nBrand : Skyy Lotech\nModel : M-380X-200\n- Length : 200 Meter\n- Length : 200 Meter\n- Diameter : 1/2"',
+        unit_price: 2800
+      }
+    ]
+  },
+  {
     id: 'so_qt3000',
     so_no: 'SO-002-25',
     customer_id: 'c2',
@@ -1111,10 +1178,61 @@ const DEFAULT_SUPPLIERS: Supplier[] = [
     status: 'Active',
     notes: 'Instrumentation valves, fittings, and tubing solutions',
     created_at: new Date('2026-02-10T10:30:00Z').toISOString()
+  },
+  {
+    id: 'sup_dacon',
+    supplier_code: 'SUP-26005',
+    supplier_name: 'Dacon Trading Co., Ltd. (Head Office)',
+    tax_id: '0215542000248',
+    address: '88/9 Moo 3, Phala, Banchang,\nRayong 21130 Thailand',
+    phone: '081-8935437',
+    email: 'sales@dacon-trading.com',
+    contact_person: 'Khun Chatcha',
+    payment_term: 'Cash',
+    status: 'Active',
+    notes: 'Official supplier Dacon Trading Co., Ltd. (Banchang, Rayong)',
+    created_at: new Date('2026-03-01T08:00:00Z').toISOString()
   }
 ];
 
 const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
+  {
+    id: 'pr_2609001',
+    pr_no: '2609001',
+    date: '01-Sep-26',
+    required_date: '01-Sep-26',
+    due_date: 'Cash',
+    supplier_id: 'sup_dacon',
+    supplier_name: 'Dacon Trading Co., Ltd. (Head Office)',
+    supplier_address: '88/9 Moo 3, Phala, Banchang,\nRayong 21130 Thailand',
+    supplier_tax_id: '0215542000248',
+    supplier_phone: '081-8935437',
+    supplier_attn: 'Khun Chatcha',
+    sales_name: 'Praiya',
+    requestor: 'Praiya',
+    requested_by: 'Praiya',
+    ref_customer: 'Promt Solution',
+    remarks: '* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด',
+    delivery_note: '* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด\nเปิดบิล-ส่งของวันที่ 1 กันยายน 2569',
+    items: [
+      {
+        id: 'pri_2609001_1',
+        item_no: 1,
+        description: '1630,WL/WF,BLACK',
+        quantity: 2,
+        qty: 2,
+        unit: 'EA',
+        unit_price: 19100,
+        amount: 38200
+      }
+    ],
+    amount: 38200,
+    vat_amount: 2674,
+    total_amount: 40874,
+    status: 'Approved',
+    approved_by: 'Approved By',
+    created_at: '2026-09-01T08:00:00Z'
+  },
   {
     id: 'p1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
     pr_no: 'PR 26-001',
@@ -1199,6 +1317,46 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
 ];
 
 const DEFAULT_PURCHASE_ORDERS: PurchaseOrder[] = [
+  {
+    id: 'po_2609001',
+    po_no: '2609001',
+    pr_id: '',
+    pr_no: '',
+    date: '01-Sep-26',
+    po_date: '01-Sep-26',
+    order_date: '2026-09-01',
+    due_date: 'Cash',
+    supplier_id: 'sup_dacon',
+    supplier_name: 'Dacon Trading Co., Ltd. (Head Office)',
+    supplier_address: '88/9 Moo 3, Phala, Banchang,\nRayong 21130 Thailand',
+    supplier_tax_id: '0215542000248',
+    supplier_phone: '081-8935437',
+    supplier_attn: 'Khun Chatcha',
+    sales_name: 'Praiya',
+    ref_customer: 'Promt Solution',
+    remarks: 'กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่\nบริษัท เอ็ม พาวเวอร์เอ็นจิเนียริ่งโซลูชั่นส์ จำกัด\nเปิดบิล-ส่งของวันที่ 1 กันยายน 2569',
+    delivery_note: 'กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่\nบริษัท เอ็ม พาวเวอร์เอ็นจิเนียริ่งโซลูชั่นส์ จำกัด',
+    billing_delivery_date_note: 'เปิดบิล-ส่งของวันที่ 1 กันยายน 2569',
+    items: [
+      {
+        id: 'poi_2609001_1',
+        item_no: 1,
+        description: '1630,WL/WF,BLACK',
+        quantity: 2,
+        qty: 2,
+        unit_price: 19100,
+        amount: 38200
+      }
+    ],
+    amount: 38200,
+    vat_amount: 2674,
+    total_amount: 40874,
+    status: 'Approved',
+    prepared_by: 'Praiya',
+    approved_by: 'Saranya (Admin)',
+    approved_at: '2026-09-01T10:00:00Z',
+    created_at: '2026-09-01T08:00:00Z'
+  },
   {
     id: 'o1ef4942-83b3-4f9e-bbb4-7a0df47a0001',
     po_no: 'PO 26-001',
@@ -1703,7 +1861,7 @@ export class LocalDB {
     }
     try {
       const parsed = JSON.parse(data);
-      if (!Array.isArray(parsed) || !parsed.some(s => s.id === ensureUUID('so_qt3000'))) {
+      if (!Array.isArray(parsed) || !parsed.some(s => s.id === ensureUUID('so_master_demo') || s.so_no === 'SO-2609001')) {
         const mapped = DEFAULT_SALES_ORDERS.map(s => ({
           ...s,
           id: ensureUUID(s.id),

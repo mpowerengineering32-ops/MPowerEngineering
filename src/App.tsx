@@ -37,7 +37,8 @@ import {
   ShoppingBag,
   Receipt,
   Building,
-  Activity
+  Activity,
+  FileCheck
 } from 'lucide-react';
 import { phpCodebase, PHPFile } from './data/phpCodebase';
 import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend } from 'recharts';
@@ -45,9 +46,15 @@ import SupplierManagement from './components/SupplierManagement';
 import PurchaseManagement from './components/PurchaseManagement';
 import BillingManagement from './components/BillingManagement';
 import StatusTrackerHub from './components/StatusTrackerHub';
+import MasterDocumentManagement from './components/MasterDocumentManagement';
+import { MasterDocumentPreviewModal } from './components/MasterDocumentPreviewModal';
+import { InvoiceExcelFormModal } from './components/InvoiceExcelFormModal';
+import { DEFAULT_MASTER_TEMPLATES } from './data/masterTemplatesData';
+import { numberToThaiBaht } from './utils/numberWords';
 import SetupView from './components/SetupView';
 import ErrorBoundary from './components/ErrorBoundary';
-import { Supplier, PurchaseRequest, PurchaseOrder, BillingNote } from './types';
+import SalesOrderView from './components/SalesOrderView';
+import { Supplier, PurchaseRequest, PurchaseOrder, BillingNote, SalesOrder } from './types';
 import { CRMService, LocalDB } from './supabaseService';
 
 // Define Interface types for simulation state
@@ -156,6 +163,7 @@ export default function App() {
     'quotations',
     'invoices',
     'billing',
+    'master_documents',
     'suppliers',
     'pr_po',
     'reports',
@@ -180,6 +188,7 @@ export default function App() {
       'quotations',
       'invoices',
       'billing',
+      'master_documents',
       'suppliers',
       'pr_po',
       'reports',
@@ -223,6 +232,15 @@ export default function App() {
       'billingnote': 'billing',
       'billingnotes': 'billing',
       'receipts': 'billing',
+      'master_documents': 'master_documents',
+      'master-documents': 'master_documents',
+      'master_document': 'master_documents',
+      'documents': 'master_documents',
+      'document': 'master_documents',
+      'templates': 'master_documents',
+      'template': 'master_documents',
+      'generator': 'master_documents',
+      'doc-generator': 'master_documents',
       'supplier': 'suppliers',
       'supplier-accounts': 'suppliers',
       'supplier_accounts': 'suppliers',
@@ -439,26 +457,29 @@ export default function App() {
     { id: 2, action: 'อัปเกรดความคืบหน้าดีล (Opportunity Updated)', fullname: 'Chaloempon Kittisak', role: 'Sales Representative', created_at: '2026-06-30 09:12:45', details: 'วิศวกร Chaloempon ทำการปรับสถานะโครงการของบริษัทไทยออยล์ เป็น [Won]', target_type: 'opportunity' }
   ]);
 
-  // --- Procurement & Billing States ---
+  // --- Procurement & Billing & Sales Order States ---
   const [suppliers, setSuppliers] = useState<Supplier[]>(() => LocalDB.getSuppliers());
   const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>(() => LocalDB.getPurchaseRequests());
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => LocalDB.getPurchaseOrders());
   const [billingNotes, setBillingNotes] = useState<BillingNote[]>(() => LocalDB.getBillingNotes());
+  const [salesOrders, setSalesOrders] = useState<SalesOrder[]>(() => LocalDB.getSalesOrders());
   const [isLoadingProcurement, setIsLoadingProcurement] = useState(false);
 
   const fetchProcurementData = async () => {
     setIsLoadingProcurement(true);
     try {
-      const [sups, prs, pos, bls] = await Promise.all([
+      const [sups, prs, pos, bls, sos] = await Promise.all([
         CRMService.getSuppliers(),
         CRMService.getPurchaseRequests(),
         CRMService.getPurchaseOrders(),
-        CRMService.getBillingNotes()
+        CRMService.getBillingNotes(),
+        CRMService.fetchSalesOrders()
       ]);
       setSuppliers(sups);
       setPurchaseRequests(prs);
       setPurchaseOrders(pos);
       setBillingNotes(bls);
+      setSalesOrders(sos);
     } catch (err) {
       console.warn('Procurement cloud sync skipped, using local data:', err);
     } finally {
@@ -578,6 +599,7 @@ export default function App() {
   const [showQuotationModal, setShowQuotationModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [selectedViewQuotation, setSelectedViewQuotation] = useState<QuotationSim | null>(null);
+  const [selectedExcelInvoice, setSelectedExcelInvoice] = useState<any | null>(null);
 
   // --- 1. Customer Creation Handler ---
   const [custForm, setCustForm] = useState({ name: '', taxId: '', industry: 'Oil & Gas', term: 30, phone: '', email: '', address: '', contactName: '', contactPosition: '', contactPhone: '', contactEmail: '' });
@@ -999,6 +1021,22 @@ export default function App() {
                     <span>{t.quotations}</span>
                   </button>
 
+                  {/* Link 4.5: Sales Orders (ใบสั่งขาย) */}
+                  <button 
+                    onClick={() => { setActiveTab('sales_orders'); }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-tight transition-all text-left cursor-pointer ${activeTab === 'sales_orders' || activeTab === 'sales-orders' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileCheck className="w-4 h-4 text-emerald-400" />
+                      <span>{lang === 'TH' ? 'ใบสั่งขาย (Sales Orders)' : 'Sales Orders'}</span>
+                    </div>
+                    {salesOrders.length > 0 && (
+                      <span className="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800 px-1.5 py-0.2 rounded font-mono font-bold">
+                        {salesOrders.length}
+                      </span>
+                    )}
+                  </button>
+
                   {/* Link 5: Invoices */}
                   <button 
                     onClick={() => { setActiveTab('invoices'); }}
@@ -1022,6 +1060,20 @@ export default function App() {
                         {billingNotes.length}
                       </span>
                     )}
+                  </button>
+
+                  {/* Link 6.5: Master Document Generator & Templates (9 เอกสาร) */}
+                  <button 
+                    onClick={() => { setActiveTab('master_documents'); }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold tracking-tight transition-all text-left cursor-pointer ${activeTab === 'master_documents' ? 'bg-indigo-600 text-white shadow font-bold' : 'text-slate-400 hover:bg-slate-900 hover:text-white'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                      <span>{lang === 'TH' ? 'ระบบแม่แบบเอกสาร (Master Docs)' : 'Master Documents'}</span>
+                    </div>
+                    <span className="text-[9px] bg-emerald-950/80 text-emerald-300 border border-emerald-800 px-1.5 py-0.5 rounded font-mono font-bold">
+                      9 เอกสาร
+                    </span>
                   </button>
 
                   <span className="px-3 text-[9px] uppercase font-bold text-slate-500 tracking-wider block pt-4 mb-2">{lang === 'TH' ? 'จัดซื้อ & ซัพพลายเออร์' : 'PROCUREMENT & PURCHASING'}</span>
@@ -2303,6 +2355,7 @@ export default function App() {
                               <th>ฐานภาษีก่อน VAT</th>
                               <th>ยอดรวมวางบิลรวมภาษี</th>
                               <th className="text-center">สถานะชำระเงิน</th>
+                              <th className="text-center">จัดการแบบฟอร์ม Excel</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -2333,6 +2386,16 @@ export default function App() {
                                   }`}>
                                     {inv.status}
                                   </span>
+                                </td>
+                                <td className="text-center py-4 px-2">
+                                  <button
+                                    onClick={() => setSelectedExcelInvoice(inv)}
+                                    className="px-2.5 py-1.5 bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 mx-auto cursor-pointer shadow-sm"
+                                    title="เปิดแบบฟอร์มเอกสาร Excel (3 รูปแบบ: Tax Invoice Original, Copy, Receipt)"
+                                  >
+                                    <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                                    <span>แบบฟอร์ม Excel (3 รูปแบบ)</span>
+                                  </button>
                                 </td>
                               </tr>
                             ))}
@@ -2445,6 +2508,41 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+                )}
+
+                {/* ========================================== */}
+                {/* 5.5 SALES ORDERS (ใบสั่งขาย) TAB VIEW      */}
+                {/* ========================================== */}
+                {(activeTab === 'sales_orders' || activeTab === 'sales-orders') && (
+                  <ErrorBoundary fallbackTitle="เกิดข้อผิดพลาดในการแสดงผลหน้า ใบสั่งขาย (Sales Orders)" onReset={fetchProcurementData}>
+                    <SalesOrderView
+                      salesOrders={salesOrders || []}
+                      customers={(customers || []) as any}
+                      opportunities={(opportunities || []) as any}
+                      invoices={(invoices || []) as any}
+                      onAdd={async (payload) => {
+                        const created = await CRMService.insertSalesOrder(payload);
+                        setSalesOrders(prev => [created, ...(prev || [])]);
+                        showSimToast(`สร้างใบสั่งขาย ${created.so_no} สำเร็จ`, 'success');
+                        return created;
+                      }}
+                      onUpdate={async (id, updates) => {
+                        const updated = await CRMService.updateSalesOrder(id, updates);
+                        setSalesOrders(prev => (prev || []).map(s => s.id === id ? updated : s));
+                        showSimToast(`อัปเดตใบสั่งขาย ${updated.so_no} สำเร็จ`, 'success');
+                        return updated;
+                      }}
+                      onDelete={async (id) => {
+                        await CRMService.deleteSalesOrder(id);
+                        setSalesOrders(prev => (prev || []).filter(s => s.id !== id));
+                        showSimToast('ลบใบสั่งขายสำเร็จ', 'info');
+                        return true;
+                      }}
+                      onToast={(msg, type) => showSimToast(msg, type === 'err' ? 'error' : 'success')}
+                      currentRole={(userRole as any)}
+                      currentUserId="admin-1"
+                    />
+                  </ErrorBoundary>
                 )}
 
                 {/* ========================================== */}
@@ -2678,6 +2776,25 @@ export default function App() {
                       onToast={(msg, type) => showSimToast(msg, type === 'err' ? 'error' : 'success')}
                       onRefresh={fetchProcurementData}
                       isLoading={isLoadingProcurement}
+                    />
+                  </ErrorBoundary>
+                )}
+
+                {/* ============================================================== */}
+                {/* 8.8 MASTER DOCUMENT MANAGEMENT & GENERATOR (9 Master Templates) */}
+                {/* ============================================================== */}
+                {activeTab === 'master_documents' && (
+                  <ErrorBoundary fallbackTitle="เกิดข้อผิดพลาดในการแสดงผลระบบจัดการแม่แบบเอกสาร" onReset={fetchProcurementData}>
+                    <MasterDocumentManagement
+                      quotations={(quotations || []) as any}
+                      salesOrders={(salesOrders || []) as any}
+                      purchaseRequests={purchaseRequests || []}
+                      purchaseOrders={purchaseOrders || []}
+                      billingNotes={billingNotes || []}
+                      invoices={(invoices || []) as any}
+                      currentUserId="admin-1"
+                      currentUserFullname={userFullname}
+                      onToast={(msg, type) => showSimToast(msg, type === 'err' ? 'error' : 'success')}
                     />
                   </ErrorBoundary>
                 )}
@@ -3177,175 +3294,83 @@ export default function App() {
         </div>
       )}
 
-      {/* Quotation Viewer Modal */}
+      {/* Master Template Quotation Preview Modal (100% Geometry Matched) */}
       {selectedViewQuotation && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-4xl overflow-hidden shadow-2xl animate-scale-up text-slate-300 flex flex-col max-h-[90vh]">
-            <div className="bg-slate-850 p-4 border-b border-slate-800 flex items-center justify-between shrink-0">
-              <h3 className="font-extrabold text-sm flex items-center gap-1.5 text-indigo-400">
-                <FileText className="w-4 h-4" /> ดูเอกสารใบเสนอราคา (Quotation Document View)
-              </h3>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => window.print()} 
-                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[11px] font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow"
-                >
-                  <Printer className="w-3.5 h-3.5" /> พิมพ์เอกสาร (Print)
-                </button>
-                <button 
-                  onClick={() => setSelectedViewQuotation(null)} 
-                  className="text-white bg-slate-800 hover:bg-slate-700 p-1.5 rounded-full focus:outline-none cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
+        <MasterDocumentPreviewModal
+          isOpen={!!selectedViewQuotation}
+          onClose={() => setSelectedViewQuotation(null)}
+          template={DEFAULT_MASTER_TEMPLATES[0]}
+          data={{
+            document_no: selectedViewQuotation.quotation_no,
+            document_date: selectedViewQuotation.quotation_date,
+            customer_name: selectedViewQuotation.customer_name,
+            customer_address: customers.find(c => c.id === selectedViewQuotation.customer_id)?.address || '555 ถนนวิภาวดีรังสิต แขวงจตุจักร เขตจตุจักร กรุงเทพฯ 10900',
+            customer_tax_id: customers.find(c => c.id === selectedViewQuotation.customer_id)?.tax_id || '0107544000108',
+            project_name: selectedViewQuotation.project_name || selectedViewQuotation.title,
+            payment_term: selectedViewQuotation.payment_term || 'เครดิต 30 วัน',
+            validity_days: selectedViewQuotation.validity_days || 30,
+            subtotal: selectedViewQuotation.total_value,
+            discount: 0,
+            vat: selectedViewQuotation.total_value * (selectedViewQuotation.tax_rate / 100),
+            grand_total: selectedViewQuotation.grand_total,
+            baht_text: numberToThaiBaht(selectedViewQuotation.grand_total),
+            remark: selectedViewQuotation.title || 'ราคารวมภาษีมูลค่าเพิ่มและอุปกรณ์ทดสอบมาตรฐานพร้อมใบรับรอง',
+            authorized_name: 'นายพงษ์ศักดิ์ บุญประเสริฐ (กรรมการผู้จัดการ)',
+            items: (selectedViewQuotation.items && selectedViewQuotation.items.length > 0)
+              ? selectedViewQuotation.items.map((it: any, idx: number) => ({
+                  item_no: idx + 1,
+                  description: it.name || it.description || selectedViewQuotation.title,
+                  qty: it.qty || 1,
+                  unit: it.unit || 'ชุด',
+                  unit_price: it.price || it.unit_rate || selectedViewQuotation.total_value,
+                  amount: (it.qty || 1) * (it.price || it.unit_rate || selectedViewQuotation.total_value)
+                }))
+              : [
+                  {
+                    item_no: 1,
+                    description: selectedViewQuotation.title,
+                    qty: 1,
+                    unit: 'ชุด',
+                    unit_price: selectedViewQuotation.total_value,
+                    amount: selectedViewQuotation.total_value
+                  }
+                ]
+          }}
+        />
+      )}
 
-            <div className="p-6 overflow-y-auto bg-slate-100 text-slate-850 font-sans text-xs flex-1">
-              {/* Actual printable paper layout */}
-              <div className="border border-slate-200 p-8 rounded-xl shadow-lg space-y-6 bg-white max-w-3xl mx-auto printable-area">
-                {/* Header */}
-                <div className="flex justify-between items-start border-b border-slate-200 pb-4">
-                  <div>
-                    <h4 className="text-base font-black text-slate-950">บริษัท นอร์ทเทิร์น อินดัสเตรียล เซอร์วิสเซส จำกัด</h4>
-                    <p className="text-[10px] text-slate-500 mt-1 leading-relaxed">
-                      99/9 หมู่ 4 ต.หนองป่าครั่ง อ.เมืองเชียงใหม่ จ.เชียงใหม่ 50000<br />
-                      โทร: 053-123-456 | เลขประจำตัวผู้เสียภาษี: 0105560001234
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <h3 className="text-lg font-black text-indigo-600 uppercase tracking-widest">ใบเสนอราคา</h3>
-                    <span className="text-slate-500 font-bold block text-[10px] mt-1">QUOTATION</span>
-                    <div className="mt-2 font-mono text-[10px] space-y-0.5">
-                      <div><strong className="text-slate-900">เลขที่ / No:</strong> <span className="text-indigo-600 font-bold">{selectedViewQuotation.quotation_no}</span></div>
-                      <div><strong className="text-slate-900">วันที่ / Date:</strong> {selectedViewQuotation.quotation_date}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Info Blocks */}
-                <div className="grid grid-cols-2 gap-6 text-[10px]">
-                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1">
-                    <strong className="text-xs text-slate-900 block mb-1">ข้อมูลลูกค้า / Customer Info:</strong>
-                    <div><span className="font-bold text-slate-800">{selectedViewQuotation.customer_name}</span></div>
-                    {(() => {
-                      const matchingCust = customers.find(c => c.id === selectedViewQuotation.customer_id);
-                      return matchingCust ? (
-                        <>
-                          <div><strong>เลขผู้เสียภาษี:</strong> {matchingCust.tax_id}</div>
-                          <div><strong>ที่อยู่:</strong> {matchingCust.address}</div>
-                          <div><strong>โทรศัพท์:</strong> {matchingCust.phone} | <strong>อีเมล:</strong> {matchingCust.email}</div>
-                        </>
-                      ) : (
-                        <div className="text-slate-400">ข้อมูลดีลทั่วไปนิติบุคคล</div>
-                      );
-                    })()}
-                  </div>
-
-                  <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 space-y-1">
-                    <strong className="text-xs text-slate-900 block mb-1">เงื่อนไขข้อเสนอ / Conditions:</strong>
-                    <div><strong>ชื่องานโครงการ:</strong> <span className="font-bold text-slate-800">{selectedViewQuotation.project_name || 'ดีลงานบริการทั่วไป'}</span></div>
-                    <div><strong>หัวข้อข้อเสนอ:</strong> {selectedViewQuotation.title}</div>
-                    <div><strong>เงื่อนไขการชำระเงิน:</strong> {selectedViewQuotation.payment_term}</div>
-                    <div><strong>ระยะเวลากำหนดยืนราคา:</strong> {selectedViewQuotation.validity_days} วันนับจากวันที่ออกเอกสาร</div>
-                  </div>
-                </div>
-
-                {/* Items Table */}
-                <div>
-                  <table className="w-full text-left text-[10px]" style={{ borderCollapse: 'collapse', border: '1px solid #000000' }}>
-                    <thead>
-                      <tr className="font-bold text-slate-900">
-                        <th style={{ borderRight: '1px solid #000000', borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'center', width: '64px' }}>Quantity</th>
-                        <th style={{ borderRight: '1px solid #000000', borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'center' }}>Drescription</th>
-                        <th style={{ borderRight: '1px solid #000000', borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'right', width: '110px' }}>Unit Price (THB)</th>
-                        <th style={{ borderBottom: '1px solid #000000', padding: '6px 8px', textAlign: 'right', width: '110px' }}>Amount (THB)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedViewQuotation.items && selectedViewQuotation.items.length > 0 ? (
-                        selectedViewQuotation.items.map((item, index) => (
-                          <tr key={index} className="text-slate-900" style={{ border: 'none' }}>
-                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>{item.qty || 1}</td>
-                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', fontWeight: 'bold', verticalAlign: 'top' }}>{(item as any).name || (item as any).description || selectedViewQuotation.title}</td>
-                            <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', verticalAlign: 'top' }}>{((item as any).price || (item as any).unit_rate || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                            <td style={{ padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>{(((item as any).qty || 1) * ((item as any).price || (item as any).unit_rate || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr className="text-slate-900" style={{ border: 'none' }}>
-                          <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'center', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>1</td>
-                          <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', fontWeight: 'bold', verticalAlign: 'top' }}>{selectedViewQuotation.title}</td>
-                          <td style={{ borderRight: '1px solid #000000', padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', verticalAlign: 'top' }}>{selectedViewQuotation.total_value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                          <td style={{ padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 'bold', verticalAlign: 'top' }}>{selectedViewQuotation.total_value.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                        </tr>
-                      )}
-                      {/* Spacer row to stretch vertical lines */}
-                      <tr style={{ border: 'none', height: '100px' }}>
-                        <td style={{ borderRight: '1px solid #000000' }}></td>
-                        <td style={{ borderRight: '1px solid #000000' }}></td>
-                        <td style={{ borderRight: '1px solid #000000' }}></td>
-                        <td></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Calculation Footer */}
-                <div className="flex justify-end pt-2">
-                  <div className="w-80 space-y-1.5 font-mono text-[10px]">
-                    <div className="flex justify-between text-slate-600">
-                      <span>มูลค่ารวมสินค้า / Services Subtotal:</span>
-                      <span className="font-bold text-slate-900">฿{selectedViewQuotation.total_value.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
-                    </div>
-                    <div className="flex justify-between text-slate-600">
-                      <span>ภาษีมูลค่าเพิ่ม / VAT ({selectedViewQuotation.tax_rate}%):</span>
-                      <span className="font-bold text-slate-900">฿{(selectedViewQuotation.total_value * (selectedViewQuotation.tax_rate / 100)).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
-                    </div>
-                    <div className="flex justify-between border-t border-slate-200 pt-2 text-xs">
-                      <span className="font-bold text-slate-900">ยอดเงินรวมสุทธิ / Grand Total:</span>
-                      <span className="font-extrabold text-indigo-600 text-[13px]">฿{selectedViewQuotation.grand_total.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Signatures */}
-                <div className="grid grid-cols-3 gap-4 pt-10 text-[9px] text-center text-slate-500">
-                  <div className="space-y-6">
-                    <div>............................................................</div>
-                    <div>
-                      <strong>ผู้เสนอราคา (Quoter)</strong><br />
-                      วันที่ {selectedViewQuotation.quotation_date}
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    <div>............................................................</div>
-                    <div>
-                      <strong>ผู้อนุมัติฝ่ายวิศวกรรม (Engineering Approved)</strong><br />
-                      วันที่ {selectedViewQuotation.quotation_date}
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    <div>............................................................</div>
-                    <div>
-                      <strong>ผู้รับข้อเสนอ (Client Signature)</strong><br />
-                      วันที่ ........ / ........ / ........
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-slate-850 border-t border-slate-800 flex justify-end shrink-0">
-              <button 
-                onClick={() => setSelectedViewQuotation(null)} 
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-bold cursor-pointer text-xs"
-              >
-                ปิดหน้าต่าง
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Invoice Excel Form Modal (3 Exact Excel Formats: Original, Copy, Receipt) */}
+      {selectedExcelInvoice && (
+        <InvoiceExcelFormModal
+          isOpen={!!selectedExcelInvoice}
+          onClose={() => setSelectedExcelInvoice(null)}
+          invoice={selectedExcelInvoice}
+          customers={customers as any}
+          onSave={(updated: any) => {
+            setInvoices(prev => prev.map(inv => String(inv.id) === String(updated.id) ? { 
+              ...inv, 
+              invoice_no: updated.invoice_no,
+              customer_name: updated.customer_name,
+              invoice_date: updated.invoice_date || inv.invoice_date,
+              due_date: updated.due_date || inv.due_date,
+              subtotal: Number(updated.subtotal || inv.subtotal),
+              tax_amount: Number(updated.vat ?? updated.vat_amount ?? inv.tax_amount),
+              grand_total: Number(updated.grand_total || inv.grand_total)
+            } : inv));
+            // Add audit log
+            const newLog: AuditLogSim = {
+              id: auditLogs.length + 1,
+              action: 'บันทึกแบบฟอร์มเอกสาร Excel (Excel Form Recorded)',
+              fullname: userFullname,
+              role: userRole,
+              created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
+              details: `บันทึกข้อมูลแบบฟอร์มเอกสารการเงินเลขที่ ${updated.invoice_no} (ลูกค้า: ${updated.customer_name}) ยอดสุทธิ ฿${updated.grand_total.toLocaleString()}`,
+              target_type: 'system'
+            };
+            setAuditLogs(prev => [newLog, ...prev]);
+          }}
+          onToast={(msg, type) => showSimToast(msg, type === 'err' ? 'error' : 'success')}
+        />
       )}
 
     </div>

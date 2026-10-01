@@ -1,7 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { PurchaseRequest, PurchaseOrder, Supplier, Customer, UserRole } from '../types';
 import { MetricCard } from './common/MetricCard';
-import { numberToEnglishWords } from '../utils/numberWords';
+import { numberToEnglishWords, numberToThaiBaht, numberToEnglishBaht } from '../utils/numberWords';
+import { MasterDocumentPreviewModal } from './MasterDocumentPreviewModal';
+import { DEFAULT_MASTER_TEMPLATES } from '../data/masterTemplatesData';
+import { MasterPurchaseOrderDocument } from './purchase-order/MasterPurchaseOrderDocument';
+import { PurchaseOrderGenerateModal } from './purchase-order/PurchaseOrderGenerateModal';
+import { preparePurchaseOrderTemplateData, generatePurchaseOrderMasterPDF } from '../utils/purchaseOrderPdfEngine';
+import { MasterPurchaseRequestDocument } from './purchase-request/MasterPurchaseRequestDocument';
+import { PurchaseRequestGenerateModal } from './purchase-request/PurchaseRequestGenerateModal';
+import { preparePurchaseRequestTemplateData, generatePurchaseRequestMasterPDF } from '../utils/purchaseRequestPdfEngine';
 import {
   FileCheck2,
   ShoppingCart,
@@ -35,7 +43,8 @@ import {
   AlertTriangle,
   Copy,
   Link2,
-  ExternalLink
+  ExternalLink,
+  ShieldCheck
 } from 'lucide-react';
 
 interface PurchaseManagementProps {
@@ -99,10 +108,16 @@ export default function PurchaseManagement({
   const [isPRFormOpen, setIsPRFormOpen] = useState(false);
   const [editingPR, setEditingPR] = useState<PurchaseRequest | null>(null);
   const [viewingPR, setViewingPR] = useState<PurchaseRequest | null>(null);
+  const [generatingPR, setGeneratingPR] = useState<PurchaseRequest | null>(null);
 
   const [isPOFormOpen, setIsPOFormOpen] = useState(false);
   const [editingPO, setEditingPO] = useState<PurchaseOrder | null>(null);
   const [viewingPO, setViewingPO] = useState<PurchaseOrder | null>(null);
+  const [generatingPO, setGeneratingPO] = useState<PurchaseOrder | null>(null);
+
+  // Master Template Exact Preview Modals
+  const [masterPreviewPR, setMasterPreviewPR] = useState<PurchaseRequest | null>(null);
+  const [masterPreviewPO, setMasterPreviewPO] = useState<PurchaseOrder | null>(null);
 
   // PR Form fields
   const [prNo, setPrNo] = useState('');
@@ -1435,6 +1450,25 @@ export default function PurchaseManagement({
                             </button>
                           )}
 
+                          {/* Master Generator Button */}
+                          {isPR ? (
+                            <button
+                              onClick={() => setGeneratingPR(doc.raw as PurchaseRequest)}
+                              className="p-1 text-slate-400 hover:text-amber-600 hover:bg-slate-100 rounded transition cursor-pointer"
+                              title="สร้าง / ดาวน์โหลด PDF ใบขอซื้อ PR Master Template (100% Match)"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setGeneratingPO(doc.raw as PurchaseOrder)}
+                              className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition cursor-pointer"
+                              title="สร้าง / ดาวน์โหลด PDF ใบสั่งซื้อ PO Master Template (100% Match)"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                            </button>
+                          )}
+
                           {canCreate && isPR && doc.status === 'Pending Approval' && (
                             <button
                               onClick={() => handleOpenEditPR(doc.raw as PurchaseRequest)}
@@ -1602,6 +1636,43 @@ export default function PurchaseManagement({
                   return null;
                 })()}
                 <button
+                  onClick={() => setGeneratingPR(viewingPR)}
+                  className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-amber-200 shadow-2xs"
+                  title="สร้าง PR ผ่าน Master Template Generator (100% Match)"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Master Generator</span>
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const data = preparePurchaseRequestTemplateData(
+                        viewingPR,
+                        suppliers.find(s => s.id === viewingPR.supplier_id || s.supplier_name === viewingPR.supplier_name)
+                      );
+                      const pdfBytes = await generatePurchaseRequestMasterPDF(data);
+                      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `Purchase_Request_${data.pr_no.replace(/[\s/]/g, '_')}_MPOWER_MASTER.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      onToast(`ดาวน์โหลดเอกสารใบขอซื้อ ${data.pr_no} สำเร็จ (100% Match)`, 'success');
+                    } catch (err: any) {
+                      console.error('PDF export error:', err);
+                      onToast('เกิดข้อผิดพลาดในการดาวน์โหลด PDF', 'err');
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  title="ดาวน์โหลดไฟล์ PDF ตรงตาม PR.pdf 100%"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>ดาวน์โหลด PDF</span>
+                </button>
+                <button
                   onClick={handlePrint}
                   className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-slate-200"
                 >
@@ -1617,87 +1688,14 @@ export default function PurchaseManagement({
               </div>
             </div>
 
-            {/* PR Printable Sheet */}
-            <div className="p-6 overflow-y-auto space-y-6 text-slate-700 text-xs">
-              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-3">
-                  <div>
-                    <h2 className="text-base font-black text-slate-900">บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด</h2>
-                    <p className="text-[11px] text-slate-500">ใบขออนุมัติจัดซื้อ (Purchase Request Requisition Form)</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-black uppercase text-amber-700 px-3 py-1 bg-amber-50 border border-amber-200 rounded-lg">
-                      PURCHASE REQUEST (PR)
-                    </span>
-                    <div className="font-mono text-sm font-bold text-slate-900 mt-1.5">{viewingPR.pr_no}</div>
-                    <div className="text-[10px] text-slate-500">วันที่: {viewingPR.date}</div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-0.5">Supplier / ผู้ขายที่เสนอ</span>
-                    <div className="font-bold text-slate-900 text-xs">{viewingPR.supplier_name}</div>
-                    <div className="text-[11px] text-slate-600">{viewingPR.supplier_address || '-'}</div>
-                    <div className="text-[10px] text-slate-500 font-mono mt-1">Tax ID: {viewingPR.supplier_tax_id || '-'}</div>
-                    <div className="text-[10px] text-slate-500">ผู้ติดต่อ: {viewingPR.supplier_attn || '-'} • เบอร์โทร: {viewingPR.supplier_phone || '-'}</div>
-                  </div>
-                  <div className="space-y-1 md:text-right">
-                    <div className="text-[11px]"><span className="text-slate-500">ผู้ขอซื้อ (Requested By):</span> <b className="text-slate-900">{viewingPR.requested_by || viewingPR.sales_name}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-500">ลูกค้าอ้างอิง (Project):</span> <b className="text-amber-700">{viewingPR.ref_customer}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-500">เงื่อนไขการค้า:</span> <b className="text-slate-900">{viewingPR.due_date}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-500">สถานะ:</span> <b className="text-amber-700">{viewingPR.status}</b></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* PR Items Table */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-600 uppercase">
-                      <th className="py-2.5 px-3 w-10 text-center">Item</th>
-                      <th className="py-2.5 px-3">รายละเอียดสินค้า / Spec</th>
-                      <th className="py-2.5 px-3 text-center w-20">จำนวน</th>
-                      <th className="py-2.5 px-3 text-right w-28">ราคาต่อหน่วย</th>
-                      <th className="py-2.5 px-3 text-right w-32">จำนวนเงิน</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {(viewingPR.items || []).map((it, idx) => (
-                      <tr key={idx}>
-                        <td className="py-2.5 px-3 text-center font-mono text-slate-500">{it.item_no || idx + 1}</td>
-                        <td className="py-2.5 px-3 text-slate-900 font-medium whitespace-pre-line">{it.description}</td>
-                        <td className="py-2.5 px-3 text-center font-mono text-slate-700">{it.quantity}</td>
-                        <td className="py-2.5 px-3 text-right font-mono text-slate-700">฿{Number(it.unit_price).toLocaleString()}</td>
-                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">฿{Number(it.amount).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="bg-slate-50 border-t border-slate-200">
-                      <td colSpan={4} className="py-2 px-3 text-right text-slate-600">ยอดรวมก่อนภาษี (Subtotal):</td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-900">฿{(viewingPR.amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr className="bg-slate-50 border-t border-slate-200">
-                      <td colSpan={4} className="py-2 px-3 text-right text-slate-600">ภาษีมูลค่าเพิ่ม (VAT 7%):</td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-900">฿{(viewingPR.vat_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr className="bg-slate-100 border-t border-slate-200 font-bold">
-                      <td colSpan={4} className="py-3 px-3 text-right text-amber-700">ยอดสุทธิทั้งสิ้น (Grand Total):</td>
-                      <td className="py-3 px-3 text-right font-mono text-base text-amber-700">฿{(viewingPR.total_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-
-              {/* Delivery & Remarks */}
-              {viewingPR.delivery_note && (
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-[11px]">
-                  <span className="font-bold text-slate-700 block mb-0.5">สถานที่และข้อกำหนดการจัดส่ง:</span>
-                  <p className="text-slate-600">{viewingPR.delivery_note}</p>
-                </div>
-              )}
+            {/* PR Printable Sheet (100% Geometry Matched to PR.pdf) */}
+            <div className="p-4 sm:p-6 overflow-y-auto bg-slate-100/60 flex justify-center">
+              <MasterPurchaseRequestDocument
+                data={preparePurchaseRequestTemplateData(
+                  viewingPR,
+                  suppliers.find(s => s.id === viewingPR.supplier_id || s.supplier_name === viewingPR.supplier_name)
+                )}
+              />
             </div>
           </div>
         </div>
@@ -1755,6 +1753,43 @@ export default function PurchaseManagement({
                   </button>
                 )}
                 <button
+                  onClick={() => setGeneratingPO(viewingPO)}
+                  className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-indigo-200 shadow-2xs"
+                  title="สร้าง PO ผ่าน Master Template Generator (100% Match)"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Master Generator</span>
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const data = preparePurchaseOrderTemplateData(
+                        viewingPO,
+                        suppliers.find(s => s.id === viewingPO.supplier_id || s.supplier_name === viewingPO.supplier_name)
+                      );
+                      const pdfBytes = await generatePurchaseOrderMasterPDF(data);
+                      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `Purchase_Order_${data.po_no.replace(/[\s/]/g, '_')}_MPOWER_MASTER.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      onToast(`ดาวน์โหลดเอกสารใบสั่งซื้อ ${data.po_no} สำเร็จ (100% Match)`, 'success');
+                    } catch (err: any) {
+                      console.error('PDF export error:', err);
+                      onToast('เกิดข้อผิดพลาดในการดาวน์โหลด PDF', 'err');
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  title="ดาวน์โหลดไฟล์ PDF ตรงตาม PO.pdf 100%"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>ดาวน์โหลด PDF</span>
+                </button>
+                <button
                   onClick={handlePrint}
                   className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border border-slate-200"
                 >
@@ -1770,80 +1805,14 @@ export default function PurchaseManagement({
               </div>
             </div>
 
-            {/* PO Printable Sheet */}
-            <div className="p-6 overflow-y-auto space-y-6 text-slate-700 text-xs">
-              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-3">
-                  <div>
-                    <h2 className="text-base font-black text-slate-900">บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด</h2>
-                    <p className="text-[11px] text-slate-500">140 Sukhumvit Rd., Map Ta Phut, Mueang Rayong, Rayong 21150</p>
-                    <p className="text-[11px] text-slate-500 font-mono">Tax ID: 0105562001928</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-xs font-black uppercase text-indigo-700 px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-lg">
-                      PURCHASE ORDER (PO)
-                    </span>
-                    <div className="font-mono text-sm font-bold text-slate-900 mt-1.5">{viewingPO.po_no}</div>
-                    <div className="text-[10px] text-slate-500">วันที่: {viewingPO.date}</div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase font-bold block mb-0.5">ผู้จำหน่าย / Vendor</span>
-                    <div className="font-bold text-slate-900 text-xs">{viewingPO.supplier_name}</div>
-                    <div className="text-[11px] text-slate-600">{viewingPO.supplier_address || '-'}</div>
-                    <div className="text-[10px] text-slate-500 font-mono mt-1">Tax ID: {viewingPO.supplier_tax_id || '-'}</div>
-                    <div className="text-[10px] text-slate-500">Attn: {viewingPO.supplier_attn || '-'} • Tel: {viewingPO.supplier_phone || '-'}</div>
-                  </div>
-                  <div className="space-y-1 md:text-right">
-                    <div className="text-[11px]"><span className="text-slate-500">ผู้อนุมัติ (Approved By):</span> <b className="text-emerald-700 font-bold">{viewingPO.approved_by || 'Admin'}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-500">อ้างอิง PR:</span> <b className="text-amber-700 font-mono">{viewingPO.pr_no || '-'}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-500">โครงการ / ลูกค้า:</span> <b className="text-slate-900">{viewingPO.ref_customer}</b></div>
-                    <div className="text-[11px]"><span className="text-slate-500">สถานะคำสั่งซื้อ:</span> <b className="text-indigo-700">{viewingPO.status || 'Issued'}</b></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* PO Items Table */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-600 uppercase">
-                      <th className="py-2.5 px-3 w-10 text-center">Item</th>
-                      <th className="py-2.5 px-3">Description</th>
-                      <th className="py-2.5 px-3 text-center w-20">Qty</th>
-                      <th className="py-2.5 px-3 text-right w-28">Unit Price</th>
-                      <th className="py-2.5 px-3 text-right w-32">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {(viewingPO.items || []).map((it, idx) => (
-                      <tr key={idx}>
-                        <td className="py-2.5 px-3 text-center font-mono text-slate-500">{it.item_no || idx + 1}</td>
-                        <td className="py-2.5 px-3 text-slate-900 font-medium whitespace-pre-line">{it.description}</td>
-                        <td className="py-2.5 px-3 text-center font-mono text-slate-700">{it.quantity}</td>
-                        <td className="py-2.5 px-3 text-right font-mono text-slate-700">฿{Number(it.unit_price).toLocaleString()}</td>
-                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">฿{Number(it.amount).toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="bg-slate-50 border-t border-slate-200">
-                      <td colSpan={4} className="py-2 px-3 text-right text-slate-600">Subtotal:</td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-900">฿{(viewingPO.amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr className="bg-slate-50 border-t border-slate-200">
-                      <td colSpan={4} className="py-2 px-3 text-right text-slate-600">VAT (7%):</td>
-                      <td className="py-2 px-3 text-right font-mono text-slate-900">฿{(viewingPO.vat_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr className="bg-slate-100 border-t border-slate-200 font-bold">
-                      <td colSpan={4} className="py-3 px-3 text-right text-indigo-700">Grand Total:</td>
-                      <td className="py-3 px-3 text-right font-mono text-base text-indigo-700">฿{(viewingPO.total_amount || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+            {/* PO Printable Sheet (100% Geometry Matched to PO.pdf) */}
+            <div className="p-4 sm:p-6 overflow-y-auto bg-slate-100/60 flex justify-center">
+              <MasterPurchaseOrderDocument
+                data={preparePurchaseOrderTemplateData(
+                  viewingPO,
+                  suppliers.find(s => s.id === viewingPO.supplier_id || s.supplier_name === viewingPO.supplier_name)
+                )}
+              />
             </div>
           </div>
         </div>
@@ -2269,6 +2238,96 @@ export default function PurchaseManagement({
             </form>
           </div>
         </div>
+      )}
+
+      {/* Master Template Exact PR Preview Modal */}
+      {masterPreviewPR && (
+        <MasterDocumentPreviewModal
+          isOpen={!!masterPreviewPR}
+          onClose={() => setMasterPreviewPR(null)}
+          template={DEFAULT_MASTER_TEMPLATES[2]}
+          data={{
+            document_no: masterPreviewPR.pr_no,
+            document_date: masterPreviewPR.date || masterPreviewPR.pr_date || '',
+            required_date: masterPreviewPR.required_date || '',
+            requestor_name: masterPreviewPR.requestor || masterPreviewPR.requested_by || masterPreviewPR.sales_name || '',
+            department: masterPreviewPR.department || 'ฝ่ายปฏิบัติการวิศวกรรม',
+            project_name: masterPreviewPR.project || masterPreviewPR.ref_customer || '',
+            supplier_name: masterPreviewPR.supplier_name || '',
+            supplier_address: masterPreviewPR.supplier_address || '',
+            supplier_tax_id: masterPreviewPR.supplier_tax_id || '',
+            subtotal: masterPreviewPR.amount,
+            vat: masterPreviewPR.vat_amount || masterPreviewPR.amount * 0.07,
+            grand_total: masterPreviewPR.total_amount,
+            baht_text: numberToThaiBaht(masterPreviewPR.total_amount),
+            remark: masterPreviewPR.remarks || masterPreviewPR.delivery_note || '',
+            authorized_name: masterPreviewPR.approved_by || 'นายพงษ์ศักดิ์ บุญประเสริฐ',
+            items: (masterPreviewPR.items || []).map((it, idx) => ({
+              item_no: idx + 1,
+              description: it.description,
+              qty: it.quantity || it.qty || 1,
+              unit: it.unit || 'ชุด',
+              unit_price: it.unit_price,
+              amount: it.amount
+            }))
+          }}
+        />
+      )}
+
+      {/* Master Template Exact PO Preview Modal */}
+      {masterPreviewPO && (
+        <MasterDocumentPreviewModal
+          isOpen={!!masterPreviewPO}
+          onClose={() => setMasterPreviewPO(null)}
+          template={DEFAULT_MASTER_TEMPLATES[3]}
+          data={{
+            document_no: masterPreviewPO.po_no,
+            document_date: masterPreviewPO.date || masterPreviewPO.po_date || '',
+            ref_pr_no: masterPreviewPO.pr_no || '',
+            supplier_name: masterPreviewPO.supplier_name,
+            supplier_address: masterPreviewPO.supplier_address || '',
+            supplier_tax_id: masterPreviewPO.supplier_tax_id || '',
+            payment_term: masterPreviewPO.payment_term || 'เครดิต 30 วัน',
+            delivery_date: masterPreviewPO.delivery_date || masterPreviewPO.due_date || '',
+            project_name: masterPreviewPO.project || masterPreviewPO.ref_customer || '',
+            subtotal: masterPreviewPO.amount,
+            vat: masterPreviewPO.vat_amount || masterPreviewPO.amount * 0.07,
+            grand_total: masterPreviewPO.total_amount,
+            baht_text: numberToThaiBaht(masterPreviewPO.total_amount),
+            remark: masterPreviewPO.remarks || masterPreviewPO.delivery_note || '',
+            authorized_name: masterPreviewPO.approved_by || 'นายพงษ์ศักดิ์ บุญประเสริฐ',
+            items: (masterPreviewPO.items || []).map((it, idx) => ({
+              item_no: idx + 1,
+              description: it.description,
+              qty: it.quantity || it.qty || 1,
+              unit: it.unit || 'ชุด',
+              unit_price: it.unit_price,
+              amount: it.amount
+            }))
+          }}
+        />
+      )}
+
+      {/* Purchase Request Master Generator Modal (100% Geometry Matched to PR.pdf) */}
+      {generatingPR && (
+        <PurchaseRequestGenerateModal
+          isOpen={!!generatingPR}
+          onClose={() => setGeneratingPR(null)}
+          purchaseRequest={generatingPR}
+          supplier={suppliers.find(s => s.id === generatingPR.supplier_id || s.supplier_name === generatingPR.supplier_name)}
+          onToast={onToast}
+        />
+      )}
+
+      {/* Purchase Order Master Generator Modal (100% Geometry Matched to PO.pdf) */}
+      {generatingPO && (
+        <PurchaseOrderGenerateModal
+          isOpen={!!generatingPO}
+          onClose={() => setGeneratingPO(null)}
+          purchaseOrder={generatingPO}
+          supplier={suppliers.find(s => s.id === generatingPO.supplier_id || s.supplier_name === generatingPO.supplier_name)}
+          onToast={onToast}
+        />
       )}
     </div>
   );

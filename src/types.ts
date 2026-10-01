@@ -36,6 +36,7 @@ export interface Customer {
   credit_limit?: number;
   status: 'Active' | 'Inactive';
   notes?: string;
+  contact_person?: string;
   contacts: ContactPerson[]; // Let's store contacts as jsonb array inside customers table or fallback
   created_at?: string;
 }
@@ -542,4 +543,148 @@ declare global {
     SupabaseDB: any;
   }
 }
+
+// ==========================================
+// MASTER DOCUMENT MANAGEMENT & GENERATOR TYPES
+// ==========================================
+
+export type MasterDocType = 
+  | 'quotation' 
+  | 'sales_order' 
+  | 'so'
+  | 'pr' 
+  | 'po' 
+  | 'invoice' 
+  | 'billing_note' 
+  | 'receipt' 
+  | 'delivery_note' 
+  | 'tax_invoice_delivery';
+
+export interface MasterFieldSlot {
+  tag: string; // e.g. '{{DOCUMENT_NO}}'
+  key: string; // e.g. 'document_no'
+  label: string;
+  required: boolean;
+  isPresentInTemplate: boolean;
+  sampleValue: string;
+  category: 'header' | 'customer' | 'summary' | 'sign' | 'other';
+  cellRef?: string; // Excel cell, e.g. 'F4'
+}
+
+export interface MasterTableColumnSlot {
+  colIndex: number;
+  key: string;
+  headerText: string;
+  widthPct: number;
+  align: 'left' | 'center' | 'right';
+  excelCol?: string;
+}
+
+export interface MasterTemplateVersionRecord {
+  id: string;
+  version: string;
+  fileName: string;
+  fileType: 'pdf' | 'xlsx' | 'docx';
+  uploadedAt: string;
+  uploadedBy: string;
+  changelog: string;
+  isActive: boolean;
+  fileSize: number;
+}
+
+export interface MasterTemplate {
+  id: string;
+  docType: MasterDocType;
+  title: string;
+  subTitle: string;
+  fileName: string;
+  fileType: 'pdf' | 'xlsx' | 'docx';
+  version: string;
+  isActive: boolean;
+  uploadedAt: string;
+  uploadedBy: string;
+  fileSize: number;
+  pageSize: 'A4' | 'Letter';
+  orientation: 'portrait' | 'landscape';
+  maxItemsPerPage: number;
+  fieldMappings: MasterFieldSlot[];
+  tableColumns: MasterTableColumnSlot[];
+  versionHistory: MasterTemplateVersionRecord[];
+  rawBase64?: string;
+}
+
+export interface MasterDocumentItem {
+  id?: string;
+  item_no?: number;
+  product_code?: string;
+  description: string;
+  qty?: number;
+  ordered_qty?: number;
+  delivered_qty?: number;
+  unit?: string;
+  unit_price?: number;
+  amount?: number;
+  invoice_no?: string;
+  invoice_date?: string;
+  due_date?: string;
+  ref_no?: string;
+}
+
+export interface MasterDocumentData {
+  document_no: string;
+  document_date: string;
+  due_date?: string;
+  required_date?: string;
+  delivery_date?: string;
+  customer_code?: string;
+  customer_name?: string;
+  customer_address?: string;
+  customer_tax_id?: string;
+  customer_branch?: string;
+  supplier_name?: string;
+  supplier_address?: string;
+  supplier_tax_id?: string;
+  project_name?: string;
+  department?: string;
+  requestor_name?: string;
+  payment_term?: string;
+  payment_method?: string;
+  validity_days?: string | number;
+  ref_quotation_no?: string;
+  ref_pr_no?: string;
+  ref_po_no?: string;
+  ref_so_no?: string;
+  ref_invoice_no?: string;
+  carrier_name?: string;
+  document_copy_type?: string;
+  subtotal: number;
+  discount?: number;
+  vat: number;
+  wht_amount?: number;
+  grand_total: number;
+  sales_name?: string;
+  baht_text?: string;
+  baht_text_en?: string;
+  attn?: string;
+  tel?: string;
+  remark?: string;
+  authorized_name: string;
+  total_items?: string;
+  items: MasterDocumentItem[];
+}
+
+export interface DocumentAuditResult {
+  status: 'PASSED' | 'WARNING';
+  docType: MasterDocType;
+  templateVersion: string;
+  matchedSlots: { tag: string; label: string; value: string }[];
+  missingSlotsInTemplate: { tag: string; label: string; reason: string }[];
+  calculatedSubtotal: number;
+  calculatedVat: number;
+  calculatedGrandTotal: number;
+  mathCheckPassed: boolean;
+  pagesRequired: number;
+  warnings: string[];
+}
+
 

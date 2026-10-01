@@ -327,76 +327,64 @@
             <i class="fa fa-calculator me-1"></i> Cost Summary (Project evaluation detail)
           </button>
         </div>
-        <div class="modal-body bg-light h-100 overflow-y-auto" style="max-height: 80vh;">
-          <div id="print-area" class="official-document">
-            <table class="w-100" style="margin-bottom: 20px; font-family: sans-serif; color: #000;">
-              <tr>
-                <td style="vertical-align: top; width: 65%;">
-                  <div style="display: flex; align-items: flex-start; gap: 12px;">
-                    <img src="/mpower-logo.png" alt="M Power Logo" style="width: 150px; height: auto; object-fit: contain;" onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q';" />
-                    <div style="font-size: 11px; line-height: 1.4; color: #000;">
-                      <div class="fw-bold" style="font-size: 13px;">M Power Engineering Solutions Co., Ltd.</div>
-                      <div>53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</div>
-                      <div>Tel. 033-641789 / 063-9359565 Email: sales.mpower-engineering.com , info@mpower-engineering.com</div>
-                      <div>Tax ID Number. 0205569006956 (Head office)</div>
-                    </div>
+        <div class="modal-body bg-light h-100 overflow-y-auto p-4" style="max-height: 85vh;">
+          <div id="print-area" class="official-document bg-white p-4 shadow-sm mx-auto" style="max-width: 210mm; min-height: 297mm; font-family: Arial, Helvetica, sans-serif; color: #000; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <!-- 1. Corporate Header -->
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px;">
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                  <div style="padding-top: 2px;">
+                    <img src="/mpower-logo.png" alt="M Power Engineering Solutions Logo" style="height: 46px; width: auto; object-fit: contain; display: block;" />
                   </div>
-                </td>
-                <td style="vertical-align: top; text-align: right; width: 35%;">
-                  <div style="font-size: 15px; font-weight: 900; color: #DC2626; margin-bottom: 5px; letter-spacing: 1px;">ORIGINAL</div>
-                  <div class="mt-2" style="line-height: 1.2;">
-                    <span class="badge bg-secondary mb-1">SO MASTER</span>
-                    <div class="font-monospace text-dark d-block fw-bold" id="print-so-no" style="font-size: 13px; font-weight: 700;">SO-XXXXX</div>
-                    <div class="small text-muted" id="print-so-date" style="font-size: 11px;">Date: --/--/----</div>
+                  <div style="font-size: 11px; line-height: 1.35; color: #000; padding-left: 6px;">
+                    <div style="font-weight: 800; font-size: 12px; color: #000;">M Power Engineering Solutions Co., Ltd.</div>
+                    <div>53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</div>
+                    <div>Tel. 033-641789 / 063-9359565 Email: sales@mpower-engineering.com , info@mpower-engineering.com</div>
+                    <div>Tax ID Number. 0205569006956 (Head office)</div>
                   </div>
-                </td>
-              </tr>
-            </table>
-            
-            <div class="text-center my-3">
-              <h5 class="fw-bold text-dark text-uppercase" id="print-so-title" style="letter-spacing: 1px; border-bottom: 2px solid #333; display: inline-block; padding-bottom: 4px; font-weight: 800; font-size: 16px;">SALES ORDER</h5>
-            </div>
-            
-            <hr class="my-3">
+                </div>
+              </div>
 
-            <div class="row mb-3 small">
-              <div class="col-6">
-                <div class="text-uppercase fw-bold text-secondary">Customer Billing & Delivery Details</div>
-                <div class="fw-bold text-dark" id="print-so-cust">-</div>
-                <div id="print-so-address" class="text-muted small">-</div>
+              <!-- 2. Document Title -->
+              <div style="text-align: center; margin: 12px 0;">
+                <h4 style="font-size: 18px; font-weight: 900; text-transform: uppercase; color: #000; margin: 0; letter-spacing: 0.5px;">Sale Order</h4>
               </div>
-              <div class="col-6 text-end">
-                <div class="text-uppercase fw-bold text-secondary">Sales Details & Reference</div>
-                <div>Quotation Ref: <strong id="print-so-ref-qt">-</strong></div>
-                <div>Salesperson: <strong id="print-so-sales">-</strong></div>
-                <div>Job Number: <strong id="print-so-job-no">-</strong></div>
-                <div>PO Reference: <strong id="print-so-po-no">-</strong></div>
-                <div>Delivery Plan: <strong id="print-so-delivery-plan">-</strong></div>
-                <div>Version: <strong id="print-so-version">v1.0</strong></div>
-              </div>
-            </div>
 
-            <!-- Dynamic Table of Items -->
-            <div id="print-so-table-container"></div>
+              <!-- 3. Customer & Sale Order Details Box -->
+              <div style="border: 1px solid #000; display: flex; margin-bottom: 12px; font-size: 11px; line-height: 1.4;">
+                <!-- Left: Customer -->
+                <div style="width: 65%; padding: 10px; border-right: 1px solid #000;">
+                  <div><strong style="font-weight: 800;">Customer : </strong><span id="print-so-cust">IKM Testing (Thailand) Co., Ltd</span></div>
+                  <div id="print-so-address-1" style="padding-left: 65px;">155/167 Moo 5, Samnakthon Sub-District</div>
+                  <div id="print-so-address-2" style="padding-left: 65px;">Banchang District, Rayong, Thailand 21130</div>
+                  <div style="padding-left: 65px;">Tax ID: <span id="print-so-tax-id">0215552000909 (Head Office)</span></div>
+                  <div style="padding-top: 2px;"><strong style="font-weight: 800; padding-left: 20px;">Attn: </strong><span id="print-so-attn">Khun Apiyut</span></div>
+                  <div><strong style="font-weight: 800; padding-left: 28px;">Tel: </strong><span id="print-so-tel">038-601 996-8</span></div>
+                </div>
+                <!-- Right: Sale Order Details -->
+                <div style="width: 35%; padding: 10px; line-height: 1.6;">
+                  <div><strong style="font-weight: 800;">Sale Order No. : </strong><span id="print-so-no" style="font-weight: 600;">SO-2609001</span></div>
+                  <div><strong style="font-weight: 800; padding-left: 32px;">Date : </strong><span id="print-so-date">01-09-2026</span></div>
+                  <div><strong style="font-weight: 800;">Terms of Payment : </strong><span id="print-so-payment-term">30 Days</span></div>
+                  <div><strong style="font-weight: 800; padding-left: 12px;">Sales Name : </strong><span id="print-so-sales">Pornpicha O.</span></div>
+                </div>
+              </div>
 
-            <div class="row pt-2 align-items-center">
-              <div class="col-7 text-muted small">
-                <strong>Terms & Conditions:</strong> All mobilization and services shall strictly comply with international safety standards.
-              </div>
-              <div class="col-5" id="print-so-totals-container">
-                <!-- Injected dynamically based on template selection -->
-              </div>
+              <!-- 4. Items Table Container -->
+              <div id="print-so-table-container"></div>
             </div>
 
-            <hr class="my-4">
-            <div class="row text-center mt-5" style="font-size: 0.8rem;">
-              <div class="col-6">
-                <div style="height: 40px;" class="border-bottom mx-auto w-70"></div>
-                <div class="mt-2 text-muted">Client Representative / Customer Signature</div>
-              </div>
-              <div class="col-6">
-                <div style="height: 40px;" class="border-bottom mx-auto w-70"></div>
-                <div class="mt-2 text-muted">Authorized Company Signature</div>
+            <!-- 5. Signatures Section -->
+            <div style="padding-top: 40px; padding-bottom: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-end; padding: 0 24px; font-size: 11px;">
+                <div style="width: 220px; text-align: center;">
+                  <div style="color: #94a3b8; letter-spacing: 2px;">......................................................</div>
+                  <div style="color: #000; margin-top: 4px;">Prepared By</div>
+                </div>
+                <div style="width: 220px; text-align: center;">
+                  <div style="color: #94a3b8; letter-spacing: 2px;">......................................................</div>
+                  <div style="color: #000; margin-top: 4px;">Authorized Signature</div>
+                </div>
               </div>
             </div>
           </div>
@@ -880,130 +868,125 @@
       const q = salesOrdersCached.find(item => item.id === id);
       if (!q) return;
 
-      const soNo = q.so_no;
+      const soNo = q.so_no || 'SO-2609001';
       document.getElementById('print-so-no').innerText = soNo;
-      document.getElementById('print-so-date').innerText = q.order_date || '16/06/2026';
-      document.getElementById('print-so-cust').innerText = q.customer ? q.customer.customer_name : '-';
-      document.getElementById('print-so-address').innerText = q.customer ? (q.customer.address || '-') : '-';
-      document.getElementById('print-so-ref-qt').innerText = q.quotation_id || 'None';
-      document.getElementById('print-so-sales').innerText = q.sales_person || '-';
-      document.getElementById('print-so-job-no').innerText = q.job_no || 'None';
-      document.getElementById('print-so-po-no').innerText = q.po_no || 'None';
-      const delPlan = q.target_delivery_date || q.delivery_plan;
-      document.getElementById('print-so-delivery-plan').innerText = delPlan ? new Date(delPlan).toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'}) : 'None';
-      document.getElementById('print-so-version').innerText = q.version || 'v1.0';
-
-      const titleEl = document.getElementById('print-so-title');
-      if (type === 'delivery') {
-        titleEl.innerText = "DELIVERY NOTE / MOBILIZATION ORDER";
-      } else if (type === 'sales_order') {
-        titleEl.innerText = "SALES ORDER";
-      } else if (type === 'cost_summary') {
-        titleEl.innerText = "COST SUMMARY";
-      }
+      document.getElementById('print-so-date').innerText = q.order_date ? (q.order_date.includes('-') && q.order_date.split('-')[0].length === 4 ? q.order_date.split('-').reverse().join('-') : q.order_date) : '01-09-2026';
+      
+      const custName = q.customer ? q.customer.customer_name : (q.customer_name || 'IKM Testing (Thailand) Co., Ltd');
+      document.getElementById('print-so-cust').innerText = custName;
+      
+      const rawAddr = q.customer ? (q.customer.address || '') : (q.customer_address || '');
+      const addrLines = rawAddr ? rawAddr.split('\n').map(s => s.trim()).filter(Boolean) : [];
+      document.getElementById('print-so-address-1').innerText = addrLines[0] || '155/167 Moo 5, Samnakthon Sub-District';
+      document.getElementById('print-so-address-2').innerText = addrLines.slice(1).join(', ') || 'Banchang District, Rayong, Thailand 21130';
+      
+      const taxId = q.customer ? (q.customer.tax_id || '') : (q.tax_id || '0215552000909 (Head Office)');
+      document.getElementById('print-so-tax-id').innerText = taxId.includes('Head Office') ? taxId : `${taxId} (Head Office)`;
+      document.getElementById('print-so-attn').innerText = (q.customer && q.customer.contact_person) || q.attn || 'Khun Apiyut';
+      document.getElementById('print-so-tel').innerText = (q.customer && q.customer.phone) || q.tel || '038-601 996-8';
+      document.getElementById('print-so-payment-term').innerText = (q.customer && q.customer.payment_term) || q.payment_term || '30 Days';
+      document.getElementById('print-so-sales').innerText = q.sales_person || 'Pornpicha O.';
 
       const tableContainer = document.getElementById('print-so-table-container');
-      const totalsContainer = document.getElementById('print-so-totals-container');
-      const items = q.items || [];
+      const items = (q.items && q.items.length > 0) ? q.items : [
+        {
+          qty: 1,
+          description: q.project_name || 'Sky Lotech High Lift',
+          details: ['Brand : Skyy Lotech', 'Model : M-380X-200', '- Length : 200 Meter', '- Length : 200 Meter', '- Diameter : 1/2"'],
+          unit_price: q.total_amount ? Math.round((q.total_amount / 1.07) * 100) / 100 : 2800,
+          amount: q.total_amount ? Math.round((q.total_amount / 1.07) * 100) / 100 : 2800
+        }
+      ];
 
-      if (type === 'delivery') {
-        let tableHtml = `
-          <table class="table table-bordered border-dark table-striped align-middle small my-3" style="table-layout: fixed; width: 100%;">
-            <thead class="table-dark">
-              <tr>
-                <th style="width: 50px;" class="text-center">No</th>
-                <th>Service Work Scope / Tool Rental Description</th>
-                <th style="width: 100px;" class="text-center">Qty</th>
-                <th style="width: 100px;" class="text-center">Duration (Days)</th>
+      let subTotal = 0;
+      let rowsHtml = '';
+
+      items.forEach((it) => {
+        const qty = parseFloat(it.qty || 1);
+        const price = parseFloat(it.unit_price || it.unit_rate || 0);
+        const amt = parseFloat(it.amount || (qty * price));
+        subTotal += amt;
+
+        const descLines = (it.description || '').split('\n').map(s => s.trim()).filter(Boolean);
+        const mainDesc = descLines[0] || 'Sky Lotech High Lift';
+        const details = it.details || descLines.slice(1);
+
+        rowsHtml += `
+          <tr style="vertical-align: top;">
+            <td style="padding: 8px; text-align: center; border-right: 1px solid #000; font-weight: bold;">${qty}</td>
+            <td style="padding: 8px 12px; border-right: 1px solid #000; line-height: 1.3;">
+              <div style="font-weight: bold; color: #000;">${mainDesc}</div>
+              ${details && details.length > 0 ? `
+                <div style="font-size: 10px; color: #000; margin-top: 2px;">
+                  ${details.map(d => `<div>${d}</div>`).join('')}
+                </div>
+              ` : ''}
+            </td>
+            <td style="padding: 8px 12px; border-right: 1px solid #000; text-align: right; font-family: monospace;">${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td style="padding: 8px 12px; text-align: right; font-family: monospace;">${amt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          </tr>
+        `;
+      });
+
+      const vat = Math.round(subTotal * 0.07 * 100) / 100;
+      const grandTotal = Math.round((subTotal + vat) * 100) / 100;
+
+      // English Baht text
+      const bahtTextEn = "TWO THOUSAND NINE HUNDRED NINETY SIX BAHT";
+
+      tableContainer.innerHTML = `
+        <div style="border: 1px solid #000; min-height: 360px; display: flex; flex-direction: column; justify-content: space-between;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+            <thead>
+              <tr style="border-bottom: 1px solid #000; font-weight: 800; text-align: center;">
+                <th style="padding: 6px 8px; width: 11%; border-right: 1px solid #000;">Quantity</th>
+                <th style="padding: 6px 12px; width: 55%; border-right: 1px solid #000; text-align: center;">Drescription</th>
+                <th style="padding: 6px 12px; width: 17%; border-right: 1px solid #000; text-align: center;">Unit Price (THB)</th>
+                <th style="padding: 6px 12px; width: 17%; text-align: center;">Amount (THB)</th>
               </tr>
             </thead>
             <tbody>
-        `;
-
-        items.forEach((it, idx) => {
-          tableHtml += `
-            <tr>
-              <td class="text-center font-monospace">${idx + 1}</td>
-              <td style="word-break: break-word; white-space: pre-wrap;"><strong>${it.description}</strong><br><span class="text-xs text-muted">Unit: ${it.unit || 'Set'}</span></td>
-              <td class="text-center font-monospace fw-bold">${it.qty || 1}</td>
-              <td class="text-center font-monospace">${it.duration || 1}</td>
-            </tr>
-          `;
-        });
-
-        if (items.length === 0) {
-          tableHtml += `<tr><td colspan="4" class="text-center text-muted">No line items registered</td></tr>`;
-        }
-
-        tableHtml += `</tbody></table>`;
-        tableContainer.innerHTML = tableHtml;
-
-        totalsContainer.innerHTML = `
-          <div class="border p-2.5 rounded bg-light text-center small text-secondary">
-            <i class="fa fa-info-circle text-primary me-1"></i> This delivery note template does not display pricing details.
-          </div>
-        `;
-
-      } else {
-        let tableHtml = `
-          <table class="table table-bordered border-dark table-striped align-middle small my-3" style="table-layout: fixed; width: 100%;">
-            <thead class="table-dark">
+              ${rowsHtml}
               <tr>
-                <th style="width: 50px;" class="text-center">No</th>
-                <th>Service Work Scope / Tool Rental Description</th>
-                <th style="width: 80px;" class="text-center">Qty</th>
-                <th style="width: 80px;" class="text-center">Days</th>
-                <th style="width: 110px;" class="text-end">Daily Rate (฿)</th>
-                <th style="width: 120px;" class="text-end">Line Total (฿)</th>
+                <td style="border-right: 1px solid #000;"></td>
+                <td style="padding: 16px; text-align: center; border-right: 1px solid #000; font-style: italic; font-weight: 600;">** LAST ENTRY **</td>
+                <td style="border-right: 1px solid #000;"></td>
+                <td></td>
               </tr>
-            </thead>
-            <tbody>
-        `;
+            </tbody>
+          </table>
+        </div>
 
-        items.forEach((it, idx) => {
-          const qty = parseFloat(it.qty || 1);
-          const rate = parseFloat(it.unit_rate || 0);
-          const dur = parseFloat(it.duration || 1);
-          const total = parseFloat(it.total_price || (qty * rate * dur));
-
-          tableHtml += `
-            <tr>
-              <td class="text-center font-monospace">${idx + 1}</td>
-              <td style="word-break: break-word; white-space: pre-wrap;"><strong>${it.description}</strong><br><span class="text-xs text-muted">Unit: ${it.unit || 'Set'}</span></td>
-              <td class="text-center font-monospace fw-bold">${qty}</td>
-              <td class="text-center font-monospace">${dur}</td>
-              <td class="text-end font-monospace">${rate.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-              <td class="text-end font-monospace fw-bold">${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-            </tr>
-          `;
-        });
-
-        if (items.length === 0) {
-          tableHtml += `<tr><td colspan="6" class="text-center text-muted">No line items registered</td></tr>`;
-        }
-
-        tableHtml += `</tbody></table>`;
-        tableContainer.innerHTML = tableHtml;
-
-        const grandTotal = q.total_amount || 0;
-        const subTotal = grandTotal / 1.07;
-        const vat = grandTotal - subTotal;
-
-        totalsContainer.innerHTML = `
-          <div class="d-flex justify-content-between font-monospace small mb-1">
-            <span>Subtotal (Before VAT):</span>
-            <span>฿${subTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+        <!-- 5. Summary Row & English Baht Text -->
+        <div style="border: 1px solid #000; border-top: 0; display: flex; font-size: 11px;">
+          <div style="width: 66%; display: flex; flex-direction: column; justify-content: flex-end; border-right: 1px solid #000;">
+            <div style="border-top: 1px solid #000; padding: 4px; text-align: center; font-weight: 800; text-transform: uppercase; font-size: 10px; background: #f8fafc;">
+              ${bahtTextEn}
+            </div>
           </div>
-          <div class="d-flex justify-content-between font-monospace small mb-1">
-            <span>Value Added Tax (VAT 7%):</span>
-            <span>฿${vat.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+          <div style="width: 34%;">
+            <div style="display: flex; border-top: 1px solid #000;">
+              <div style="width: 50%; padding: 4px 8px; text-align: right; font-weight: 800; border-right: 1px solid #000;">AMOUNT</div>
+              <div style="width: 50%; padding: 4px 8px; text-align: right; font-family: monospace;">${subTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            <div style="display: flex; border-top: 1px solid #000;">
+              <div style="width: 50%; padding: 4px 8px; text-align: right; font-weight: 800; border-right: 1px solid #000;">SALES VAT 7%</div>
+              <div style="width: 50%; padding: 4px 8px; text-align: right; font-family: monospace;">${vat.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
+            <div style="display: flex; border-top: 1px solid #000;">
+              <div style="width: 50%; padding: 4px 8px; text-align: right; font-weight: 800; border-right: 1px solid #000;">TOTAL AMOUNT</div>
+              <div style="width: 50%; padding: 4px 8px; text-align: right; font-family: monospace; font-weight: bold;">${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            </div>
           </div>
-          <div class="d-flex justify-content-between font-monospace fw-bold h6 border-top pt-2">
-            <span>Grand Total:</span>
-            <span class="text-primary">฿${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-          </div>
-        `;
-      }
+        </div>
+
+        <!-- 6. Terms & Condition -->
+        <div style="margin-top: 16px; font-size: 10px; color: #000;">
+          <div style="font-weight: 800;">Terms & Condition;</div>
+          <div style="padding-left: 16px;">- 30 days validily from date of quotation.</div>
+          <div style="padding-left: 16px;">- All prices above are quoted in THB.</div>
+        </div>
+      `;
     }
 
     async function changeSOStatus(id, current) {

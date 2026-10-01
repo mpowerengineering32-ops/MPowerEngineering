@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { BillingNote, BillingNoteItem, Customer, Invoice, UserRole, BillingNotePaymentRecord } from '../types';
 import { MetricCard } from './common/MetricCard';
-import { BillingNoteTemplate } from './templates/BillingNoteTemplate';
+import { MasterDocumentPreviewModal } from './MasterDocumentPreviewModal';
+import { BillingNoteGenerateModal } from './billing-note/BillingNoteGenerateModal';
+import { DEFAULT_MASTER_TEMPLATES } from '../data/masterTemplatesData';
 import { numberToThaiBaht } from '../utils/numberWords';
 import {
   FileText,
@@ -34,7 +36,8 @@ import {
   ArrowRight,
   ExternalLink,
   ChevronRight,
-  PieChart as PieChartIcon
+  PieChart as PieChartIcon,
+  ShieldCheck
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -88,13 +91,13 @@ export default function BillingManagement({
   const [filterSalesOrder, setFilterSalesOrder] = useState('');
   const [filterInvoice, setFilterInvoice] = useState('');
 
-  // Modals & View Modes
-  const [viewMode, setViewMode] = useState<'table' | 'template'>('table');
+  // Modals & States
   const [selectedTemplateBilling, setSelectedTemplateBilling] = useState<BillingNote | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBilling, setEditingBilling] = useState<BillingNote | null>(null);
-  const [viewingBilling, setViewingBilling] = useState<BillingNote | null>(null);
   const [paymentModalBilling, setPaymentModalBilling] = useState<BillingNote | null>(null);
+  const [masterPreviewBilling, setMasterPreviewBilling] = useState<BillingNote | null>(null);
+  const [generatingBilling, setGeneratingBilling] = useState<BillingNote | null>(null);
 
   // Selected Checkboxes
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -850,41 +853,6 @@ export default function BillingManagement({
             </button>
           )}
 
-          {/* View Mode Switcher: Table vs Template */}
-          <div className="bg-slate-100 p-1 rounded-xl border border-slate-200 flex items-center gap-1">
-            <button
-              id="btn-view-mode-table"
-              type="button"
-              onClick={() => setViewMode('table')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'table'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
-              }`}
-            >
-              <Receipt className="w-3.5 h-3.5" />
-              <span>ตารางข้อมูล (Table)</span>
-            </button>
-            <button
-              id="btn-view-mode-template"
-              type="button"
-              onClick={() => {
-                setViewMode('template');
-                if (!selectedTemplateBilling && filteredList.length > 0) {
-                  setSelectedTemplateBilling(filteredList[0]);
-                }
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                viewMode === 'template'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>เทมเพลตมาตรฐาน (Template View)</span>
-            </button>
-          </div>
-
           {/* Bulk Action if items selected */}
           {selectedIds.length > 0 && (
             <span className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-xl font-medium">
@@ -896,16 +864,16 @@ export default function BillingManagement({
         {/* Secondary Toolbar Buttons */}
         <div className="flex flex-wrap items-center gap-2">
           <button
-            id="btn-preview-default-template"
+            id="btn-preview-master-template"
             onClick={() => {
               const target = selectedTemplateBilling || filteredList[0] || billingNotes[0];
-              if (target) setViewingBilling(target);
+              if (target) setGeneratingBilling(target);
             }}
-            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-semibold border border-emerald-200 transition cursor-pointer shadow-xs"
-            title="ดูเทมเพลตแบบฟอร์มเอกสารใบวางบิลทางการ A4"
+            className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
+            title="ออกเอกสารใบวางบิลจาก Master Template ตรงตามต้นฉบับ 100%"
           >
-            <FileText className="w-3.5 h-3.5 text-emerald-600" />
-            <span>ดูเทมเพลต A4</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+            <span>Generate Billing Note (100% Match)</span>
           </button>
 
           <button
@@ -920,9 +888,12 @@ export default function BillingManagement({
 
           <button
             id="btn-export-pdf"
-            onClick={handlePrint}
+            onClick={() => {
+              const target = selectedTemplateBilling || filteredList[0] || billingNotes[0];
+              if (target) setGeneratingBilling(target);
+            }}
             className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition cursor-pointer shadow-xs"
-            title="พิมพ์หรือบันทึกเป็น PDF"
+            title="พิมพ์หรือบันทึกเป็น PDF (Master Template)"
           >
             <Download className="w-3.5 h-3.5 text-blue-600" />
             <span>Export PDF</span>
@@ -930,9 +901,12 @@ export default function BillingManagement({
 
           <button
             id="btn-print-billing"
-            onClick={handlePrint}
+            onClick={() => {
+              const target = selectedTemplateBilling || filteredList[0] || billingNotes[0];
+              if (target) setGeneratingBilling(target);
+            }}
             className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition cursor-pointer shadow-xs"
-            title="พิมพ์หน้ารายการใบวางบิล"
+            title="พิมพ์เอกสารใบวางบิล (Master Template)"
           >
             <Printer className="w-3.5 h-3.5 text-slate-600" />
             <span>Print</span>
@@ -953,55 +927,9 @@ export default function BillingManagement({
         </div>
       </div>
 
-      {viewMode === 'template' ? (
-        <div className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Receipt className="w-4 h-4 text-emerald-600" />
-                เลือกใบวางบิลเพื่อดูเทมเพลต:
-              </span>
-              <select
-                value={selectedTemplateBilling?.id || filteredList[0]?.id || ''}
-                onChange={(e) => {
-                  const found = enrichedNotes.find(b => b.id === e.target.value);
-                  if (found) setSelectedTemplateBilling(found);
-                }}
-                className="bg-white border border-slate-300 text-slate-800 rounded-xl px-3 py-1.5 text-xs font-mono focus:outline-none focus:border-emerald-500 cursor-pointer max-w-md"
-              >
-                {filteredList.map(b => (
-                  <option key={b.id} value={b.id}>
-                    {b.billing_no} — {b.customer_name} (฿{b.total_amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              onClick={() => setViewMode('table')}
-              className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer border border-slate-200 flex items-center gap-1.5"
-            >
-              <Receipt className="w-3.5 h-3.5 text-emerald-600" />
-              <span>สลับกลับไปตารางข้อมูล (Table View)</span>
-            </button>
-          </div>
-
-          {filteredList.length > 0 ? (
-            <BillingNoteTemplate
-              billingNote={selectedTemplateBilling || filteredList[0]}
-              isModal={false}
-            />
-          ) : (
-            <div className="text-center py-16 text-slate-500 bg-white border border-slate-200 rounded-2xl text-xs">
-              ไม่พบรายการใบวางบิลสำหรับแสดงผล
-            </div>
-          )}
-        </div>
-      ) : (
-        <>
-          {/* ============================================================ */}
-          {/* SECTION 3: ADVANCED FILTER PANEL                             */}
-          {/* ============================================================ */}
+      {/* ============================================================ */}
+      {/* SECTION 3: ADVANCED FILTER PANEL                             */}
+      {/* ============================================================ */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
         <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
           <div className="flex items-center gap-2">
@@ -1243,8 +1171,9 @@ export default function BillingManagement({
                       {/* Billing Note No. */}
                       <td className="py-3.5 px-3 font-mono font-bold text-emerald-600">
                         <button
-                          onClick={() => setViewingBilling(bl)}
+                          onClick={() => setGeneratingBilling(bl)}
                           className="hover:underline text-left cursor-pointer flex items-center gap-1 font-bold"
+                          title="คลิกเพื่อดูและออกเอกสารใบวางบิล Master Template"
                         >
                           {bl.billing_no}
                         </button>
@@ -1329,23 +1258,14 @@ export default function BillingManagement({
                       {/* Actions */}
                       <td className="py-3.5 px-3 text-center whitespace-nowrap">
                         <div className="flex items-center justify-center gap-1">
-                          {/* View Template */}
+                          {/* Generate Billing Note Button (Master Template 100% Geometry Matched) */}
                           <button
-                            onClick={() => setViewingBilling(bl)}
-                            className="flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-[10.5px] font-semibold transition cursor-pointer"
-                            title="ดูแบบฟอร์มเทมเพลตใบวางบิลทางการ A4"
+                            onClick={() => setGeneratingBilling(bl)}
+                            className="flex items-center gap-1 px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-[10.5px] font-bold transition shadow-xs cursor-pointer"
+                            title="สร้างเอกสารใบวางบิลตรงตาม Master Template ต้นฉบับ 100%"
                           >
-                            <FileText className="w-3 h-3 text-emerald-600" />
-                            <span>เทมเพลต</span>
-                          </button>
-
-                          {/* Quick View Icon */}
-                          <button
-                            onClick={() => setViewingBilling(bl)}
-                            className="p-1 text-slate-400 hover:text-emerald-600 hover:bg-slate-100 rounded transition cursor-pointer"
-                            title="ดูเอกสารใบวางบิล"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
+                            <ShieldCheck className="w-3 h-3 text-emerald-300" />
+                            <span>Generate Billing Note</span>
                           </button>
 
                           {/* Edit */}
@@ -1359,14 +1279,11 @@ export default function BillingManagement({
                             </button>
                           )}
 
-                          {/* Print / PDF */}
+                          {/* Print / PDF (Master Template 100% Geometry Matched) */}
                           <button
-                            onClick={() => {
-                              setViewingBilling(bl);
-                              setTimeout(() => window.print(), 300);
-                            }}
-                            className="p-1 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded transition cursor-pointer"
-                            title="พิมพ์ / ดาวน์โหลด PDF"
+                            onClick={() => setGeneratingBilling(bl)}
+                            className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition cursor-pointer"
+                            title="พิมพ์ / ดาวน์โหลด PDF (Master Template)"
                           >
                             <Printer className="w-3.5 h-3.5" />
                           </button>
@@ -1417,19 +1334,6 @@ export default function BillingManagement({
           </div>
         </div>
       </div>
-        </>
-      )}
-
-      {/* ============================================================ */}
-      {/* MODAL 1: VIEW BILLING NOTE TEMPLATE                          */}
-      {/* ============================================================ */}
-      {viewingBilling && (
-        <BillingNoteTemplate
-          billingNote={viewingBilling}
-          onClose={() => setViewingBilling(null)}
-          isModal={true}
-        />
-      )}
 
       {/* ============================================================ */}
       {/* MODAL 2: CREATE / EDIT BILLING NOTE                          */}
@@ -2017,6 +1921,50 @@ export default function BillingManagement({
             </div>
           </div>
         </div>
+      )}
+
+      {/* 100% Geometry Matched Billing Note Generate Modal (Single Order Guard) */}
+      {generatingBilling && (
+        <BillingNoteGenerateModal
+          isOpen={!!generatingBilling}
+          onClose={() => setGeneratingBilling(null)}
+          billingNote={generatingBilling}
+          customer={customers.find(c => c.id === generatingBilling.customer_id || c.customer_name === generatingBilling.customer_name || (c as any).name === generatingBilling.customer_name)}
+          invoices={invoices}
+          onToast={onToast}
+        />
+      )}
+
+      {/* Master Template Exact Billing Note Preview Modal (100% Geometry Matched) */}
+      {masterPreviewBilling && (
+        <MasterDocumentPreviewModal
+          isOpen={!!masterPreviewBilling}
+          onClose={() => setMasterPreviewBilling(null)}
+          template={DEFAULT_MASTER_TEMPLATES[5]}
+          data={{
+            document_no: masterPreviewBilling.billing_no,
+            document_date: masterPreviewBilling.date || masterPreviewBilling.billing_date || '',
+            due_date: masterPreviewBilling.due_of_payment || masterPreviewBilling.due_date || '',
+            customer_name: masterPreviewBilling.customer_name,
+            customer_address: masterPreviewBilling.customer_address || '',
+            customer_tax_id: masterPreviewBilling.customer_tax_id || '',
+            subtotal: masterPreviewBilling.total_amount,
+            vat: 0,
+            wht_amount: (masterPreviewBilling.total_amount || 0) * 0.03,
+            grand_total: (masterPreviewBilling.total_amount || 0) * 0.97,
+            baht_text: numberToThaiBaht((masterPreviewBilling.total_amount || 0) * 0.97),
+            remark: masterPreviewBilling.notes || 'วางบิลตามเงื่อนไขส่งมอบงานบริการ',
+            authorized_name: 'ฝ่ายการเงินและบัญชี M Power',
+            items: (masterPreviewBilling.items || []).map((it, idx) => ({
+              item_no: idx + 1,
+              invoice_no: it.invoice_no,
+              invoice_date: it.date,
+              ref_no: it.ref_no || it.sales_order_no || '',
+              description: it.description || `ใบแจ้งหนี้ ${it.invoice_no}`,
+              amount: it.amount
+            }))
+          }}
+        />
       )}
     </div>
   );

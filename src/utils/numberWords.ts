@@ -51,6 +51,67 @@ export function numberToEnglishWords(amount: number): string {
   return result.toUpperCase();
 }
 
+/**
+ * Convert total amount to English Baht text in uppercase:
+ * e.g. 40874.00 -> "FORTY THOUSAND EIGHT HUNDRED AND SEVENTY FOUR BAHT ONLY"
+ */
+export function numberToEnglishBaht(amount: number): string {
+  if (isNaN(amount) || amount === 0) return 'ZERO BAHT ONLY';
+
+  const units = [
+    '', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE',
+    'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN',
+    'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'
+  ];
+  const tens = [
+    '', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'
+  ];
+
+  function convertLessThanThousand(num: number): string {
+    if (num === 0) return '';
+    if (num < 20) return units[num];
+    if (num < 100) {
+      return tens[Math.floor(num / 10)] + (num % 10 !== 0 ? ' ' + units[num % 10] : '');
+    }
+    const hundreds = units[Math.floor(num / 100)] + ' HUNDRED';
+    const remainder = num % 100;
+    if (remainder > 0) {
+      return hundreds + ' AND ' + convertLessThanThousand(remainder);
+    }
+    return hundreds;
+  }
+
+  const integerPart = Math.floor(Math.abs(amount));
+  const decimalPart = Math.round((Math.abs(amount) - integerPart) * 100);
+
+  let result = '';
+  let tempInt = integerPart;
+
+  if (tempInt >= 1000000) {
+    const millions = Math.floor(tempInt / 1000000);
+    result += convertLessThanThousand(millions) + ' MILLION ';
+    tempInt %= 1000000;
+  }
+  if (tempInt >= 1000) {
+    const thousands = Math.floor(tempInt / 1000);
+    result += convertLessThanThousand(thousands) + ' THOUSAND ';
+    tempInt %= 1000;
+  }
+  if (tempInt > 0) {
+    result += convertLessThanThousand(tempInt);
+  }
+
+  result = result.trim() + ' BAHT';
+
+  if (decimalPart > 0) {
+    result += ' AND ' + convertLessThanThousand(decimalPart) + ' SATANG ONLY';
+  } else {
+    result += ' ONLY';
+  }
+
+  return result.toUpperCase().replace(/\s+/g, ' ');
+}
+
 export function numberToThaiBaht(num: number): string {
   if (isNaN(num) || num === 0) return 'ศูนย์บาทถ้วน';
   const thaiDigits = ['', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
