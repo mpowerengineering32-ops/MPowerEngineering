@@ -587,11 +587,6 @@ export default function ReceiptView({
                     </div>
                   </div>
 
-                  {/* Page indicator */}
-                  <div className="text-right text-[11px] font-bold mt-1 text-black">
-                    Page 1/1
-                  </div>
-
                   {/* Payment Method & Bank Instructions */}
                   <div className="mt-4 text-[11.5px] leading-relaxed text-black">
                     <div className="font-bold">Method of payment :</div>

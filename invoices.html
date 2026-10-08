@@ -92,6 +92,9 @@
               <button class="btn btn-outline-secondary btn-sm" onclick="exportTableToPDF('invoice-table', 'INVOICES BILLING REPORT')">
                 <i class="fa fa-file-pdf text-danger me-1"></i>Export to PDF
               </button>
+              <a href="/tax-invoice-print.html" target="_blank" class="btn btn-outline-dark btn-sm">
+                <i class="fa fa-print text-danger me-1"></i>Tax Invoice Form
+              </a>
               <button class="btn btn-success btn-sm" onclick="openCreateInvoiceModal()">
                 <i class="fa fa-plus-circle me-1"></i>Create New Invoice
               </button>
@@ -330,11 +333,23 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body bg-light text-center p-4">
-          <div class="d-print-none mb-3">
-            <button class="btn btn-success px-4 font-bold" onclick="window.print()">
+          <div class="d-print-none mb-3 d-flex flex-wrap align-items-center justify-content-center gap-2">
+            <span class="fw-bold me-1 text-dark"><i class="fa fa-clone me-1 text-primary"></i>Version:</span>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-danger btn-sm active fw-bold" id="btn-print-version-orig" onclick="setInvoicePrintVersion('ORIGINAL')">
+                <i class="fa fa-check me-1"></i>ORIGINAL
+              </button>
+              <button type="button" class="btn btn-outline-danger btn-sm fw-bold" id="btn-print-version-copy" onclick="setInvoicePrintVersion('COPY')">
+                COPY
+              </button>
+            </div>
+            <button class="btn btn-success btn-sm px-4 fw-bold ms-3" onclick="window.print()">
               <i class="fa fa-print me-1"></i>Print Document / Save PDF (A4 Sheet)
             </button>
-            <button class="btn btn-outline-secondary ms-2" data-bs-dismiss="modal">Close</button>
+            <a href="/tax-invoice-print.html" target="_blank" class="btn btn-outline-dark btn-sm">
+              <i class="fa fa-external-link me-1"></i>Dedicated Form
+            </a>
+            <button class="btn btn-outline-secondary btn-sm ms-1" data-bs-dismiss="modal">Close</button>
           </div>
 
           <!-- Printable standard sheet base -->
@@ -470,11 +485,14 @@
                 white-space: pre-wrap;
               }
               .print-table-wrapper {
+                border: 1px solid #000000 !important;
                 min-height: 94mm;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-start;
-                border-bottom: 1px solid #000000;
+                display: grid !important;
+                grid-template-columns: 52% 12% 13% 9% 14% !important;
+                box-sizing: border-box;
+                align-items: stretch;
+                background: #ffffff;
+                margin-top: 4px;
               }
               .summary-container {
                 display: flex;
@@ -587,152 +605,322 @@
               <!-- HEADER -->
               <table class="print-header-table" style="width: 100%; border-collapse: collapse;">
                 <tr>
-                  <td style="vertical-align: top; width: 65%;">
+                  <td style="vertical-align: top; width: 68%;">
                     <div style="display: flex; align-items: flex-start; gap: 12px;">
-                      <img src="/mpower-logo.png" alt="M Power Logo" style="width: 160px; height: auto; object-fit: contain; margin-top: 2px;" onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q';" />
-                      <div class="company-details" style="color: #000; font-size: 11px; line-height: 1.4;">
-                        <div style="font-weight: bold; font-size: 13px; color: #000;">M Power Engineering Solutions Co., Ltd.</div>
+                      <img src="/mpower-logo.png" alt="M Power Logo" style="width: 155px; height: auto; object-fit: contain; margin-top: 2px;" onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q';" />
+                      <div class="company-details" style="color: #000; font-size: 11px; line-height: 1.35;">
+                        <div style="font-weight: 800; font-size: 12px; color: #000;">M Power Engineering Solutions Co., Ltd.</div>
                         <div>53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</div>
-                        <div>Tel. 033-641789 / 063-9359565 Email: sales.mpower-engineering.com , info@mpower-engineering.com</div>
+                        <div>Tel. 033-641789 / 063-9359565 Email: sales@mpower-engineering.com , info@mpower-engineering.com</div>
                         <div>Tax ID Number. 0205569006956 (Head office)</div>
                       </div>
                     </div>
                   </td>
-                  <td style="text-align: right; vertical-align: top; width: 35%;">
+                  <td style="text-align: right; vertical-align: top; width: 32%;">
                     <div style="display: inline-block; text-align: right;">
-                      <div class="original-red" style="color: #dc2626; font-weight: bold; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;">ORIGINAL</div>
-                      <div class="doc-title-red" id="print-doc-type" style="font-weight: bold; font-size: 15px; color: #000; text-transform: uppercase; tracking-wider: 1px;">Tax Invoice / Delivery Note</div>
+                      <div id="print-version-badge" style="
+                        font-size: 13px;
+                        font-weight: 800;
+                        color: #dc2626;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                        border: 2px solid #dc2626;
+                        padding: 3px 12px;
+                        display: inline-block;
+                      ">ORIGINAL</div>
                     </div>
                   </td>
                 </tr>
               </table>
 
-              <div class="print-divider-thick"></div>
-
-              <!-- DOCUMENT INFORMATION SECTION -->
-              <table class="print-info-table">
-                <tr>
-                  <td style="width: 58%;">
-                    <div class="invoice-to-box" style="width: 100%;">
-                      <div class="invoice-to-label">Invoice to :</div>
-                      <div class="invoice-to-text">
-                        <strong id="print-customer-name">Best Performance Engineering Co.,Ltd. (Head Office)</strong><br>
-                        <span id="print-customer-details">
-                          58, SOI NARADHIWAT RAJANAGARINDRA 10, THUNG WAT DON,<br>
-                          SATHORN BANGKOK 10120<br>
-                          THAILAND<br>
-                          Tax ID Number 0105543028503
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td style="width: 42%; padding-left: 20px;">
-                    <div class="invoice-meta-row">
-                      <span class="invoice-meta-label">Invoice Date:</span>
-                      <span class="invoice-meta-value" id="print-date">04 Jun 2026</span>
-                    </div>
-                    <div class="invoice-meta-row">
-                      <span class="invoice-meta-label">Due Date:</span>
-                      <span class="invoice-meta-value" id="print-due" style="font-weight: bold;">03 Jul 2026</span>
-                    </div>
-                    <div class="invoice-meta-row">
-                      <span class="invoice-meta-label">Invoice Number:</span>
-                      <span class="invoice-meta-value" id="print-doc-no" style="font-weight: bold;">IKMTTH-26/256</span>
-                    </div>
-                    
-                    <div class="invoice-meta-row" style="border-top: 1px dashed #15803d; padding-top: 3px; margin-top: 3px;">
-                      <span class="invoice-meta-label" style="color: #15803d; font-weight: bold;">M Power INV No. (Manual):</span>
-                      <span class="invoice-meta-value text-success" id="print-ikm-inv" style="font-weight: bold; color: #15803d;">-</span>
-                    </div>
-                    <div class="invoice-meta-row">
-                      <span class="invoice-meta-label">Job Number:</span>
-                      <span class="invoice-meta-value" id="print-job-no">-</span>
-                    </div>
-                    <div class="invoice-meta-row">
-                      <span class="invoice-meta-label">Sales Representative:</span>
-                      <span class="invoice-meta-value" id="print-sales-person">-</span>
-                    </div>
-                    <div class="invoice-meta-row" style="margin-bottom: 0;">
-                      <span class="invoice-meta-label">Customer PO Ref:</span>
-                      <span class="invoice-meta-value" id="print-po-no" style="font-family: inherit;">PO007441/2026</span>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- MAIN TABLE -->
-              <div class="print-table-wrapper">
-                <table class="print-main-table">
-                  <thead>
-                    <tr>
-                      <th style="width: 56%; text-align: left;">Description</th>
-                      <th style="width: 10%; text-align: center;">Quantity</th>
-                      <th style="width: 12%; text-align: right;">Unit Price</th>
-                      <th style="width: 10%; text-align: center;">Tax</th>
-                      <th style="width: 12%; text-align: right;">Amount THB</th>
-                    </tr>
-                  </thead>
-                  <tbody id="print-items-body">
-                    <!-- Rendered dynamically -->
-                  </tbody>
-                </table>
+              <!-- DOCUMENT TITLE (Centered below company information) -->
+              <div style="text-align: center; margin: 8px 0 10px 0;">
+                <h2 id="print-doc-type" style="
+                  font-size: 15px;
+                  font-weight: 800;
+                  text-transform: uppercase;
+                  color: #000000;
+                  letter-spacing: 0.5px;
+                  margin: 0;
+                ">TAX INVOICE / DELIVERY NOTE</h2>
               </div>
 
-              <!-- TOTAL & TERMS SECTION -->
-              <div class="summary-container">
-                <div class="terms-text-block">
-                  <p style="text-decoration: underline; font-weight: bold;">(Please Deduct Withholding Tax for Service 3% and or Rental 5% )</p>
-                  <p style="margin-top: 5px;">General Term & Condition of Sales & Hire apply Note</p>
-                  <p><strong>: Late payments, the company charges a penalty of 1.25%</strong></p>
-                  <p><strong>per month</strong> Note: Overdue accounts are subject to interest of <strong>1.25%</strong> per month.</p>
-                  <p style="margin-top: 5px;">In the event of discrepancy, Kindly contact</p>
-                  <p>our Accounts department within 7 days In writing from the Invoice</p>
+              <!-- CUSTOMER & DOCUMENT DETAILS BOX (Fixed Height Framed Container) -->
+              <div style="
+                border: 1px solid #000000;
+                display: flex;
+                height: 116px;
+                min-height: 116px;
+                max-height: 116px;
+                margin-bottom: 8px;
+                font-size: 8pt;
+                line-height: 1.4;
+                box-sizing: border-box;
+                overflow: hidden;
+                background: #ffffff;
+              ">
+                <!-- Left Column: Customer details (62%) -->
+                <div style="
+                  width: 62%;
+                  padding: 6px 10px;
+                  border-right: 1px solid #000000;
+                  box-sizing: border-box;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: flex-start;
+                ">
+                  <div><strong style="font-size: 8.5pt;">Customer : </strong><span id="print-customer-name" style="font-weight: bold;"></span></div>
+                  <div id="print-customer-details" style="margin-top: 2px; line-height: 1.35; padding-left: 8px;"></div>
                 </div>
-                <div class="totals-box">
-                  <div class="total-row-item">
-                    <span>Subtotal</span>
-                    <span id="print-subtotal">10,000.00</span>
-                  </div>
-                  <div class="total-row-item">
-                    <span>Total VAT on Sales 7%</span>
-                    <span id="print-vat">700.00</span>
-                  </div>
-                  <div class="total-row-divider"></div>
-                  <div class="total-row-item bold-row">
-                    <span>Invoice Total THB</span>
-                    <span id="print-invoice-total">10,700.00</span>
-                  </div>
-                  <div class="total-row-divider"></div>
-                  <div class="total-row-item">
-                    <span>Total Net Payments THB</span>
-                    <span id="print-net-payments">0.00</span>
-                  </div>
-                  <div class="amount-due-row">
-                    <span>Amount Due THB</span>
-                    <span id="print-grandtotal">10,700.00</span>
-                  </div>
 
-                  <!-- BANK INFO INSIDE TOTALS BOX -->
-                  <div class="bank-details-box" style="width: 100%; margin-top: 15px; font-size: 8pt; line-height: 1.45; color: #000000; text-align: left;">
-                    <p style="margin: 0 0 2px 0; font-weight: bold;">Method of payment :</p>
-                    <p style="margin: 0 0 2px 10px;">Cheque or transfer under name M Power Engineering Solutions Co., Ltd.</p>
-                    <p style="margin: 0 0 4px 10px;">Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</p>
-                    <p style="margin: 4px 0 0 0; font-size: 7.5pt; font-weight: 600;">After your processing payment Please let us know and attach poof document to account.mpower-engineering.com or call number + 66 33 641 789</p>
+                <!-- Right Column: Document Details (38%) -->
+                <div style="
+                  width: 38%;
+                  padding: 6px 10px;
+                  box-sizing: border-box;
+                  height: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: space-between;
+                  font-size: 8pt;
+                  line-height: 1.35;
+                ">
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong style="width: 105px;">Tax Invoice No. :</strong>
+                    <span id="print-doc-no" style="font-weight: bold; text-align: right; flex: 1;"></span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong style="width: 105px;">Date :</strong>
+                    <span id="print-date" style="text-align: right; flex: 1;"></span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong style="width: 105px;">Terms of Payment :</strong>
+                    <span id="print-terms" style="text-align: right; flex: 1;">30 Days</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong style="width: 105px;">Due Date :</strong>
+                    <span id="print-due" style="font-weight: bold; text-align: right; flex: 1;"></span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong style="width: 105px;">Customer PO Ref :</strong>
+                    <span id="print-po-no" style="text-align: right; flex: 1;"></span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <strong style="width: 105px;">Sales Name :</strong>
+                    <span id="print-sales-person" style="text-align: right; flex: 1;"></span>
                   </div>
                 </div>
               </div>
 
-            <!-- SIGNATURES (AT THE VERY BOTTOM) -->
-            <div class="signature-area-row">
-              <div class="sig-col" style="width: 48%;">
-                <p style="margin: 0; font-size: 7.5pt; font-weight: bold; color: #555;">CONFIRMED AND ACCEPTED BY</p>
-                <div class="sign-line" style="margin-top: 15px; width: 160px;"></div>
+              <!-- MAIN TABLE (5 Columns: Description | Quantity | Unit Price | Tax | Amount THB) -->
+              <div class="print-table-wrapper" id="print-table-wrapper" style="
+                border: 1px solid #000000;
+                border-bottom: 0;
+                min-height: 86mm;
+                display: grid;
+                grid-template-columns: 50% 12% 14% 10% 14%;
+                box-sizing: border-box;
+                align-items: stretch;
+                background: #ffffff;
+              ">
+                <!-- Column 1: Description (50%) -->
+                <div style="border-right: 1px solid #000; display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+                  <div style="height: 30px; box-sizing: border-box; border-bottom: 1px solid #000; font-weight: bold; font-size: 8.5pt; text-align: left; padding: 5px 8px; display: flex; align-items: center;">Description</div>
+                  <div id="print-col-desc" style="flex: 1 1 auto; padding: 6px 8px; font-size: 8pt; line-height: 1.35;"></div>
+                  <div style="height: 22px; display: flex; align-items: center; justify-content: center; font-style: italic; font-weight: 600; font-size: 8pt;">** LAST ENTRY **</div>
+                </div>
+
+                <!-- Column 2: Quantity (12%) -->
+                <div style="border-right: 1px solid #000; display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+                  <div style="height: 30px; box-sizing: border-box; border-bottom: 1px solid #000; font-weight: bold; font-size: 8.5pt; text-align: center; padding: 5px 4px; display: flex; align-items: center; justify-content: center;">Quantity</div>
+                  <div id="print-col-qty" style="flex: 1 1 auto; padding: 6px 4px; text-align: center; font-family: monospace; font-size: 8pt;"></div>
+                  <div style="height: 22px;">&nbsp;</div>
+                </div>
+
+                <!-- Column 3: Unit Price (14%) -->
+                <div style="border-right: 1px solid #000; display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+                  <div style="height: 30px; box-sizing: border-box; border-bottom: 1px solid #000; font-weight: bold; font-size: 8.5pt; text-align: right; padding: 5px 8px; display: flex; align-items: center; justify-content: flex-end;">Unit Price</div>
+                  <div id="print-col-price" style="flex: 1 1 auto; padding: 6px 8px; text-align: right; font-family: monospace; font-size: 8pt;"></div>
+                  <div style="height: 22px;">&nbsp;</div>
+                </div>
+
+                <!-- Column 4: Tax (10%) -->
+                <div style="border-right: 1px solid #000; display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+                  <div style="height: 30px; box-sizing: border-box; border-bottom: 1px solid #000; font-weight: bold; font-size: 8.5pt; text-align: center; padding: 5px 4px; display: flex; align-items: center; justify-content: center;">Tax</div>
+                  <div id="print-col-tax" style="flex: 1 1 auto; padding: 6px 4px; text-align: center; font-size: 8pt;"></div>
+                  <div style="height: 22px;">&nbsp;</div>
+                </div>
+
+                <!-- Column 5: Amount THB (14%) -->
+                <div style="display: flex; flex-direction: column; height: 100%; box-sizing: border-box;">
+                  <div style="height: 30px; box-sizing: border-box; border-bottom: 1px solid #000; font-weight: bold; font-size: 8.5pt; text-align: right; padding: 5px 8px; display: flex; align-items: center; justify-content: flex-end;">Amount THB</div>
+                  <div id="print-col-amount" style="flex: 1 1 auto; padding: 6px 8px; text-align: right; font-family: monospace; font-size: 8pt;"></div>
+                  <div style="height: 22px;">&nbsp;</div>
+                </div>
               </div>
-              <div class="sig-col" style="width: 48%;">
-                <p style="margin: 0; font-size: 7.5pt; font-weight: bold; color: #555;">SIGNATURE & COMPANY STAMP</p>
-                <div class="sign-line" style="margin-top: 15px; width: 160px;"></div>
+
+              <!-- SUMMARY ROW (Attached directly below items table with sharp dividers) -->
+              <div style="
+                border: 1px solid #000000;
+                border-top: 0;
+                display: grid;
+                grid-template-columns: 50% 12% 24% 14%;
+                font-size: 8pt;
+                box-sizing: border-box;
+                background: #ffffff;
+              ">
+                <!-- Column 1: Baht text (50%) -->
+                <div style="border-right: 1px solid #000; display: flex; flex-direction: column; justify-content: flex-end; box-sizing: border-box; height: 100%;">
+                  <div id="print-baht-text" style="
+                    border-top: 1px solid #000;
+                    padding: 4px 6px;
+                    text-align: center;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    font-size: 7.5pt;
+                    background: #f8fafc;
+                    height: 23px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-sizing: border-box;
+                  ">
+                    -
+                  </div>
+                </div>
+
+                <!-- Column 2: Spacer (12%) -->
+                <div style="border-right: 1px solid #000; display: flex; flex-direction: column; justify-content: flex-end; box-sizing: border-box; height: 100%;">
+                  <div style="border-top: 1px solid #000; height: 23px; background: #f8fafc; box-sizing: border-box;">&nbsp;</div>
+                </div>
+
+                <!-- Column 3: Summary Labels (24%) -->
+                <div style="border-right: 1px solid #000; box-sizing: border-box; display: flex; flex-direction: column;">
+                  <div style="height: 22px; padding: 3px 8px; text-align: right; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; box-sizing: border-box;">AMOUNT</div>
+                  <div style="height: 22px; border-top: 1px solid #000; padding: 3px 8px; text-align: right; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; box-sizing: border-box;">SALES VAT 7%</div>
+                  <div style="height: 23px; border-top: 1px solid #000; padding: 3px 8px; text-align: right; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; box-sizing: border-box;">TOTAL AMOUNT</div>
+                </div>
+
+                <!-- Column 4: Summary Values (14%) -->
+                <div style="box-sizing: border-box; display: flex; flex-direction: column;">
+                  <div id="print-subtotal" style="height: 22px; padding: 3px 8px; text-align: right; font-family: monospace; display: flex; align-items: center; justify-content: flex-end; box-sizing: border-box;">0.00</div>
+                  <div id="print-vat" style="height: 22px; border-top: 1px solid #000; padding: 3px 8px; text-align: right; font-family: monospace; display: flex; align-items: center; justify-content: flex-end; box-sizing: border-box;">0.00</div>
+                  <div id="print-invoice-total" style="height: 23px; border-top: 1px solid #000; padding: 3px 8px; text-align: right; font-family: monospace; font-weight: bold; display: flex; align-items: center; justify-content: flex-end; box-sizing: border-box;">0.00</div>
+                </div>
               </div>
-            </div>
+
+              <!-- BOTTOM TEXT: Payment Instructions (ตรงตามรูปภาพตัวอย่างเป๊ะ) -->
+              <div id="print-bottom-box" style="
+                padding: 4px 2px 2px 2px;
+                margin-top: 6px;
+                margin-bottom: 6px;
+                font-size: 7.5pt;
+                line-height: 1.35;
+                box-sizing: border-box;
+                color: #000000;
+              ">
+                <div id="print-payment-block">
+                  <div><strong>Method of payment :</strong></div>
+                  <div style="padding-left: 25px;">Cheque or transfer under name <strong>M Power Engineering Solutions Co., Ltd.</strong></div>
+                  <div style="padding-left: 25px;"><strong>Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</strong></div>
+                  <div style="padding-left: 25px;">Overdue payemnt will be charged at interest rate 1.25% per month</div>
+                  <div style="margin-top: 2px; font-weight: bold;">
+                    After your processing payment Please let us know and attach poof document to account.mpower-engineering.com or call number + 66 33 641 789
+                  </div>
+                </div>
+              </div>
+
+              <!-- FRAMED 2-COLUMN SIGNATURE BOX (ตรงตามรูปภาพตัวอย่าง: 2 ช่อง Received By / Authorized Signature) -->
+              <div style="
+                border: 1px solid #000000;
+                display: grid;
+                grid-template-columns: 50% 50%;
+                position: relative;
+                min-height: 110px;
+                box-sizing: border-box;
+                background: #ffffff;
+                margin-bottom: 6px;
+              ">
+                <!-- Center Official M Power Company Stamp Seal (ประทับตรากึ่งกลางระหว่าง 2 ช่อง) -->
+                <div style="
+                  position: absolute;
+                  left: 50%;
+                  top: 56%;
+                  transform: translate(-50%, -50%);
+                  z-index: 2;
+                  pointer-events: none;
+                ">
+                  <svg width="68" height="68" viewBox="0 0 100 100" style="display: block;">
+                    <circle cx="50" cy="50" r="48" fill="#ffffff" stroke="#1d4ed8" stroke-width="2" />
+                    <circle cx="50" cy="50" r="43.5" fill="none" stroke="#1d4ed8" stroke-width="1" />
+                    <path id="top-seal-inv-arc" d="M 12,50 A 38,38 0 0,1 88,50" fill="none" />
+                    <text font-size="5.8" font-weight="bold" fill="#1d4ed8" letter-spacing="0.2">
+                      <textPath href="#top-seal-inv-arc" startOffset="50%" text-anchor="middle">
+                        บริษัท เอ็ม เพาเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด
+                      </textPath>
+                    </text>
+                    <path id="bottom-seal-inv-arc" d="M 88,50 A 38,38 0 0,1 12,50" fill="none" />
+                    <text font-size="4.9" font-weight="bold" fill="#1d4ed8" letter-spacing="0.25">
+                      <textPath href="#bottom-seal-inv-arc" startOffset="50%" text-anchor="middle">
+                        M POWER ENGINEERING SOLUTIONS CO., LTD.
+                      </textPath>
+                    </text>
+                    <text x="50" y="47" font-size="16" font-weight="900" font-family="Arial, Helvetica, sans-serif" fill="#1d4ed8" text-anchor="middle">M</text>
+                    <text x="50" y="60" font-size="11" font-weight="bold" font-family="Arial, Helvetica, sans-serif" fill="#1d4ed8" text-anchor="middle">Power</text>
+                  </svg>
+                </div>
+
+                <!-- Left Column: Received By (50%) -->
+                <div style="
+                  border-right: 1px solid #000000;
+                  padding: 6px 10px 8px 10px;
+                  box-sizing: border-box;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: space-between;
+                  height: 100%;
+                ">
+                  <div id="print-confirmation-text" style="font-size: 7.5pt; line-height: 1.3; color: #000000; max-width: 95%;">
+                    Above mentioned goods/services has been received in correct quantity and good conditon. Price show is accepted.
+                  </div>
+
+                  <div style="text-align: center; margin-top: 18px; padding-bottom: 2px;">
+                    <div style="width: 170px; margin: 0 auto; border-bottom: 1px solid #000000;"></div>
+                    <div style="font-size: 8pt; color: #000000; margin-top: 3px; font-weight: 500;">Received By</div>
+
+                    <div style="width: 170px; margin: 16px auto 0 auto; border-bottom: 1px solid #000000;"></div>
+                    <div style="font-size: 8pt; color: #000000; margin-top: 3px; font-weight: 500;">Date</div>
+                  </div>
+                </div>
+
+                <!-- Right Column: Authorized Signature (50%) -->
+                <div style="
+                  padding: 6px 10px 8px 10px;
+                  box-sizing: border-box;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: space-between;
+                  height: 100%;
+                ">
+                  <div style="font-size: 7.5pt; line-height: 1.3; color: #000000;">
+                    For M Power Engineering Solutions Co., Ltd.
+                  </div>
+
+                  <div style="text-align: center; margin-top: 18px; padding-bottom: 2px;">
+                    <div style="width: 170px; margin: 0 auto; border-bottom: 1px solid #000000;"></div>
+                    <div style="font-size: 8pt; color: #000000; margin-top: 3px; font-weight: 500;">Authorized Signature</div>
+
+                    <div style="width: 170px; margin: 16px auto 0 auto; border-bottom: 1px solid #000000;"></div>
+                    <div style="font-size: 8pt; color: #000000; margin-top: 3px; font-weight: 500;">Date</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Version Footer Note -->
+              <div style="border-top: 1px dotted #94a3b8; padding-top: 3px; font-size: 7pt; color: #64748b; margin-top: 4px;">
+                <span id="print-footer-note">ORIGINAL - For Customer (ต้นฉบับสำหรับลูกค้า)</span>
+              </div>
           </div>
         </div>
       </div>
@@ -1247,68 +1435,128 @@
         const i = await SupabaseDB.getInvoiceById(id);
         if (!i) return;
 
+        const setVal = (elemId, val) => {
+          const el = document.getElementById(elemId);
+          if (el) el.innerText = (val !== undefined && val !== null && val !== '') ? val : '-';
+        };
+        const setHtml = (elemId, html) => {
+          const el = document.getElementById(elemId);
+          if (el) el.innerHTML = (html !== undefined && html !== null) ? html : '';
+        };
+
         if (docType === 'invoice') {
-          document.getElementById('print-doc-type').innerText = "Tax Invoice / Delivery Note";
-          document.getElementById('print-doc-no').innerText = i.invoice_no;
+          setVal('print-doc-type', 'TAX INVOICE / DELIVERY NOTE');
+          setVal('print-doc-no', i.invoice_no);
         } else {
-          document.getElementById('print-doc-type').innerText = "OFFICIAL RECEIPT";
-          document.getElementById('print-doc-no').innerText = i.invoice_no.replace('INV-', 'RE-');
+          setVal('print-doc-type', 'OFFICIAL RECEIPT');
+          setVal('print-doc-no', (i.invoice_no || '').replace('INV-', 'RE-'));
         }
 
-        document.getElementById('print-customer-name').innerText = i.customer ? i.customer.customer_name : 'Customer Not Specified';
+        setVal('print-customer-name', i.customer ? i.customer.customer_name : 'Customer Not Specified');
         
         let clientDetailsHtml = '';
         if (i.customer) {
           clientDetailsHtml = `
             ${i.customer.address || '-'}<br>
-            Tax ID Number ${i.customer.tax_id || '-'}
+            Tax ID Number: ${i.customer.tax_id || '-'}
           `;
         }
-        document.getElementById('print-customer-details').innerHTML = clientDetailsHtml;
+        setHtml('print-customer-details', clientDetailsHtml);
 
-        document.getElementById('print-date').innerText = formatDateDDMMMYYYY(i.invoice_date);
-        document.getElementById('print-due').innerText = formatDateDDMMMYYYY(i.due_date);
-        document.getElementById('print-po-no').innerText = i.po_reference || 'None';
-        document.getElementById('print-ikm-inv').innerText = i.ikm_inv || 'None';
-        document.getElementById('print-job-no').innerText = i.job_no || 'None';
-        document.getElementById('print-sales-person').innerText = i.sales_person || 'None';
+        setVal('print-date', formatDateDDMMMYYYY(i.invoice_date));
+        setVal('print-due', formatDateDDMMMYYYY(i.due_date));
+        setVal('print-terms', '30 Days');
+        setVal('print-po-no', i.po_reference || '-');
+        setVal('print-sales-person', i.sales_person || '-');
+        setVal('print-ikm-inv', i.ikm_inv || '-');
+        setVal('print-job-no', i.job_no || '-');
 
-        // Line details
+        // Line details in 5-column framed grid
+        const colDesc = document.getElementById('print-col-desc');
+        const colQty = document.getElementById('print-col-qty');
+        const colPrice = document.getElementById('print-col-price');
+        const colTax = document.getElementById('print-col-tax');
+        const colAmount = document.getElementById('print-col-amount');
+
+        if (colDesc) colDesc.innerHTML = '';
+        if (colQty) colQty.innerHTML = '';
+        if (colPrice) colPrice.innerHTML = '';
+        if (colTax) colTax.innerHTML = '';
+        if (colAmount) colAmount.innerHTML = '';
+
         const tbody = document.getElementById('print-items-body');
-        tbody.innerHTML = '';
+        if (tbody) tbody.innerHTML = '';
 
         const items = i.items || [];
         items.forEach((item, index) => {
-          let descHtml = `<strong>${item.description}</strong>`;
+          let descHtml = `<div class="inv-row-${index}" style="padding: 4px 0; margin-bottom: 6px;">`;
+          descHtml += `<strong>${item.description}</strong>`;
           if (item.duration && item.duration > 1) {
             descHtml += `<br><span style="font-size: 7.5pt; font-weight: normal; color: #555;">(${parseFloat(item.qty).toFixed(2)} ${item.unit || 'Unit'} x ${item.duration} Days)</span>`;
           } else if (item.unit) {
             descHtml += `<br><span style="font-size: 7.5pt; font-weight: normal; color: #555;">(Unit: ${item.unit})</span>`;
           }
+          descHtml += `</div>`;
 
-          const row = `
-            <tr>
-              <td style="text-align: left;">${descHtml}</td>
-              <td style="text-align: center; font-family: monospace;">${parseFloat(item.qty || 1).toFixed(2)}</td>
-              <td style="text-align: right; font-family: monospace;">${parseFloat(item.unit_rate || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-              <td style="text-align: center;">7%</td>
-              <td style="text-align: right; font-family: monospace;">${parseFloat(item.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-            </tr>
-          `;
-          tbody.insertAdjacentHTML('beforeend', row);
+          if (colDesc) {
+            colDesc.insertAdjacentHTML('beforeend', descHtml);
+            colQty.insertAdjacentHTML('beforeend', `<div class="inv-row-${index}" style="padding: 4px 0; margin-bottom: 6px; font-family: monospace;">${parseFloat(item.qty || 1).toFixed(2)}</div>`);
+            colPrice.insertAdjacentHTML('beforeend', `<div class="inv-row-${index}" style="padding: 4px 0; margin-bottom: 6px; font-family: monospace;">${parseFloat(item.unit_rate || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>`);
+            colTax.insertAdjacentHTML('beforeend', `<div class="inv-row-${index}" style="padding: 4px 0; margin-bottom: 6px;">7%</div>`);
+            colAmount.insertAdjacentHTML('beforeend', `<div class="inv-row-${index}" style="padding: 4px 0; margin-bottom: 6px; font-family: monospace;">${parseFloat(item.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>`);
+          }
+
+          if (tbody) {
+            const row = `
+              <tr>
+                <td style="text-align: left;">${descHtml}</td>
+                <td style="text-align: center; font-family: monospace;">${parseFloat(item.qty || 1).toFixed(2)}</td>
+                <td style="text-align: right; font-family: monospace;">${parseFloat(item.unit_rate || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                <td style="text-align: center;">7%</td>
+                <td style="text-align: right; font-family: monospace;">${parseFloat(item.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              </tr>
+            `;
+            tbody.insertAdjacentHTML('beforeend', row);
+          }
         });
+
+        // Ensure horizontal alignment across columns
+        setTimeout(() => {
+          items.forEach((item, index) => {
+            const rowNodes = document.querySelectorAll(`.inv-row-${index}`);
+            let maxH = 0;
+            rowNodes.forEach(el => {
+              if (el.offsetHeight > maxH) maxH = el.offsetHeight;
+            });
+            if (maxH > 0) {
+              rowNodes.forEach(el => {
+                el.style.minHeight = maxH + 'px';
+              });
+            }
+          });
+        }, 50);
 
         const sub = i.total_value || 0;
         const vat = sub * 0.07;
         const grand = i.grand_total || (sub + vat);
 
-        document.getElementById('print-subtotal').innerText = sub.toLocaleString(undefined, { minimumFractionDigits: 2 });
-        document.getElementById('print-vat').innerText = vat.toLocaleString(undefined, { minimumFractionDigits: 2 });
-        document.getElementById('print-invoice-total').innerText = grand.toLocaleString(undefined, { minimumFractionDigits: 2 });
-        document.getElementById('print-net-payments').innerText = (docType === 'invoice' ? '0.00' : grand.toLocaleString(undefined, { minimumFractionDigits: 2 }));
-        document.getElementById('print-grandtotal').innerText = (docType === 'invoice' ? grand.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00');
+        setVal('print-subtotal', sub.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+        setVal('print-vat', vat.toLocaleString(undefined, { minimumFractionDigits: 2 }));
+        setVal('print-invoice-total', grand.toLocaleString(undefined, { minimumFractionDigits: 2 }));
 
-        const modal = new bootstrap.Modal(document.getElementById('printViewModal'));
+        const bahtElem = document.getElementById('print-baht-text');
+        if (bahtElem) {
+          bahtElem.innerText = getEnglishBaht(grand);
+        }
+
+        // Apply current version (ORIGINAL / COPY)
+        setInvoicePrintVersion(currentInvoicePrintVersion || 'ORIGINAL');
+
+        const modalEl = document.getElementById('printViewModal');
+        let modal = bootstrap.Modal.getInstance(modalEl);
+        if (!modal) {
+          modal = new bootstrap.Modal(modalEl);
+        }
         modal.show();
 
       } catch (err) {
@@ -1316,6 +1564,91 @@
       } finally {
         toggleGlobalLoader(false);
       }
+    }
+
+    // Version switcher (ORIGINAL vs COPY)
+    let currentInvoicePrintVersion = 'ORIGINAL';
+
+    function setInvoicePrintVersion(ver) {
+      currentInvoicePrintVersion = ver ? ver.toUpperCase() : 'ORIGINAL';
+      const isCopy = (currentInvoicePrintVersion === 'COPY');
+
+      const btnOrig = document.getElementById('btn-print-version-orig');
+      const btnCopy = document.getElementById('btn-print-version-copy');
+      const badge = document.getElementById('print-version-badge');
+      const confirmText = document.getElementById('print-confirmation-text');
+      const paymentBlock = document.getElementById('print-payment-block');
+      const footerNote = document.getElementById('print-footer-note');
+
+      if (btnOrig && btnCopy) {
+        if (isCopy) {
+          btnCopy.className = 'btn btn-danger btn-sm active fw-bold';
+          btnOrig.className = 'btn btn-outline-danger btn-sm fw-bold';
+        } else {
+          btnOrig.className = 'btn btn-danger btn-sm active fw-bold';
+          btnCopy.className = 'btn btn-outline-danger btn-sm fw-bold';
+        }
+      }
+
+      if (badge) {
+        badge.innerText = isCopy ? 'COPY' : 'ORIGINAL';
+      }
+
+      if (confirmText && paymentBlock) {
+        if (isCopy) {
+          confirmText.innerText = 'Above mentioned goods/services has been received in correct quantity and good conditon. Price show is accepted.';
+          paymentBlock.innerHTML = `
+            <div style="font-weight: 800; color: #b91c1c;">For Accounts / Finance Department Records (สำหรับฝ่ายบัญชีและการเงิน):</div>
+            <div style="padding-left: 25px;">Document copy retained for internal audit, financial recording, and revenue tax compliance.</div>
+            <div style="padding-left: 25px;">Recorded against <strong>Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</strong></div>
+            <div style="padding-left: 25px;">Overdue payemnt will be charged at interest rate 1.25% per month</div>
+            <div style="margin-top: 2px; font-weight: bold; font-size: 7pt; color: #333333;">
+              In the event of discrepancy, kindly contact our Accounts department within 7 days in writing from invoice date.
+            </div>
+          `;
+        } else {
+          confirmText.innerText = 'Above mentioned goods/services has been received in correct quantity and good conditon. Price show is accepted.';
+          paymentBlock.innerHTML = `
+            <div><strong>Method of payment :</strong></div>
+            <div style="padding-left: 25px;">Cheque or transfer under name <strong>M Power Engineering Solutions Co., Ltd.</strong></div>
+            <div style="padding-left: 25px;"><strong>Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</strong></div>
+            <div style="padding-left: 25px;">Overdue payemnt will be charged at interest rate 1.25% per month</div>
+            <div style="margin-top: 2px; font-weight: bold;">
+              After your processing payment Please let us know and attach poof document to account.mpower-engineering.com or call number + 66 33 641 789
+            </div>
+          `;
+        }
+      }
+
+      if (footerNote) {
+        footerNote.innerText = isCopy
+          ? 'COPY - For Accounts Department / File (สำเนาสำหรับฝ่ายบัญชี/การเงิน)'
+          : 'ORIGINAL - For Customer (ต้นฉบับสำหรับลูกค้า)';
+      }
+    }
+
+    // Number to English Baht Text
+    function getEnglishBaht(amount) {
+      if (isNaN(amount) || amount === 0) return "ZERO BAHT ONLY";
+      const ones = ["", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN",
+        "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"];
+      const tens = ["", "", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY"];
+      function chunk(n) {
+        let str = "";
+        if (n >= 100) { str += ones[Math.floor(n / 100)] + " HUNDRED "; n %= 100; }
+        if (n >= 20) { str += tens[Math.floor(n / 10)] + " "; n %= 10; }
+        if (n > 0) { str += ones[n] + " "; }
+        return str;
+      }
+      let whole = Math.floor(amount);
+      let sat = Math.round((amount - whole) * 100);
+      let words = "";
+      if (whole >= 1000000) { words += chunk(Math.floor(whole / 1000000)) + "MILLION "; whole %= 1000000; }
+      if (whole >= 1000) { words += chunk(Math.floor(whole / 1000)) + "THOUSAND "; whole %= 1000; }
+      if (whole > 0) { words += chunk(whole); }
+      let res = (words.trim() || "ZERO") + " BAHT";
+      if (sat > 0) { res += " AND " + chunk(sat).trim() + " SATANG"; }
+      return res;
     }
   </script>
 </body>

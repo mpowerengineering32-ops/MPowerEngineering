@@ -1973,9 +1973,6 @@ function PrintPreview({ id, onClose, onEdit, quotations, customers }: any) {
               )}
             </div>
           </div>
-          <div className="text-right font-bold text-[10px]">
-            Page 1/1
-          </div>
         </div>
 
         {/* Signatures */}

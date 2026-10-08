@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tax Invoice / Delivery Note</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 210mm;
+      height: 297mm;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #ffffff;
+      color: #000000;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .print-container {
+      width: 210mm;
+      height: 297mm;
+      padding: 15mm;
+      box-sizing: border-box;
+      margin: 0;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Screen-only Controls Toolbar */
+    .screen-toolbar {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 9999;
+      background: #1e293b;
+      color: #ffffff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+    }
+
+    .screen-toolbar button {
+      background: #334155;
+      color: #ffffff;
+      border: 1px solid #475569;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .screen-toolbar button:hover {
+      background: #475569;
+    }
+
+    .screen-toolbar button.active-btn {
+      background: #dc2626;
+      border-color: #ef4444;
+      color: #ffffff;
+    }
+
+    .screen-toolbar .print-btn {
+      background: #2563eb;
+      border-color: #3b82f6;
+    }
+
+    .screen-toolbar .print-btn:hover {
+      background: #1d4ed8;
+    }
+
+    @media print {
+      .screen-toolbar {
+        display: none !important;
+      }
+      html, body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      .print-container {
+        width: 210mm;
+        height: 297mm;
+        padding: 15mm;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen Toolbar for Switching ORIGINAL / COPY -->
+  <div class="screen-toolbar">
+    <span style="font-weight: bold; color: #cbd5e1;">Version:</span>
+    <button id="btn-original" class="active-btn" onclick="setVersion('ORIGINAL')">ORIGINAL</button>
+    <button id="btn-copy" onclick="setVersion('COPY')">COPY</button>
+    <button class="print-btn" onclick="window.print()">Print Document</button>
+  </div>
+
+  <div class="print-container">
+    <div>
+      <!-- 2. Corporate Header -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px;">
+        <!-- Left: Logo & Company Address -->
+        <div style="display: flex; align-items: flex-start; gap: 16px;">
+          <div style="padding-top: 2px;">
+            <img src="/mpower-logo.png" alt="M Power Logo" style="height: 46px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q';" />
+          </div>
+          <div style="font-size: 11px; line-height: 1.35; color: #000000;">
+            <div style="font-weight: 800; font-size: 12px;">M Power Engineering Solutions Co., Ltd.</div>
+            <div>53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</div>
+            <div>Tel. 033-641789 / 063-9359565 Email: sales@mpower-engineering.com , info@mpower-engineering.com</div>
+            <div>Tax ID Number. 0205569006956 (Head office)</div>
+          </div>
+        </div>
+
+        <!-- Right-top Label (ORIGINAL / COPY) -->
+        <div style="text-align: right; padding-top: 2px;">
+          <div id="version-label" style="
+            font-size: 14px;
+            font-weight: 800;
+            color: #dc2626;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 2px solid #dc2626;
+            padding: 3px 12px;
+            display: inline-block;
+          ">ORIGINAL</div>
+        </div>
+      </div>
+
+      <!-- 3. Document Title -->
+      <div style="text-align: center; margin: 12px 0;">
+        <h1 style="font-size: 16px; font-weight: 800; text-transform: uppercase; color: #000000; letter-spacing: 0.5px; margin: 0;">TAX INVOICE / DELIVERY NOTE</h1>
+      </div>
+
+      <!-- 4. Customer & Document Details Box (Fixed Height Framed Container) -->
+      <div style="
+        border: 1px solid #000;
+        display: flex;
+        margin-bottom: 12px;
+        font-size: 11px;
+        line-height: 1.5;
+        box-sizing: border-box;
+        height: 118px;
+        min-height: 118px;
+        max-height: 118px;
+        overflow: hidden;
+      ">
+        <!-- Left Column: Customer (65%) -->
+        <div style="width: 65%; padding: 8px 10px; border-right: 1px solid #000; box-sizing: border-box; height: 100%; display: flex; flex-direction: column; justify-content: flex-start;">
+          <div><strong style="font-weight: 800;">Customer : </strong><span>IKM Testing (Thailand) Co., Ltd</span></div>
+          <div style="padding-left: 65px;">155/167 Moo 5, Samnakthon Sub-District</div>
+          <div style="padding-left: 65px;">Banchang District, Rayong, Thailand 21130</div>
+          <div style="padding-left: 65px;">Tax ID: <span>0215552000909 (Head Office)</span></div>
+          <div style="padding-top: 2px;"><strong style="font-weight: 800; padding-left: 20px;">Attn: </strong><span>Khun Apiyut</span></div>
+          <div><strong style="font-weight: 800; padding-left: 28px;">Tel: </strong><span>038-601 996-8</span></div>
+        </div>
+
+        <!-- Right Column: Document Details (35%) -->
+        <div style="width: 35%; padding: 8px 10px; line-height: 1.45; box-sizing: border-box; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+          <div><strong style="font-weight: 800;">Tax Invoice No. : </strong><span style="font-weight: 700;">INV-2609001</span></div>
+          <div><strong style="font-weight: 800; padding-left: 45px;">Date : </strong><span>01-09-2026</span></div>
+          <div><strong style="font-weight: 800;">Terms of Payment : </strong><span>30 Days</span></div>
+          <div><strong style="font-weight: 800; padding-left: 24px;">Due Date : </strong><span>01-10-2026</span></div>
+          <div><strong style="font-weight: 800;">Customer PO Ref : </strong><span>PO007441/2026</span></div>
+          <div><strong style="font-weight: 800; padding-left: 10px;">Sales Name : </strong><span>Pornpicha O.</span></div>
+        </div>
+      </div>
+
+      <!-- 5. Items Table (5 Columns: Description | Quantity | Unit Price | Tax | Amount THB) -->
+      <div style="
+        border: 1px solid #000;
+        border-bottom: 0;
+        min-height: 330px;
+        display: grid;
+        grid-template-columns: 50% 12% 14% 10% 14%;
+        font-size: 11px;
+        box-sizing: border-box;
+        align-items: stretch;
+        background: #ffffff;
+      ">
+        <!-- Column 1: Description (50%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          height: 100%;
+          align-self: stretch;
+        ">
+          <div style="
+            height: 32px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #000;
+            font-weight: 800;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">Description</div>
+          <div style="flex: 1 1 auto; padding: 6px 12px; line-height: 1.4; color: #000;">
+            <div>Pelican</div>
+            <div>Case</div>
+            <div>1630</div>
+            <div>with</div>
+            <div>Foam</div>
+          </div>
+          <div style="
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            font-weight: 600;
+          ">** LAST ENTRY **</div>
+        </div>
+
+        <!-- Column 2: Quantity (12%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          height: 100%;
+          align-self: stretch;
+        ">
+          <div style="
+            height: 32px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #000;
+            font-weight: 800;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">Quantity</div>
+          <div style="flex: 1 1 auto; padding: 6px 4px; text-align: center; font-weight: bold; font-size: 11px;">2</div>
+          <div style="height: 24px;">&nbsp;</div>
+        </div>
+
+        <!-- Column 3: Unit Price (14%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          height: 100%;
+          align-self: stretch;
+        ">
+          <div style="
+            height: 32px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #000;
+            font-weight: 800;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">Unit Price</div>
+          <div style="flex: 1 1 auto; padding: 6px 10px; text-align: right; font-family: monospace, Arial, sans-serif; font-size: 11px;">22,000.00</div>
+          <div style="height: 24px;">&nbsp;</div>
+        </div>
+
+        <!-- Column 4: Tax (10%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          height: 100%;
+          align-self: stretch;
+        ">
+          <div style="
+            height: 32px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #000;
+            font-weight: 800;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">Tax</div>
+          <div style="flex: 1 1 auto; padding: 6px 4px; text-align: center; font-size: 11px;">7%</div>
+          <div style="height: 24px;">&nbsp;</div>
+        </div>
+
+        <!-- Column 5: Amount THB (14%) -->
+        <div style="
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          height: 100%;
+          align-self: stretch;
+        ">
+          <div style="
+            height: 32px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #000;
+            font-weight: 800;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">Amount THB</div>
+          <div style="flex: 1 1 auto; padding: 6px 10px; text-align: right; font-family: monospace, Arial, sans-serif; font-size: 11px;">44,000.00</div>
+          <div style="height: 24px;">&nbsp;</div>
+        </div>
+      </div>
+
+      <!-- 6. Summary Row (Attached directly below items table matching 5-column grid) -->
+      <div style="
+        border: 1px solid #000;
+        border-top: 0;
+        display: grid;
+        grid-template-columns: 50% 12% 24% 14%;
+        font-size: 11px;
+        box-sizing: border-box;
+        background: #ffffff;
+      ">
+        <!-- Column 1: Baht text (50%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          box-sizing: border-box;
+          height: 100%;
+        ">
+          <div style="
+            border-top: 1px solid #000;
+            padding: 5px 4px;
+            text-align: center;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 10px;
+            background: #f8fafc;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+          ">
+            FORTY SEVEN THOUSAND EIGHTY BAHT
+          </div>
+        </div>
+
+        <!-- Column 2: Spacer extension (12%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          box-sizing: border-box;
+          height: 100%;
+        ">
+          <div style="
+            border-top: 1px solid #000;
+            height: 25px;
+            background: #f8fafc;
+            box-sizing: border-box;
+          ">&nbsp;</div>
+        </div>
+
+        <!-- Column 3+4: Summary Labels (24% = 14% + 10%) -->
+        <div style="
+          border-right: 1px solid #000;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+        ">
+          <div style="
+            height: 24px;
+            padding: 4px 8px;
+            text-align: right;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">AMOUNT</div>
+          <div style="
+            height: 24px;
+            border-top: 1px solid #000;
+            padding: 4px 8px;
+            text-align: right;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">SALES VAT 7%</div>
+          <div style="
+            height: 25px;
+            border-top: 1px solid #000;
+            padding: 4px 8px;
+            text-align: right;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">TOTAL AMOUNT</div>
+        </div>
+
+        <!-- Column 5: Summary Values (14%) -->
+        <div style="
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+        ">
+          <div style="
+            height: 24px;
+            padding: 4px 8px;
+            text-align: right;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">44,000.00</div>
+          <div style="
+            height: 24px;
+            border-top: 1px solid #000;
+            padding: 4px 8px;
+            text-align: right;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">3,080.00</div>
+          <div style="
+            height: 25px;
+            border-top: 1px solid #000;
+            padding: 4px 8px;
+            text-align: right;
+            font-family: monospace;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">47,080.00</div>
+        </div>
+      </div>
+
+      <!-- 7. Payment Instructions (Unbordered / ตรงตามรูปตัวอย่าง) -->
+      <div id="payment-details-block" style="
+        padding: 4px 0 2px 0;
+        margin-top: 6px;
+        margin-bottom: 6px;
+        font-size: 9.5px;
+        color: #000000;
+        line-height: 1.4;
+        box-sizing: border-box;
+      ">
+        <div style="font-weight: 800;">Method of payment :</div>
+        <div style="padding-left: 35px;">Cheque or transfer under name M Power Engineering Solutions Co., Ltd.</div>
+        <div style="padding-left: 35px;">Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</div>
+        <div style="padding-left: 35px;">Overdue payemnt will be charged at interest rate 1.25% per month</div>
+        <div style="font-weight: 800; margin-top: 3px;">
+          After your processing payment Please let us know and attach poof document to account.mpower-engineering.com or call number + 66 33 641 789
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. Framed 2-Column Signature Box (ตรงตามรูปภาพตัวอย่างเป๊ะ: 2 ช่อง Received By / Authorized Signature) -->
+    <div style="padding-bottom: 4px;">
+      <div style="
+        border: 1px solid #000000;
+        display: grid;
+        grid-template-columns: 50% 50%;
+        position: relative;
+        min-height: 125px;
+        box-sizing: border-box;
+        background: #ffffff;
+      ">
+        <!-- Center Official M Power Company Stamp Seal (ประทับตรากึ่งกลางระหว่าง 2 ช่อง) -->
+        <div style="
+          position: absolute;
+          left: 50%;
+          top: 56%;
+          transform: translate(-50%, -50%);
+          z-index: 2;
+          pointer-events: none;
+        ">
+          <svg width="76" height="76" viewBox="0 0 100 100" style="display: block;">
+            <circle cx="50" cy="50" r="48" fill="#ffffff" stroke="#1d4ed8" stroke-width="2" />
+            <circle cx="50" cy="50" r="43.5" fill="none" stroke="#1d4ed8" stroke-width="1" />
+            <path id="top-seal-arc" d="M 12,50 A 38,38 0 0,1 88,50" fill="none" />
+            <text font-size="5.8" font-weight="bold" fill="#1d4ed8" letter-spacing="0.2">
+              <textPath href="#top-seal-arc" startOffset="50%" text-anchor="middle">
+                บริษัท เอ็ม เพาเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด
+              </textPath>
+            </text>
+            <path id="bottom-seal-arc" d="M 88,50 A 38,38 0 0,1 12,50" fill="none" />
+            <text font-size="4.9" font-weight="bold" fill="#1d4ed8" letter-spacing="0.25">
+              <textPath href="#bottom-seal-arc" startOffset="50%" text-anchor="middle">
+                M POWER ENGINEERING SOLUTIONS CO., LTD.
+              </textPath>
+            </text>
+            <text x="50" y="47" font-size="16" font-weight="900" font-family="Arial, Helvetica, sans-serif" fill="#1d4ed8" text-anchor="middle">M</text>
+            <text x="50" y="60" font-size="11" font-weight="bold" font-family="Arial, Helvetica, sans-serif" fill="#1d4ed8" text-anchor="middle">Power</text>
+          </svg>
+        </div>
+
+        <!-- Left Column: Received By (50%) -->
+        <div style="
+          border-right: 1px solid #000000;
+          padding: 8px 12px 10px 12px;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          height: 100%;
+        ">
+          <div id="confirmation-text" style="font-size: 9.5px; line-height: 1.35; color: #000000; max-width: 95%;">
+            Above mentioned goods/services has been received in correct quantity and good conditon. Price show is accepted.
+          </div>
+
+          <div style="text-align: center; margin-top: 24px; padding-bottom: 2px;">
+            <div style="width: 190px; margin: 0 auto; border-bottom: 1px solid #000000;"></div>
+            <div style="font-size: 10.5px; color: #000000; margin-top: 4px; font-weight: 500;">Received By</div>
+
+            <div style="width: 190px; margin: 18px auto 0 auto; border-bottom: 1px solid #000000;"></div>
+            <div style="font-size: 10.5px; color: #000000; margin-top: 4px; font-weight: 500;">Date</div>
+          </div>
+        </div>
+
+        <!-- Right Column: Authorized Signature (50%) -->
+        <div style="
+          padding: 8px 12px 10px 12px;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          height: 100%;
+        ">
+          <div style="font-size: 10px; line-height: 1.35; color: #000000;">
+            For M Power Engineering Solutions Co., Ltd.
+          </div>
+
+          <div style="text-align: center; margin-top: 24px; padding-bottom: 2px;">
+            <div style="width: 190px; margin: 0 auto; border-bottom: 1px solid #000000;"></div>
+            <div style="font-size: 10.5px; color: #000000; margin-top: 4px; font-weight: 500;">Authorized Signature</div>
+
+            <div style="width: 190px; margin: 18px auto 0 auto; border-bottom: 1px solid #000000;"></div>
+            <div style="font-size: 10.5px; color: #000000; margin-top: 4px; font-weight: 500;">Date</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Version Footer Text (Bottom Left) -->
+      <div style="border-top: 1px dotted #94a3b8; padding-top: 3px; margin-top: 4px; font-size: 9px; color: #475569;">
+        <span id="footer-note-left">ORIGINAL - For Customer (ต้นฉบับสำหรับลูกค้า)</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function setVersion(ver) {
+      const isCopy = ver.toUpperCase() === 'COPY';
+      const label = document.getElementById('version-label');
+      const confirmText = document.getElementById('confirmation-text');
+      const paymentBlock = document.getElementById('payment-details-block');
+      const footerNote = document.getElementById('footer-note-left');
+      const btnOrig = document.getElementById('btn-original');
+      const btnCopy = document.getElementById('btn-copy');
+
+      if (isCopy) {
+        label.innerText = 'COPY';
+        label.style.color = '#dc2626';
+        label.style.borderColor = '#dc2626';
+        confirmText.innerText = 'Above mentioned goods/services has been received in correct quantity and good conditon. Price show is accepted.';
+        paymentBlock.innerHTML = `
+          <div style="font-weight: 800; color: #b91c1c;">For Accounts / Finance Department Records (สำหรับฝ่ายบัญชีและการเงิน):</div>
+          <div style="padding-left: 35px;">Document copy retained for internal audit, financial accounting, and revenue tax compliance.</div>
+          <div style="padding-left: 35px;">Recorded against <strong>Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</strong></div>
+          <div style="padding-left: 35px;">Overdue payemnt will be charged at interest rate 1.25% per month</div>
+          <div style="font-weight: 800; margin-top: 3px; font-size: 9px; color: #333333;">
+            In the event of discrepancy, kindly contact our Accounts department within 7 days in writing from invoice date.
+          </div>
+        `;
+        footerNote.innerText = 'COPY - For Accounts Department / File (สำเนาสำหรับฝ่ายบัญชี/การเงิน)';
+        btnCopy.className = 'active-btn';
+        btnOrig.className = '';
+        document.title = 'Tax Invoice / Delivery Note - COPY';
+      } else {
+        label.innerText = 'ORIGINAL';
+        label.style.color = '#dc2626';
+        label.style.borderColor = '#dc2626';
+        confirmText.innerText = 'Above mentioned goods/services has been received in correct quantity and good conditon. Price show is accepted.';
+        paymentBlock.innerHTML = `
+          <div style="font-weight: 800;">Method of payment :</div>
+          <div style="padding-left: 35px;">Cheque or transfer under name M Power Engineering Solutions Co., Ltd.</div>
+          <div style="padding-left: 35px;">Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</div>
+          <div style="padding-left: 35px;">Overdue payemnt will be charged at interest rate 1.25% per month</div>
+          <div style="font-weight: 800; margin-top: 3px;">
+            After your processing payment Please let us know and attach poof document to account.mpower-engineering.com or call number + 66 33 641 789
+          </div>
+        `;
+        footerNote.innerText = 'ORIGINAL - For Customer (ต้นฉบับสำหรับลูกค้า)';
+        btnOrig.className = 'active-btn';
+        btnCopy.className = '';
+        document.title = 'Tax Invoice / Delivery Note - ORIGINAL';
+      }
+    }
+
+    // Auto-detect ?version=copy from URL
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const v = params.get('version');
+      if (v && v.toLowerCase() === 'copy') {
+        setVersion('COPY');
+      }
+    })();
+  </script>
+</body>
+</html>

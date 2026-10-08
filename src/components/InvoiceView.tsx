@@ -1163,11 +1163,6 @@ export default function InvoiceView({
                     </div>
                   </div>
 
-                  {/* Page indicator */}
-                  <div className="text-right text-[10px] font-bold text-black mb-1">
-                    Page 1/1
-                  </div>
-
                   {/* Form-Specific Bottom Section */}
                   {isReceipt ? (
                     <>
@@ -1200,42 +1195,65 @@ export default function InvoiceView({
                     </>
                   ) : (
                     <>
-                      {/* Tax Invoice Confirmation text */}
-                      <div className="text-[10.5px] text-black leading-snug mb-2 font-normal">
-                        {isCopy 
-                          ? "Above mentioned goods/services has been received in correct quantity and good conditon. Price show is accepted."
-                          : "We hereby confirm that the above-mentioned goods/services have been received in the correct quantity and good condition, and the price indicated is accepted."
-                        }
-                      </div>
-
                       {/* Payment Method & Bank Instructions */}
-                      <div className="text-[10.5px] leading-relaxed text-black mb-6">
+                      <div className="text-[10.5px] leading-relaxed text-black mb-3">
                         <div className="font-bold">Method of payment :</div>
-                        <div className="pl-2">Cheque or transfer under name M Power Engineering Solutions Co., Ltd.</div>
-                        <div className="pl-2">Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</div>
-                        <div className="mt-1 text-slate-700">
+                        <div className="pl-6">Cheque or transfer under name M Power Engineering Solutions Co., Ltd.</div>
+                        <div className="pl-6">Kasikorn Bank Sattahip Branch, Account no. 235-3-12229-3</div>
+                        <div className="pl-6">Overdue payemnt will be charged at interest rate 1.25% per month</div>
+                        <div className="font-bold mt-1">
                           After your processing payment Please let us know and attach poof document to account.mpower-engineering.com or call number + 66 33 641 789
                         </div>
                       </div>
 
-                      {/* Signatures Section: 3-column professional format */}
-                      <div className="grid grid-cols-3 text-center text-[10.5px] font-bold text-black pt-4 gap-4">
-                        <div className="flex flex-col items-center justify-end">
-                          <div className="border-b border-dotted border-black w-36 mb-1.5 h-6"></div>
-                          <div>ผู้รับสินค้า / Received By</div>
-                          <div className="text-[9.5px] text-slate-600 font-normal mt-0.5">วันที่ (Date): ..... / ..... / .....</div>
+                      {/* Framed 2-Column Signature Box matching sample */}
+                      <div className="border border-black grid grid-cols-2 relative min-h-[115px] bg-white text-black">
+                        {/* Center Seal Stamp */}
+                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
+                          <svg width="70" height="70" viewBox="0 0 100 100" className="block">
+                            <circle cx="50" cy="50" r="48" fill="#ffffff" stroke="#1d4ed8" strokeWidth="2" />
+                            <circle cx="50" cy="50" r="43.5" fill="none" stroke="#1d4ed8" strokeWidth="1" />
+                            <path id="top-seal-react-arc" d="M 12,50 A 38,38 0 0,1 88,50" fill="none" />
+                            <text fontSize="5.8" fontWeight="bold" fill="#1d4ed8" letterSpacing="0.2">
+                              <textPath href="#top-seal-react-arc" startOffset="50%" textAnchor="middle">
+                                บริษัท เอ็ม เพาเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด
+                              </textPath>
+                            </text>
+                            <path id="bottom-seal-react-arc" d="M 88,50 A 38,38 0 0,1 12,50" fill="none" />
+                            <text fontSize="4.9" fontWeight="bold" fill="#1d4ed8" letterSpacing="0.25">
+                              <textPath href="#bottom-seal-react-arc" startOffset="50%" textAnchor="middle">
+                                M POWER ENGINEERING SOLUTIONS CO., LTD.
+                              </textPath>
+                            </text>
+                            <text x="50" y="47" fontSize="16" fontWeight="900" fontFamily="Arial, Helvetica, sans-serif" fill="#1d4ed8" textAnchor="middle">M</text>
+                            <text x="50" y="60" fontSize="11" fontWeight="bold" fontFamily="Arial, Helvetica, sans-serif" fill="#1d4ed8" textAnchor="middle">Power</text>
+                          </svg>
                         </div>
 
-                        <div className="flex flex-col items-center justify-end">
-                          <div className="border-b border-dotted border-black w-36 mb-1.5 h-6"></div>
-                          <div>ผู้ส่งสินค้า / Delivered By</div>
-                          <div className="text-[9.5px] text-slate-600 font-normal mt-0.5">วันที่ (Date): ..... / ..... / .....</div>
+                        {/* Left Column: Received By */}
+                        <div className="border-r border-black p-2.5 flex flex-col justify-between">
+                          <div className="text-[10px] leading-tight font-normal">
+                            Above mentioned goods/services has been received in correct quantity and good conditon. Price show is accepted.
+                          </div>
+                          <div className="text-center mt-4">
+                            <div className="w-44 mx-auto border-b border-black"></div>
+                            <div className="text-[10.5px] mt-1 font-medium">Received By</div>
+                            <div className="w-44 mx-auto border-b border-black mt-4"></div>
+                            <div className="text-[10.5px] mt-1 font-medium">Date</div>
+                          </div>
                         </div>
 
-                        <div className="flex flex-col items-center justify-end">
-                          <div className="border-b border-dotted border-black w-36 mb-1.5 h-6"></div>
-                          <div>ผู้มีอำนาจลงนาม / Authorized Signature</div>
-                          <div className="text-[9.5px] text-slate-600 font-normal mt-0.5">วันที่ (Date): ..... / ..... / .....</div>
+                        {/* Right Column: Authorized Signature */}
+                        <div className="p-2.5 flex flex-col justify-between">
+                          <div className="text-[10px] leading-tight font-normal">
+                            For M Power Engineering Solutions Co., Ltd.
+                          </div>
+                          <div className="text-center mt-4">
+                            <div className="w-44 mx-auto border-b border-black"></div>
+                            <div className="text-[10.5px] mt-1 font-medium">Authorized Signature</div>
+                            <div className="w-44 mx-auto border-b border-black mt-4"></div>
+                            <div className="text-[10.5px] mt-1 font-medium">Date</div>
+                          </div>
                         </div>
                       </div>
                     </>

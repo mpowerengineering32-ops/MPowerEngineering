@@ -138,7 +138,11 @@ async function startServer() {
     'leads',
     'users',
     'search',
-    'executive'
+    'executive',
+    'sales-orders',
+    'sale-order-print',
+    'tax-invoice-print',
+    'tax-invoice-delivery-note'
   ];
   htmlPages.forEach(p => {
     app.get(`/${p}`, (req, res, next) => {
