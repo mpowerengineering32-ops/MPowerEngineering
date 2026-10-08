@@ -56,6 +56,42 @@ export const MasterSalesOrderDocument: React.FC<MasterSalesOrderDocumentProps> =
       }}
       className="flex flex-col gap-6 print:gap-0 mx-auto"
     >
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
+          body {
+            background: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .no-print, header, nav, aside, footer, #navbar-shell, #sidebar-shell, button {
+            display: none !important;
+          }
+          .master-so-container {
+            width: 210mm !important;
+            min-height: 297mm !important;
+            height: 297mm !important;
+            margin: 0 !important;
+            padding: 10mm !important;
+            box-shadow: none !important;
+            border: none !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
+          }
+          table {
+            border-collapse: collapse !important;
+            width: 100% !important;
+          }
+          th, td {
+            border-color: #000000 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
       {paginatedPages.map((pageItems, pageIdx) => {
         const isFirstPage = pageIdx === 0;
         const isLastPage = pageIdx === totalPages - 1;
@@ -63,7 +99,7 @@ export const MasterSalesOrderDocument: React.FC<MasterSalesOrderDocumentProps> =
         return (
           <div
             key={pageIdx}
-            className="bg-white text-black font-sans selection:bg-indigo-100 shadow-2xl mx-auto print:shadow-none print:m-0 w-[210mm] min-h-[297mm] p-[10mm] box-border relative flex flex-col justify-between print:break-after-page"
+            className="master-so-container bg-white text-black font-sans selection:bg-indigo-100 shadow-2xl mx-auto print:shadow-none print:m-0 w-[210mm] min-h-[297mm] p-[10mm] box-border relative flex flex-col justify-between print:break-after-page"
             style={{ width: '210mm', minHeight: '297mm' }}
           >
             <div>
@@ -154,135 +190,154 @@ export const MasterSalesOrderDocument: React.FC<MasterSalesOrderDocumentProps> =
 
               {/* ======================================================== */}
               {/* 4. ITEMS TABLE (Quantity | Drescription | Unit Price | Amount) */}
+              {/* Continuous vertical gridlines extending all the way down to bottom border */}
               {/* ======================================================== */}
-              <div
-                className={`border border-black flex flex-col justify-between ${
-                  isLastPage ? 'border-b-0 min-h-[360px]' : 'min-h-[480px]'
-                }`}
-              >
-                <table className="w-full text-left border-collapse text-[11px]">
-                  <thead>
-                    <tr className="border-b border-black text-black font-extrabold text-center">
-                      <th className="py-1.5 px-2 w-[11%] border-r border-black font-extrabold text-center">
-                        Quantity
-                      </th>
-                      <th className="py-1.5 px-3 w-[55%] border-r border-black font-extrabold text-center">
-                        Drescription
-                      </th>
-                      <th className="py-1.5 px-3 w-[17%] border-r border-black font-extrabold text-center">
-                        Unit Price (THB)
-                      </th>
-                      <th className="py-1.5 px-3 w-[17%] font-extrabold text-center">
-                        Amount (THB)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pageItems.map((item, idx) => (
-                      <tr key={idx} className="align-top">
-                        {/* Quantity */}
-                        <td className="py-2 px-2 text-center border-r border-black font-bold">
-                          {item.qty}
-                        </td>
-                        {/* Drescription */}
-                        <td className="py-2 px-3 border-r border-black leading-tight">
-                          <div className="font-bold text-black">{item.description}</div>
-                          {item.details && item.details.length > 0 && (
-                            <div className="text-[10px] text-black space-y-0.5 mt-0.5 pl-0.5">
-                              {item.details.map((d, dIdx) => (
-                                <div key={dIdx}>{d}</div>
-                              ))}
-                            </div>
-                          )}
-                        </td>
-                        {/* Unit Price (THB) */}
-                        <td className="py-2 px-3 border-r border-black text-right font-mono">
+              <div className="w-full">
+                <div 
+                  className={`w-full border border-black text-[11px] grid bg-white ${isLastPage ? 'border-b-0' : ''}`}
+                  style={{ 
+                    gridTemplateColumns: '11% 55% 17% 17%',
+                    minHeight: '400px',
+                    alignItems: 'stretch'
+                  }}
+                >
+                  {/* Column 1: Quantity */}
+                  <div className="border-r border-black flex flex-col h-full">
+                    <div className="h-[32px] box-border flex items-center justify-center font-extrabold text-center border-b border-black px-2 bg-white">
+                      Quantity
+                    </div>
+                    <div className="flex-1 py-2 px-2 text-center font-bold">
+                      {pageItems.map((item, idx) => (
+                        <div key={idx} className="mb-2">{item.qty}</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Column 2: Description */}
+                  <div className="border-r border-black flex flex-col h-full">
+                    <div className="h-[32px] box-border flex items-center justify-center font-extrabold text-center border-b border-black px-3 bg-white">
+                      Description
+                    </div>
+                    <div className="flex-1 flex flex-col justify-between py-2 px-3 leading-tight min-h-0">
+                      <div>
+                        {pageItems.map((item, idx) => (
+                          <div key={idx} className="mb-2">
+                            <div className="font-bold text-black">{item.description}</div>
+                            {item.details && item.details.length > 0 && (
+                              <div className="text-[10px] text-black space-y-0.5 mt-0.5 pl-0.5">
+                                {item.details.map((d, dIdx) => {
+                                  const isItalic = d.trim().startsWith('-') || d.toLowerCase().includes('length') || d.toLowerCase().includes('diameter');
+                                  return <div key={dIdx} className={isItalic ? 'italic' : ''}>{d}</div>;
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      {isLastPage && (
+                        <div className="text-center italic text-[11px] font-bold tracking-wide pt-4 pb-2">
+                          ** LAST ENTRY **
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Column 3: Unit Price (THB) */}
+                  <div className="border-r border-black flex flex-col h-full">
+                    <div className="h-[32px] box-border flex items-center justify-center font-extrabold text-center border-b border-black px-3 bg-white">
+                      Unit Price (THB)
+                    </div>
+                    <div className="flex-1 py-2 px-3 text-right">
+                      {pageItems.map((item, idx) => (
+                        <div key={idx} className="mb-2">
                           {item.unit_price.toLocaleString('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                           })}
-                        </td>
-                        {/* Amount (THB) */}
-                        <td className="py-2 px-3 text-right font-mono">
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Column 4: Amount (THB) */}
+                  <div className="flex flex-col h-full">
+                    <div className="h-[32px] box-border flex items-center justify-center font-extrabold text-center border-b border-black px-3 bg-white">
+                      Amount (THB)
+                    </div>
+                    <div className="flex-1 py-2 px-3 text-right">
+                      {pageItems.map((item, idx) => (
+                        <div key={idx} className="mb-2">
                           {item.amount.toLocaleString('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                           })}
-                        </td>
-                      </tr>
-                    ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-                    {/* Centered LAST ENTRY Indicator only on final page */}
-                    {isLastPage && (
-                      <tr>
-                        <td className="border-r border-black"></td>
-                        <td className="py-4 text-center border-r border-black italic text-[11px] font-medium tracking-wide">
-                          ** LAST ENTRY **
-                        </td>
-                        <td className="border-r border-black"></td>
-                        <td></td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                {/* ======================================================== */}
+                {/* 5. SUMMARY FOOTER & ENGLISH BAHT TEXT BOX (Final Page Only) */}
+                {/* Merged seamlessly into the continuous table frame */}
+                {/* ======================================================== */}
+                {isLastPage && (
+                  <div 
+                    className="w-full border border-black border-t text-[11px] grid bg-white m-0"
+                    style={{ gridTemplateColumns: '11% 55% 17% 17%' }}
+                  >
+                    {/* Column 1: Quantity divider extension (11%) */}
+                    <div className="border-r border-black flex flex-col justify-end bg-white">
+                      <div className="border-t border-black h-[26px] bg-slate-50">&nbsp;</div>
+                    </div>
 
-              {/* ======================================================== */}
-              {/* 5. SUMMARY ROW & ENGLISH BAHT TEXT BOX (Final Page Only) */}
-              {/* ======================================================== */}
-              {isLastPage && (
-                <>
-                  <div className="border border-black border-t-0 flex text-[10.5px]">
-                    {/* Left area: English Words for Grand Total */}
-                    <div className="w-[66%] flex flex-col justify-end border-r border-black">
-                      <div className="border-t border-black p-1 text-center font-bold uppercase tracking-wide text-[9.5px] bg-slate-50/50">
+                    {/* Column 2: Baht Text (55%) */}
+                    <div className="border-r border-black flex flex-col justify-end bg-white">
+                      <div className="border-t border-black h-[26px] px-2 text-center font-bold uppercase tracking-wide text-[10px] bg-slate-50 flex items-center justify-center">
                         {data.baht_text_en}
                       </div>
                     </div>
 
-                    {/* Right area: AMOUNT, SALES VAT 7%, TOTAL AMOUNT */}
-                    <div className="w-[34%]">
-                      {/* Row 1: AMOUNT */}
-                      <div className="flex border-t border-black">
-                        <div className="w-[50%] p-1 text-right font-extrabold border-r border-black pr-2">
-                          AMOUNT
-                        </div>
-                        <div className="w-[50%] p-1 text-right font-mono pr-3">
-                          {data.subtotal.toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          })}
-                        </div>
+                    {/* Column 3: Labels right-aligned under Unit Price (17%) */}
+                    <div className="border-r border-black flex flex-col">
+                      <div className="h-[24px] flex items-center justify-end px-2.5 font-bold text-[10px] border-b border-black">
+                        AMOUNT
                       </div>
-
-                      {/* Row 2: SALES VAT 7% */}
-                      <div className="flex border-t border-black">
-                        <div className="w-[50%] p-1 text-right font-extrabold border-r border-black pr-2">
-                          SALES VAT 7%
-                        </div>
-                        <div className="w-[50%] p-1 text-right font-mono pr-3">
-                          {data.vat.toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          })}
-                        </div>
+                      <div className="h-[24px] flex items-center justify-end px-2.5 font-bold text-[10px] border-b border-black">
+                        SALES VAT 7%
                       </div>
+                      <div className="h-[26px] flex items-center justify-end px-2.5 font-bold text-[10px]">
+                        TOTAL AMOUNT
+                      </div>
+                    </div>
 
-                      {/* Row 3: TOTAL AMOUNT */}
-                      <div className="flex border-t border-black">
-                        <div className="w-[50%] p-1 text-right font-extrabold border-r border-black pr-2">
-                          TOTAL AMOUNT
-                        </div>
-                        <div className="w-[50%] p-1 text-right font-mono font-bold pr-3">
-                          {data.grand_total.toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          })}
-                        </div>
+                    {/* Column 4: Values under Amount (17%) */}
+                    <div className="flex flex-col">
+                      <div className="h-[24px] flex items-center justify-end px-3 border-b border-black">
+                        {data.subtotal.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
+                      </div>
+                      <div className="h-[24px] flex items-center justify-end px-3 border-b border-black">
+                        {data.vat.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
+                      </div>
+                      <div className="h-[26px] flex items-center justify-end px-3 font-bold">
+                        {data.grand_total.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })}
                       </div>
                     </div>
                   </div>
+                )}
+              </div>
 
+              {isLastPage && (
+                <>
                   {/* ======================================================== */}
                   {/* 6. TERMS & CONDITIONS SECTION                            */}
                   {/* ======================================================== */}

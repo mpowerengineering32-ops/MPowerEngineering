@@ -256,8 +256,13 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
               <div className="font-bold text-[10px] text-black uppercase tracking-tight">
                 {data.baht_text_en}
               </div>
-              <div className="mt-8 text-[11px] font-bold text-black">
-                Remarks;
+              <div className="mt-6 text-[10.5px] text-black">
+                <div className="font-bold">Remarks;</div>
+                {data.remarks && (
+                  <div className="text-[10px] text-black font-normal mt-0.5 whitespace-pre-line">
+                    {data.remarks}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -302,8 +307,8 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
         {/* ======================================================== */}
         {/* 6. SIGNATURES: Requested By & Approved By               */}
         {/* ======================================================== */}
-        <div className="mt-8 mb-2">
-          <div className="flex justify-around items-end text-center mb-4">
+        <div className="mt-8 mb-4">
+          <div className="flex justify-around items-end text-center">
             {/* Requested By */}
             <div className="w-56 text-center">
               <div className="border-b border-dotted border-black mb-1.5 w-full h-8"></div>
@@ -315,11 +320,6 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
               <div className="border-b border-dotted border-black mb-1.5 w-full h-8"></div>
               <div className="text-[11px] font-bold text-black">Approved By</div>
             </div>
-          </div>
-
-          {/* Page 1/1 at the very bottom right (ด้านล่างสุด) */}
-          <div className="text-right text-[10px] text-black pt-2">
-            Page 1/1
           </div>
         </div>
       </div>

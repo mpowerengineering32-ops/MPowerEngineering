@@ -9,7 +9,9 @@ import {
   ZoomIn,
   ZoomOut,
   ShieldCheck,
-  FileCheck2
+  FileCheck2,
+  Edit3,
+  Check
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Supplier, PurchaseRequest } from '../../types';
@@ -41,11 +43,24 @@ export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModal
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [showAuditDetails, setShowAuditDetails] = useState<boolean>(false);
+  const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
 
-  // 1. Prepare exact Master Template Data (PR.pdf)
+  // Editable Remarks and Delivery Note
+  const [customRemarks, setCustomRemarks] = useState<string>(purchaseRequest.remarks || '');
+  const [customDeliveryNote, setCustomDeliveryNote] = useState<string>(
+    purchaseRequest.delivery_note ||
+      'กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่\nบริษัท เอ็ม พาวเวอร์เอ็นจิเนียริ่งโซลูชั่นส์ จำกัด\nเปิดบิล-ส่งของวันที่ ' + (purchaseRequest.date || '')
+  );
+
+  // 1. Prepare exact Master Template Data (PR.pdf) with customized remarks
   const templateData: PurchaseRequestTemplateData = useMemo(() => {
-    return preparePurchaseRequestTemplateData(purchaseRequest, supplier);
-  }, [purchaseRequest, supplier]);
+    const prWithCustomNotes = {
+      ...purchaseRequest,
+      remarks: customRemarks,
+      delivery_note: customDeliveryNote
+    };
+    return preparePurchaseRequestTemplateData(prWithCustomNotes, supplier);
+  }, [purchaseRequest, supplier, customRemarks, customDeliveryNote]);
 
   // 2. Pre-Export Audit & Field Mapping Check
   const auditResult = useMemo(() => {
@@ -182,6 +197,20 @@ export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModal
               </button>
             </div>
 
+            {/* Edit Notes / Remarks Button */}
+            <button
+              onClick={() => setIsEditingNotes(v => !v)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer border ${
+                isEditingNotes
+                  ? 'bg-amber-600 text-white border-amber-500'
+                  : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border-slate-700'
+              }`}
+              title="ใส่ข้อความ / ปรับแก้ Remarks และ Delivery Remark"
+            >
+              <Edit3 className="w-4 h-4 text-amber-400" />
+              <span>{isEditingNotes ? 'ปิดตัวแก้ไขโน้ต' : 'แก้ไขหมายเหตุ/โน้ต'}</span>
+            </button>
+
             {/* Print Button */}
             <button
               onClick={handlePrint}
@@ -244,7 +273,7 @@ export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModal
           </div>
 
           <div className="text-[11px] font-mono text-slate-500">
-            A4 Portrait • 1 หน้าเดี่ยว • Page 1/1
+            A4 Portrait • 1 หน้าเดี่ยว
           </div>
         </div>
 
@@ -266,6 +295,54 @@ export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModal
                 <span>{auditResult.warnings.join('; ')}</span>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Notes & Remarks Live Editor Drawer */}
+        {isEditingNotes && (
+          <div className="bg-amber-50/90 border-b border-amber-300 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                <Edit3 className="w-4 h-4 text-amber-700" />
+                ใส่ข้อความ / แก้ไขหมายเหตุและข้อความจัดส่งในใบขอซื้อ (Live Notes Editor)
+              </span>
+              <span className="text-[11px] text-amber-700">ข้อความจะอัปเดตลงในตัวอย่างเอกสารและไฟล์ PDF ทันที</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  หมายเหตุ (Remarks)
+                </label>
+                <textarea
+                  rows={2}
+                  value={customRemarks}
+                  onChange={e => setCustomRemarks(e.target.value)}
+                  placeholder="ระบุหมายเหตุหรือข้อความเพิ่มเติมสำหรับ PR..."
+                  className="w-full bg-white border border-amber-300 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  ข้อความการจัดส่ง (Delivery Remark / จัดส่งตามที่อยู่)
+                </label>
+                <textarea
+                  rows={2}
+                  value={customDeliveryNote}
+                  onChange={e => setCustomDeliveryNote(e.target.value)}
+                  placeholder="ข้อความสีแดงท้ายตาราง เช่น กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่..."
+                  className="w-full bg-white border border-amber-300 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                onClick={() => setIsEditingNotes(false)}
+                className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>เสร็จสิ้นการแก้ไข</span>
+              </button>
+            </div>
           </div>
         )}
 

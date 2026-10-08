@@ -245,7 +245,7 @@ export default function DeliveryMonitoringView({
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4.5 h-4.5" />
               <input
                 type="text"
-                placeholder="Search job number, project name, or customer..."
+                placeholder="Search SO number, project name, or customer..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -271,7 +271,7 @@ export default function DeliveryMonitoringView({
               <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
-                    <th className="px-4 py-3">Job Number</th>
+                    <th className="px-4 py-3">SO Number</th>
                     <th className="px-4 py-3">Project / Customer</th>
                     <th className="px-4 py-3">Project Manager</th>
                     <th className="px-4 py-3">Timeline</th>
@@ -290,8 +290,7 @@ export default function DeliveryMonitoringView({
                     filteredProjects.map((p) => (
                       <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-4 py-3">
-                          <div className="font-mono font-bold text-slate-800">{p.job_number}</div>
-                          <div className="text-[10px] text-slate-500 font-mono">{p.sales_order_no}</div>
+                          <div className="font-mono font-bold text-slate-800">{p.sales_order_no || p.job_number}</div>
                         </td>
                         <td className="px-4 py-3 min-w-[250px]">
                           <div className="font-bold text-slate-800 text-wrap leading-tight">{p.project_name}</div>

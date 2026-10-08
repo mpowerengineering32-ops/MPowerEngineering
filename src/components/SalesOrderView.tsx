@@ -32,7 +32,6 @@ export default function SalesOrderView({
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSO, setEditingSO] = useState<SalesOrder | null>(null);
-  const [viewingSO, setViewingSO] = useState<SalesOrder | null>(null);
   const [generatingSO, setGeneratingSO] = useState<SalesOrder | null>(null);
 
   // Form State
@@ -45,8 +44,12 @@ export default function SalesOrderView({
     d.setDate(d.getDate() + 60);
     return d.toISOString().split('T')[0];
   });
+  const [deliveryPlan, setDeliveryPlan] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 60);
+    return d.toISOString().split('T')[0];
+  });
   const [status, setStatus] = useState<SalesOrder['status']>('Pending');
-  const [jobNo, setJobNo] = useState('');
   const [poNo, setPoNo] = useState('');
   const [soNo, setSoNo] = useState('');
   const [salesPerson, setSalesPerson] = useState('');
@@ -62,9 +65,10 @@ export default function SalesOrderView({
     setOrderDate(new Date().toISOString().split('T')[0]);
     const d = new Date();
     d.setDate(d.getDate() + 60);
-    setTargetDeliveryDate(d.toISOString().split('T')[0]);
+    const defDelivery = d.toISOString().split('T')[0];
+    setTargetDeliveryDate(defDelivery);
+    setDeliveryPlan(defDelivery);
     setStatus('Pending');
-    setJobNo('');
     setPoNo('');
     setSalesPerson('');
     
@@ -87,8 +91,8 @@ export default function SalesOrderView({
     setTotalAmount(so.total_amount);
     setOrderDate(so.order_date);
     setTargetDeliveryDate(so.target_delivery_date);
+    setDeliveryPlan(so.delivery_plan || so.target_delivery_date || '');
     setStatus(so.status);
-    setJobNo(so.job_no || '');
     setPoNo(so.po_no || '');
     setSoNo(so.so_no);
     setSalesPerson(so.sales_person || '');
@@ -110,8 +114,8 @@ export default function SalesOrderView({
       total_amount: Number(totalAmount),
       status,
       order_date: orderDate,
-      target_delivery_date: targetDeliveryDate,
-      job_no: jobNo,
+      target_delivery_date: deliveryPlan || targetDeliveryDate,
+      delivery_plan: deliveryPlan || targetDeliveryDate,
       po_no: poNo,
       sales_person: salesPerson
     };
@@ -130,45 +134,62 @@ export default function SalesOrderView({
     }
   };
 
-  // Multiple filter states
-  const [selectedJob, setSelectedJob] = useState('All');
+  // Multiple filter states: Status, Customer, Sales Rep, and Cascading Delivery Plan
   const [selectedCustomerFilter, setSelectedCustomerFilter] = useState('All');
+  const [selectedSalesRepFilter, setSelectedSalesRepFilter] = useState('All');
+  const [selectedDeliveryPlan, setSelectedDeliveryPlan] = useState('All');
 
-  // Dynamic values extractor for filter selection dropdowns
-  const existingJobs = useMemo(() => {
-    const list = salesOrders.map(so => so.job_no).filter(Boolean) as string[];
-    return Array.from(new Set(list));
-  }, [salesOrders]);
-
+  // Customer options list
   const existingCustomersList = useMemo(() => {
     const list = salesOrders.map(so => so.customer_name).filter(Boolean) as string[];
     return Array.from(new Set(list));
   }, [salesOrders]);
 
-  const existingServicesList = useMemo(() => {
-    return [];
-  }, []);
+  // Sales Reps options list
+  const existingSalesRepsList = useMemo(() => {
+    const list = salesOrders.map(so => so.sales_person).filter(Boolean) as string[];
+    return Array.from(new Set(list));
+  }, [salesOrders]);
 
-  const filteredSalesOrders = useMemo(() => {
+  // Step 1: Pre-filter by Search, Status, Customer, and Sales Rep (Cascading Excel-like logic)
+  const preDeliverySalesOrders = useMemo(() => {
     return salesOrders.filter(so => {
       const matchSearch = 
         so.so_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
         so.project_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (so.customer_name && so.customer_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (so.job_no && so.job_no.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (so.po_no && so.po_no.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchStatus = selectedStatus === 'All' || so.status === selectedStatus;
-      const matchJob = selectedJob === 'All' || so.job_no === selectedJob;
-      const matchCustomer = selectedCustomerFilter === 'All' || so.customer_name === selectedCustomerFilter;
+        (so.po_no && so.po_no.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (so.sales_person && so.sales_person.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        ((so.delivery_plan || so.target_delivery_date) && (so.delivery_plan || so.target_delivery_date)?.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      return matchSearch && matchStatus && matchJob && matchCustomer;
+      const matchStatus = 
+        selectedStatus === 'All' || 
+        so.status === selectedStatus ||
+        (selectedStatus === 'Delivered' && (so.status === 'Completed' || (so.status as string) === 'Delivered')) ||
+        (selectedStatus === 'Approved' && (so.status === 'Fully Invoiced' || (so.status as string) === 'Approved'));
+      
+      const matchCustomer = selectedCustomerFilter === 'All' || so.customer_name === selectedCustomerFilter;
+      const matchSalesRep = selectedSalesRepFilter === 'All' || so.sales_person === selectedSalesRepFilter;
+      
+      return matchSearch && matchStatus && matchCustomer && matchSalesRep;
     });
-  }, [salesOrders, searchTerm, selectedStatus, selectedJob, selectedCustomerFilter]);
+  }, [salesOrders, searchTerm, selectedStatus, selectedCustomerFilter, selectedSalesRepFilter]);
 
-  const relatedInvoices = useMemo(() => {
-    if (!viewingSO) return [];
-    return invoices.filter(inv => inv.sales_order_id === viewingSO.id || inv.sales_order_id === viewingSO.so_no);
-  }, [viewingSO, invoices]);
+  // Step 2: Extract available Delivery Plans dynamically from the remaining subset
+  const availableDeliveryPlans = useMemo(() => {
+    const list = preDeliverySalesOrders
+      .map(so => so.delivery_plan || so.target_delivery_date)
+      .filter(Boolean) as string[];
+    return Array.from(new Set(list)).sort();
+  }, [preDeliverySalesOrders]);
+
+  // Step 3: Final filtered Sales Orders with Delivery Plan applied
+  const filteredSalesOrders = useMemo(() => {
+    if (selectedDeliveryPlan === 'All') return preDeliverySalesOrders;
+    return preDeliverySalesOrders.filter(so => 
+      (so.delivery_plan || so.target_delivery_date) === selectedDeliveryPlan
+    );
+  }, [preDeliverySalesOrders, selectedDeliveryPlan]);
 
   const handlePrint = () => {
     window.print();
@@ -186,7 +207,7 @@ export default function SalesOrderView({
       status: 'Pending' as const,
       order_date: new Date().toISOString().split('T')[0],
       target_delivery_date: so.target_delivery_date,
-      job_no: so.job_no || '',
+      delivery_plan: so.delivery_plan || so.target_delivery_date,
       po_no: so.po_no || '',
       sales_person: so.sales_person || '',
       items: so.items ? so.items.map(it => ({
@@ -216,8 +237,8 @@ export default function SalesOrderView({
             <Briefcase className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-slate-800">Sales Order Management (ออกใบสั่งขายและ Job งานจ้าง)</h2>
-            <p className="text-xs text-slate-400 mt-1 font-medium">โมดูลที่ 5: จัดการใบสั่งงาน คอนเฟิร์มดีลโครงการค้าขาย และเริ่มจัดแผนโครงสร้างปฏิบัติการ</p>
+            <h2 className="text-xl font-extrabold text-slate-800">Sales Order Management (ออกใบสั่งขายและแผนส่งมอบงาน)</h2>
+            <p className="text-xs text-slate-400 mt-1 font-medium">โมดูลที่ 5: จัดการใบสั่งงาน คอนเฟิร์มดีลโครงการค้าขาย และบริหารแผนส่งมอบงาน (Delivery Plan)</p>
           </div>
         </div>
         <button
@@ -235,7 +256,7 @@ export default function SalesOrderView({
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4.5 h-4.5" />
           <input
             type="text"
-            placeholder="ค้นหาเลขที่ใบสั่งขาย SO, เลขที่งาน Job No., ชื่อแคมเปญโครงการ หรือชื่อบริษัทลูกค้า..."
+            placeholder="ค้นหาเลขที่ใบสั่งขาย SO, แผนส่งมอบ Delivery Plan, ชื่อโครงการ หรือชื่อบริษัทลูกค้า..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/25 transition-all"
@@ -253,12 +274,29 @@ export default function SalesOrderView({
             >
               <option value="All">ทั้งหมด (ทุกสถานะ)</option>
               <option value="Pending">Pending</option>
-              <option value="Planning">Planning</option>
               <option value="In Progress">In Progress</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Approved">Approved</option>
+              <option value="Planning">Planning</option>
+              <option value="Completed">Completed</option>
               <option value="Partially Invoiced">Partially Invoiced</option>
               <option value="Fully Invoiced">Fully Invoiced</option>
-              <option value="Completed">Completed</option>
               <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          {/* Sales Representative Filter */}
+          <div className="space-y-1 bg-white p-2 rounded-lg border border-slate-200/60 shadow-xxs">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">ผู้ดูแล / Sales Rep:</span>
+            <select
+              value={selectedSalesRepFilter}
+              onChange={(e) => setSelectedSalesRepFilter(e.target.value)}
+              className="w-full bg-transparent border-0 text-xs focus:outline-none cursor-pointer font-extrabold text-slate-700 mt-0.5"
+            >
+              <option value="All">ทั้งหมด (ทุกฝ่ายขาย)</option>
+              {existingSalesRepsList.map(rep => (
+                <option key={rep} value={rep}>{rep}</option>
+              ))}
             </select>
           </div>
 
@@ -277,17 +315,21 @@ export default function SalesOrderView({
             </select>
           </div>
 
-          {/* Job No Filter */}
-          <div className="space-y-1 bg-white p-2 rounded-lg border border-slate-200/60 shadow-xxs">
-            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">เลขที่งาน / Job No:</span>
+          {/* Delivery Plan Cascading Filter (Excel-like) */}
+          <div className="space-y-1 bg-teal-50/70 p-2 rounded-lg border border-teal-200/80 shadow-xxs">
+            <span className="text-[10px] font-extrabold text-teal-800 uppercase tracking-wider block">แผนส่งมอบ / DELIVERY PLAN:</span>
             <select
-              value={selectedJob}
-              onChange={(e) => setSelectedJob(e.target.value)}
-              className="w-full bg-transparent border-0 text-xs focus:outline-none cursor-pointer font-extrabold text-slate-700 mt-0.5"
+              value={selectedDeliveryPlan}
+              onChange={(e) => setSelectedDeliveryPlan(e.target.value)}
+              className="w-full bg-transparent border-0 text-xs focus:outline-none cursor-pointer font-extrabold text-teal-900 mt-0.5"
             >
-              <option value="All">ทั้งหมด (ทุกเลขที่งาน Job)</option>
-              {existingJobs.map(job => (
-                <option key={job} value={job}>{job}</option>
+              <option value="All">
+                ทั้งหมด ({availableDeliveryPlans.length} แผน / {preDeliverySalesOrders.length} รายการ)
+              </option>
+              {availableDeliveryPlans.map(dp => (
+                <option key={dp} value={dp}>
+                  📅 {dp} ({preDeliverySalesOrders.filter(so => (so.delivery_plan || so.target_delivery_date) === dp).length})
+                </option>
               ))}
             </select>
           </div>
@@ -340,6 +382,7 @@ export default function SalesOrderView({
                 filteredSalesOrders.map((so, idx) => (
                   <tr 
                     key={so.id} 
+                    onClick={() => setGeneratingSO(so)}
                     className={`hover:bg-blue-50/45 cursor-pointer transition-colors border-b border-slate-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#F8F9FA]/70'}`}
                   >
                     {/* Index row background (spreadsheet numbering) */}
@@ -352,18 +395,14 @@ export default function SalesOrderView({
                     <td className="border border-slate-200 px-3 py-2.5">
                       <div className="flex flex-wrap items-center gap-1.5 mb-1">
                         <span className="font-extrabold text-slate-800 text-sm block">{so.project_name}</span>
-                        {so.job_no ? (
-                          <span className="inline-flex items-center gap-1 bg-[#FFF9E6] text-[#B76E00] font-mono font-bold px-1.5 py-0.5 rounded border border-[#FFE299] text-[10px]" title="Job Number">
-                            Job: {so.job_no}
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center bg-slate-50 text-slate-400 font-mono px-1 py-0.5 rounded border border-slate-200 text-[10px]">
-                            No Job Ref
-                          </span>
-                        )}
                         {so.po_no && (
                           <span className="inline-flex items-center gap-1 bg-teal-50 text-teal-700 font-mono font-bold px-1.5 py-0.5 rounded border border-teal-200 text-[10px]" title="Customer PO Number">
                             PO: {so.po_no}
+                          </span>
+                        )}
+                        {(so.delivery_plan || so.target_delivery_date) && (
+                          <span className="inline-flex items-center gap-1 bg-teal-50 text-teal-800 font-mono font-bold px-1.5 py-0.5 rounded border border-teal-200 text-[10px]" title="Delivery Plan">
+                            📅 แผนส่งมอบ: {so.delivery_plan || so.target_delivery_date}
                           </span>
                         )}
                       </div>
@@ -395,7 +434,7 @@ export default function SalesOrderView({
                     </td>
                     <td className="border border-slate-200 px-3 py-1.5">
                       <span className="text-xs block text-slate-600 font-bold">เริ่ม: {so.order_date}</span>
-                      <span className="text-[10px] text-teal-600 block font-semibold mt-0.5">แผนเสร็จ: {so.target_delivery_date}</span>
+                      <span className="text-[10px] text-teal-700 block font-bold mt-0.5">แผนส่งมอบ: {so.delivery_plan || so.target_delivery_date}</span>
                     </td>
                     <td className="border border-slate-200 px-3 py-1.5 text-center">
                       <span className={`inline-block px-2.5 py-0.5 rounded text-[10px] font-extrabold leading-none ${
@@ -421,8 +460,8 @@ export default function SalesOrderView({
                         </button>
 
                         <button
-                          onClick={() => setViewingSO(so)}
-                          title="ดูข้อมูล"
+                          onClick={() => setGeneratingSO(so)}
+                          title="ดูและพิมพ์แบบฟอร์ม Sales Order (Master Template)"
                           className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors cursor-pointer"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -523,26 +562,21 @@ export default function SalesOrderView({
                 />
               </div>
 
-              {/* Job No Combobox Input */}
+              {/* Delivery Plan Input */}
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5">
-                  หมายเลขงาน / Job No. <span className="text-slate-400 font-normal">(พิมพ์เปิดเลขใหม่ หรือกดเลือกจากรายกลุ่มที่มีเพื่อผูกดีลเดียวกัน)</span>
+                <label className="block text-xs font-bold text-teal-800 mb-1.5">
+                  แผนส่งมอบงาน / DELIVERY PLAN * <span className="text-teal-600 font-normal">(กำหนดวันที่หรือแผนส่งมอบงานโครงการ)</span>
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    list="form-job-datalist"
-                    placeholder="เช่น JOB-26001, PM-TANK02"
-                    value={jobNo}
-                    onChange={(e) => setJobNo(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-                  />
-                  <datalist id="form-job-datalist">
-                    {existingJobs.map(job => (
-                      <option key={job} value={job} />
-                    ))}
-                  </datalist>
-                </div>
+                <input
+                  type="date"
+                  required
+                  value={deliveryPlan}
+                  onChange={(e) => {
+                    setDeliveryPlan(e.target.value);
+                    setTargetDeliveryDate(e.target.value);
+                  }}
+                  className="w-full bg-teal-50/40 border border-teal-300 rounded-xl px-3.5 py-2 text-sm font-semibold text-teal-900 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                />
               </div>
 
               {/* Customer PO Number Input */}
@@ -642,214 +676,6 @@ export default function SalesOrderView({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* Visual Printed Sales Order Doc Modal */}
-      {viewingSO && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-3xs flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in print:bg-white print:p-0 print:absolute">
-          <div className="bg-white rounded-2xl shadow-3xl w-full max-w-3xl overflow-hidden my-8 animate-scale-up print:shadow-none print:my-0 print:rounded-none">
-            
-            {/* Header control toolbar (Hidden in print) */}
-            <div className="bg-slate-50 px-6 py-4 border-b border-slate-150 flex items-center justify-between print:hidden">
-              <span className="text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
-                <Printer className="w-4.5 h-4.5 text-teal-600" />
-                ใบสั่งจ้างปาดและรับงาน / Original Sales Order View ({viewingSO.so_no})
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    const target = viewingSO;
-                    setViewingSO(null);
-                    setGeneratingSO(target);
-                  }}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 px-3 rounded-lg text-xs transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
-                  title="สร้างเอกสาร Sales Order ตาม Master Template 100%"
-                >
-                  <FileCheck className="w-3.5 h-3.5 text-emerald-300" />
-                  <span>Generate Sales Order (Master Template)</span>
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3 rounded-lg text-xs transition-all cursor-pointer flex items-center gap-1"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  พิมพ์แบบฟอร์ม
-                </button>
-                <button onClick={() => setViewingSO(null)} className="p-1 bg-white border border-slate-200 text-slate-400 hover:text-slate-600 rounded cursor-pointer">
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Print canvas page */}
-            <div className="p-8 md:p-12 space-y-8 font-sans bg-white print:p-0 text-slate-800">
-              
-              <div className="flex justify-between items-start border-b border-slate-200 pb-6">
-                <div>
-                  <h1 className="text-teal-600 font-extrabold text-2xl tracking-tight uppercase leading-none">SALES ORDER</h1>
-                  <span className="text-xs text-slate-400 block mt-1">ใบสั่งจ้างและบันทึกข้อตกลงงานบริการวิศวกรรม</span>
-                  <div className="text-xs font-medium text-slate-700 mt-4 leading-relaxed font-mono">
-                    <strong>บริษัท ควอลิที เทค แอนด์ เซอร์วิส จำกัด</strong><br />
-                    1024/9 อาคารศูนย์ไอทีอาร์ สาทร พญาไท กรุงเทพมหานคร 10400<br />
-                    ทะเบียนประจำตัวผู้เสียภาษีอากร: 0105658091234
-                  </div>
-                </div>
-                <div className="text-right space-y-1 text-xs">
-                  <div className="text-[11px] font-bold text-slate-400">เลขที่ใบสั่งขาย / SO Identifier</div>
-                  <div className="font-mono text-base font-extrabold text-slate-800">{viewingSO.so_no}</div>
-                  
-                  {viewingSO.job_no && (
-                    <>
-                      <div className="text-[11px] font-bold text-slate-400 pt-2">รหัสโครงการกลุ่มงาน / Job No.</div>
-                      <div className="font-mono text-xs font-bold text-amber-700 bg-amber-50 px-2 py-0.5 inline-block rounded border border-amber-200">{viewingSO.job_no}</div>
-                    </>
-                  )}
-
-                  {viewingSO.po_no && (
-                    <>
-                      <div className="text-[11px] font-bold text-slate-400 pt-2">เลขที่ใบสั่งซื้อลูกค้า / Customer PO No.</div>
-                      <div className="font-mono text-xs font-bold text-teal-700 bg-teal-50 px-2 py-0.5 inline-block rounded border border-teal-200">{viewingSO.po_no}</div>
-                    </>
-                  )}
-
-                  <div className="text-[11px] font-bold text-slate-400 pt-2">ลงวันที่เริ่มรับงาน / Date Assigned</div>
-                  <div className="font-bold">{viewingSO.order_date}</div>
-                </div>
-              </div>
-
-              {/* Addresses section */}
-              <div className="grid grid-cols-2 gap-8 text-xs">
-                <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
-                  <div className="text-[11px] uppercase font-bold text-slate-400 mb-1.5">บริษัทผู้ว่าจ้าง / Account Entity:</div>
-                  <div className="text-slate-800 font-extrabold text-sm">{viewingSO.customer_name}</div>
-                  <div className="text-slate-500 mt-2 leading-relaxed">
-                    เลขผู้เสียภาษี: {customers.find(c => c.id === viewingSO.customer_id)?.tax_id || '-'}<br />
-                    เครดิตเทอม: {customers.find(c => c.id === viewingSO.customer_id)?.payment_term || '30 วันการค้า'}<br />
-                    วงเงินความร่วมมือสูงสุด: ฿{(customers.find(c => c.id === viewingSO.customer_id)?.credit_limit || 0).toLocaleString()} บาท
-                  </div>
-                </div>
-                <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-1">
-                  <div className="text-[11px] uppercase font-bold text-slate-400 mb-1">เป้าหมายงบประมาณการตรวจสอบ / Deliverables:</div>
-                  <div className="text-xs text-slate-700 font-bold">{viewingSO.project_name}</div>
-                  <div className="text-[11.5px] leading-relaxed text-slate-500 mt-2">
-                    กำหนดขอบเขตจัดส่งรายงาน: <strong>{viewingSO.target_delivery_date}</strong><br />
-                    {viewingSO.sales_person && (
-                      <>ผู้ดูแล: <strong>{viewingSO.sales_person}</strong><br /></>
-                    )}
-                    ระเบียบประกันภัย: กำหนดให้พนักงานที่จัดส่งไปต้องสวมหมวกนิรภัย (PPE Standard) ตลอดความร่วมมือในพื้นที่โรงงานควบคุม
-                  </div>
-                </div>
-              </div>
-
-              {/* Items Summary list */}
-              <table className="w-full text-xs text-left border-collapse border border-slate-200">
-                <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 font-bold uppercase text-slate-600">
-                    <th className="px-3 py-2.5">รายการลักษณะงานรับจ้างการค้า / Project Milestones</th>
-                    {viewingSO.items && viewingSO.items.length > 0 ? (
-                      <>
-                        <th className="px-3 py-2.5 text-center w-28">จำนวนจ้าง</th>
-                        <th className="px-3 py-2.5 text-center w-32">คงเหลือยังไม่แจ้งหนี้</th>
-                        <th className="px-3 py-2.5 text-right w-28">ราคาต่อหน่วย</th>
-                        <th className="px-3 py-2.5 text-right w-36">รวมมูลค่างาน</th>
-                      </>
-                    ) : (
-                      <>
-                        <th className="px-3 py-2.5 text-right w-56">กำหนดแล้วเสร็จเป้าหมาย / Duration</th>
-                        <th className="px-3 py-2.5 text-right w-44">ยอดเงินงบประมาณ (฿)</th>
-                      </>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {viewingSO.items && viewingSO.items.length > 0 ? (
-                    viewingSO.items.map((it, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50">
-                        <td className="px-3 py-3">
-                          <span className="font-bold text-slate-800 block">{it.item_no}. {it.description}</span>
-                        </td>
-                         <td className="px-3 py-3 text-center font-mono">{it.qty} {it.unit}</td>
-                         <td className="px-3 py-3 text-center font-mono">
-                           <span className={`px-1.5 py-0.5 rounded text-[11px] font-extrabold ${it.remaining_qty === 0 ? 'text-green-700 bg-green-50' : 'text-amber-700 bg-amber-50'}`}>
-                             {it.remaining_qty} {it.unit}
-                           </span>
-                         </td>
-                         <td className="px-3 py-3 text-right font-mono">฿{it.unit_price.toLocaleString()}</td>
-                         <td className="px-3 py-3 text-right font-mono font-bold text-slate-900">฿{(it.qty * it.unit_price).toLocaleString()}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td className="px-4 py-4">
-                        <span className="font-bold text-slate-800 block">{viewingSO.project_name}</span>
-                        <span className="text-[10px] text-slate-400 block mt-1">อิงตามข้อตกลงและเงื่อนไขเทคนิคหลักตามใบสั่งขาย</span>
-                      </td>
-                      <td className="px-4 py-4 text-right">ภายใน {viewingSO.target_delivery_date}</td>
-                      <td className="px-4 py-4 text-right font-mono font-extrabold text-teal-700">฿{viewingSO.total_amount.toLocaleString()}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-
-              {/* Historical Invoice Billing Records linked to Sales Order */}
-              {viewingSO && relatedInvoices.length > 0 && (
-                <div className="mt-8 p-5 bg-slate-50/80 rounded-xl border border-slate-200/60 print:break-inside-avoid text-left">
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText className="w-4 h-4 text-teal-600" />
-                    <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">ประวัติการแจ้งหนี้และสัดส่วนที่ออก (Invoiced History Log for {viewingSO.so_no})</span>
-                  </div>
-                  <div className="space-y-2">
-                    {relatedInvoices.map((inv, idx) => (
-                      <div key={inv.id} className="bg-white p-3 rounded-lg border border-slate-150 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs shadow-xxs">
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="font-extrabold text-slate-800">ครั้งที่ {idx + 1}</span>
-                            <span className="font-mono font-extrabold text-teal-700 bg-teal-50 border border-teal-100 px-1.5 py-0.2 rounded text-[11px]">{inv.invoice_no}</span>
-                            <span className={`inline-flex px-1.5 py-0.2 text-[10px] font-bold rounded ${inv.status === 'Paid' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-amber-50 text-amber-700 border border-amber-100'}`}>
-                              {inv.status === 'Paid' ? 'ชำระแล้ว / Paid' : 'ค้างชำระ / Unpaid'}
-                            </span>
-                          </div>
-                          <div className="text-slate-500 font-medium">
-                            ออกบิลวันที่: {(inv as any).invoice_date || inv.issue_date || '-'} | ครบดิวชำระ: {inv.due_date || '-'}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-mono font-bold text-slate-900">
-                            มูลค่าสุทธิ: ฿{inv.grand_total.toLocaleString()}
-                          </div>
-                          {inv.items && inv.items.length > 0 && (
-                            <div className="text-[10px] text-slate-500 font-medium mt-1">
-                              รายการเบิก: {inv.items.map(it => `${it.quantity} x "${it.description.split('\n')[0]}"`).join(', ')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Signatures execution */}
-              <div className="grid grid-cols-2 gap-12 pt-20 text-center text-xs">
-                <div className="space-y-12">
-                  <span className="text-slate-400 font-medium block">จัดแผนคิวบริการโดย / Project Planner:</span>
-                  <div className="border-b border-slate-300 w-48 mx-auto pb-1 text-slate-700 font-semibold">
-                    ( ทีมวิศวกรผู้ดูแลระบบคิว )
-                  </div>
-                  <span className="text-[10px] text-slate-400 block">วันที่ / Date: ............................................</span>
-                </div>
-                <div className="space-y-12">
-                  <span className="text-slate-400 font-medium block">ตัวแทนผู้มีอำนาจเซ็นต์รับทราบใบงาน / Auth Representative:</span>
-                  <div className="border-b border-slate-300 w-48 mx-auto pb-1 text-slate-700 font-semibold">
-                    ...........................................................................
-                  </div>
-                  <span className="text-[10px] text-slate-400 block">วันที่ / Date: ............................................</span>
-                </div>
-              </div>
-
-            </div>
           </div>
         </div>
       )}

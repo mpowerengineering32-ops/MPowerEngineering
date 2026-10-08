@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sale Order</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 210mm;
+      height: 297mm;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #ffffff;
+      color: #000000;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .print-container {
+      width: 210mm;
+      height: 297mm;
+      padding: 15mm;
+      box-sizing: border-box;
+      margin: 0;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    @media print {
+      html, body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      .print-container {
+        width: 210mm;
+        height: 297mm;
+        padding: 15mm;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-container">
+    <div>
+      <!-- 2. Corporate Header -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 12px;">
+        <div style="display: flex; align-items: flex-start; gap: 16px;">
+          <div style="padding-top: 2px;">
+            <img src="/mpower-logo.png" alt="M Power Logo" style="height: 46px; width: auto; object-fit: contain; display: block;" onerror="this.style.display='none';" />
+          </div>
+          <div style="font-size: 11px; line-height: 1.35; color: #000;">
+            <div style="font-weight: 800; font-size: 12px;">M Power Engineering Solutions Co., Ltd.</div>
+            <div>53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</div>
+            <div>Tel. 033-641789 / 063-9359565 Email: sales@mpower-engineering.com , info@mpower-engineering.com</div>
+            <div>Tax ID Number. 0205569006956 (Head office)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Document Title -->
+      <div style="text-align: center; margin: 12px 0;">
+        <h1 style="font-size: 18px; font-weight: 800; text-transform: uppercase; color: #000; letter-spacing: 0.5px; margin: 0;">SALE ORDER</h1>
+      </div>
+
+      <!-- 4. Customer & Order Details Box -->
+      <div style="border: 1px solid #000; display: flex; margin-bottom: 12px; font-size: 11px; line-height: 1.4; box-sizing: border-box;">
+        <!-- Left: Customer (65%) -->
+        <div style="width: 65%; padding: 10px; border-right: 1px solid #000; box-sizing: border-box;">
+          <div><strong style="font-weight: 800;">Customer : </strong><span>IKM Testing (Thailand) Co., Ltd</span></div>
+          <div style="padding-left: 65px;">155/167 Moo 5, Samnakthon Sub-District</div>
+          <div style="padding-left: 65px;">Banchang District, Rayong, Thailand 21130</div>
+          <div style="padding-left: 65px;">Tax ID: <span>0215552000909 (Head Office)</span></div>
+          <div style="padding-top: 2px;"><strong style="font-weight: 800; padding-left: 20px;">Attn: </strong><span>Khun Apiyut</span></div>
+          <div><strong style="font-weight: 800; padding-left: 28px;">Tel: </strong><span>038-601 996-8</span></div>
+        </div>
+
+        <!-- Right: Order Details (35%) -->
+        <div style="width: 35%; padding: 10px; line-height: 1.6; box-sizing: border-box;">
+          <div><strong style="font-weight: 800;">Sale Order No. : </strong><span style="font-weight: 600;">SO-2609001</span></div>
+          <div><strong style="font-weight: 800; padding-left: 32px;">Date : </strong><span>01-09-2026</span></div>
+          <div><strong style="font-weight: 800;">Terms of Payment : </strong><span>30 Days</span></div>
+          <div><strong style="font-weight: 800; padding-left: 12px;">Sales Name : </strong><span>Pornpicha O.</span></div>
+        </div>
+      </div>
+
+      <!-- 5. Items Table (CSS Grid with continuous vertical dividers) -->
+      <div style="
+        border: 1px solid #000;
+        border-bottom: 0;
+        min-height: 360px;
+        display: grid;
+        grid-template-columns: 11% 55% 17% 17%;
+        font-size: 11px;
+        box-sizing: border-box;
+        align-items: stretch;
+        background: #ffffff;
+      ">
+        <!-- Column 1: Quantity (11%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          height: 100%;
+          align-self: stretch;
+        ">
+          <div style="
+            height: 32px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #000;
+            font-weight: 800;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">Quantity</div>
+          <div style="flex: 1 1 auto; padding: 6px 4px; text-align: center; font-weight: bold; font-size: 11px;">2</div>
+          <div style="height: 24px;">&nbsp;</div>
+        </div>
+
+        <!-- Column 2: Description (55%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          height: 100%;
+          align-self: stretch;
+        ">
+          <div style="
+            height: 32px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #000;
+            font-weight: 800;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">Description</div>
+          <div style="flex: 1 1 auto; padding: 6px 12px; line-height: 1.4; color: #000;">
+            <div>Pelican</div>
+            <div>Case</div>
+            <div>1630</div>
+            <div>with</div>
+            <div>Foam</div>
+          </div>
+          <div style="
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+            font-weight: 600;
+          ">** LAST ENTRY **</div>
+        </div>
+
+        <!-- Column 3: Unit Price (THB) (17%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          height: 100%;
+          align-self: stretch;
+        ">
+          <div style="
+            height: 32px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #000;
+            font-weight: 800;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">Unit Price (THB)</div>
+          <div style="flex: 1 1 auto; padding: 6px 14px; text-align: right; font-family: monospace, Arial, sans-serif; font-size: 11px;">22,000.00</div>
+          <div style="height: 24px;">&nbsp;</div>
+        </div>
+
+        <!-- Column 4: Amount (THB) (17%) -->
+        <div style="
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          height: 100%;
+          align-self: stretch;
+        ">
+          <div style="
+            height: 32px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #000;
+            font-weight: 800;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">Amount (THB)</div>
+          <div style="flex: 1 1 auto; padding: 6px 14px; text-align: right; font-family: monospace, Arial, sans-serif; font-size: 11px;">44,000.00</div>
+          <div style="height: 24px;">&nbsp;</div>
+        </div>
+      </div>
+
+      <!-- ===== SUMMARY ROW ===== -->
+      <div style="
+        border: 1px solid #000;
+        border-top: 0;
+        display: grid;
+        grid-template-columns: 11% 55% 17% 17%;
+        font-size: 11px;
+        box-sizing: border-box;
+        background: #ffffff;
+      ">
+        <!-- Column 1: Quantity divider extension (11%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          box-sizing: border-box;
+          height: 100%;
+        ">
+          <div style="
+            border-top: 1px solid #000;
+            height: 25px;
+            background: #f8fafc;
+            box-sizing: border-box;
+          ">&nbsp;</div>
+        </div>
+
+        <!-- Column 2: Baht text (55%) -->
+        <div style="
+          border-right: 1px solid #000;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          box-sizing: border-box;
+          height: 100%;
+        ">
+          <div style="
+            border-top: 1px solid #000;
+            padding: 5px 4px;
+            text-align: center;
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 10px;
+            background: #f8fafc;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+          ">
+            FORTY SEVEN THOUSAND EIGHTY BAHT
+          </div>
+        </div>
+
+        <!-- Column 3: Amount / VAT / Total Labels (17%) -->
+        <div style="
+          border-right: 1px solid #000;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+        ">
+          <div style="
+            height: 24px;
+            padding: 4px 8px;
+            text-align: right;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">AMOUNT</div>
+          <div style="
+            height: 24px;
+            border-top: 1px solid #000;
+            padding: 4px 8px;
+            text-align: right;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">SALES VAT 7%</div>
+          <div style="
+            height: 25px;
+            border-top: 1px solid #000;
+            padding: 4px 8px;
+            text-align: right;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">TOTAL AMOUNT</div>
+        </div>
+
+        <!-- Column 4: Values (17%) -->
+        <div style="
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+        ">
+          <div style="
+            height: 24px;
+            padding: 4px 8px;
+            text-align: right;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">44,000.00</div>
+          <div style="
+            height: 24px;
+            border-top: 1px solid #000;
+            padding: 4px 8px;
+            text-align: right;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">3,080.00</div>
+          <div style="
+            height: 25px;
+            border-top: 1px solid #000;
+            padding: 4px 8px;
+            text-align: right;
+            font-family: monospace;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            box-sizing: border-box;
+          ">47,080.00</div>
+        </div>
+      </div>
+
+      <!-- 8. Terms & Condition -->
+      <div style="margin-top: 16px; font-size: 10px; color: #000; line-height: 1.45;">
+        <div style="font-weight: 800;">Terms & Condition;</div>
+        <div style="padding-left: 16px;">- 30 days validily from date of quotation.</div>
+        <div style="padding-left: 16px;">- All prices above are quoted in THB.</div>
+      </div>
+    </div>
+
+    <!-- 9. Signature Section (Positioned near bottom) -->
+    <div style="padding-top: 40px; padding-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; padding: 0 24px; font-size: 11px;">
+        <div style="width: 220px; text-align: center;">
+          <div style="color: #000; letter-spacing: 2px;">......................................................</div>
+          <div style="color: #000; margin-top: 6px;">Prepared By</div>
+        </div>
+        <div style="width: 220px; text-align: center;">
+          <div style="color: #000; letter-spacing: 2px;">......................................................</div>
+          <div style="color: #000; margin-top: 6px;">Authorized Signature</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

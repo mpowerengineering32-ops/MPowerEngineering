@@ -678,10 +678,6 @@ export async function generatePurchaseRequestMasterPDF(
   // Remarks;
   drawText('Remarks;', margin, totalAreaTopY - 45, 9, true);
 
-  // Page 1/1
-  const pageStr = 'Page 1/1';
-  drawText(pageStr, width - margin - fontRegular.widthOfTextAtSize(pageStr, 8.5), totalAreaTopY - 45, 8.5);
-
   // -------------------------------------------------------------
   // 8. SIGNATURES: Requested By & Approved By (Strictly for PR)
   // -------------------------------------------------------------

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -419,28 +419,50 @@ function QuoteList({
     (typeof localStorage !== "undefined" && localStorage.getItem("crm_user_role") === "Admin");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [salesRepFilter, setSalesRepFilter] = useState("ALL");
+  const [deliveryPlanFilter, setDeliveryPlanFilter] = useState("ALL");
 
   const userMap = new Map(users.map((u: any) => [u.id, u.fullname]));
-  const filtered = quotations.filter((q) => {
-    const custObj = customers?.find((c: any) => c.id === q.customer_id) || q.customer;
-    const custName = custObj?.customer_name || q.customer_name || "";
-    const matchesSearch =
-      q.quotation_no.toLowerCase().includes(search.toLowerCase()) ||
-      q.title.toLowerCase().includes(search.toLowerCase()) ||
-      custName.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus =
-      statusFilter === "ALL" ||
-      q.status === statusFilter ||
-      (statusFilter === "Approved" && q.status === "Invoiced");
-    
-    const salesRepId = q.sales_person || "";
-    const salesRepName = userMap.get(salesRepId) || salesRepId;
-    const matchesSalesRep =
-      salesRepFilter === "ALL" ||
-      salesRepName.toLowerCase() === salesRepFilter.toLowerCase();
-    
-    return matchesSearch && matchesStatus && matchesSalesRep;
-  });
+
+  // Step 1: Pre-filter by Search, Status, and Sales Rep (Cascading Excel-like logic)
+  const preDeliveryFiltered = useMemo(() => {
+    return quotations.filter((q) => {
+      const custObj = customers?.find((c: any) => c.id === q.customer_id) || q.customer;
+      const custName = custObj?.customer_name || q.customer_name || "";
+      const matchesSearch =
+        q.quotation_no.toLowerCase().includes(search.toLowerCase()) ||
+        (q.title && q.title.toLowerCase().includes(search.toLowerCase())) ||
+        custName.toLowerCase().includes(search.toLowerCase()) ||
+        (q.delivery_plan && q.delivery_plan.toLowerCase().includes(search.toLowerCase()));
+      const matchesStatus =
+        statusFilter === "ALL" ||
+        q.status === statusFilter ||
+        (statusFilter === "Sent" && (q.status === "Send" || q.status === "Sent")) ||
+        (statusFilter === "Send" && (q.status === "Send" || q.status === "Sent")) ||
+        (statusFilter === "Approved" && q.status === "Invoiced");
+      
+      const salesRepId = q.sales_person || "";
+      const salesRepName = userMap.get(salesRepId) || salesRepId;
+      const matchesSalesRep =
+        salesRepFilter === "ALL" ||
+        salesRepName.toLowerCase() === salesRepFilter.toLowerCase();
+      
+      return matchesSearch && matchesStatus && matchesSalesRep;
+    });
+  }, [quotations, customers, search, statusFilter, salesRepFilter, userMap]);
+
+  // Step 2: Available Delivery Plans dynamically derived from the remaining subset
+  const availableDeliveryPlans = useMemo(() => {
+    const list = preDeliveryFiltered
+      .map((q) => q.delivery_plan)
+      .filter(Boolean) as string[];
+    return Array.from(new Set(list)).sort();
+  }, [preDeliveryFiltered]);
+
+  // Step 3: Final filtered list with Delivery Plan applied
+  const filtered = useMemo(() => {
+    if (deliveryPlanFilter === "ALL") return preDeliveryFiltered;
+    return preDeliveryFiltered.filter((q) => q.delivery_plan === deliveryPlanFilter);
+  }, [preDeliveryFiltered, deliveryPlanFilter]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -477,7 +499,7 @@ function QuoteList({
             Rejected
           </button>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center">
           <select
             value={salesRepFilter}
             onChange={(e) => setSalesRepFilter(e.target.value)}
@@ -490,7 +512,25 @@ function QuoteList({
               </option>
             ))}
           </select>
-          <div className="relative w-72">
+
+          {/* Delivery Plan Cascading Filter */}
+          <select
+            value={deliveryPlanFilter}
+            onChange={(e) => setDeliveryPlanFilter(e.target.value)}
+            className="px-3 py-2 bg-teal-50 border border-teal-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-teal-900 cursor-pointer"
+            title="กรองตาม DELIVERY PLAN (Excel-style Cascading Filter)"
+          >
+            <option value="ALL">
+              Delivery Plan: ทั้งหมด ({availableDeliveryPlans.length} แผน / {preDeliveryFiltered.length} รายการ)
+            </option>
+            {availableDeliveryPlans.map((dp) => (
+              <option key={dp} value={dp}>
+                📅 {dp} ({preDeliveryFiltered.filter((q) => q.delivery_plan === dp).length})
+              </option>
+            ))}
+          </select>
+
+          <div className="relative w-64">
             <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
             <input
               type="text"
@@ -520,6 +560,9 @@ function QuoteList({
               </th>
               <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Date
+              </th>
+              <th className="py-3 px-4 text-xs font-bold text-teal-700 uppercase tracking-wider bg-teal-50/50">
+                Delivery Plan
               </th>
               <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">
                 Amount (Excl. VAT)
@@ -574,6 +617,15 @@ function QuoteList({
                 </td>
                 <td className="py-3 px-4 text-sm text-slate-600">
                   {q.quotation_date}
+                </td>
+                <td className="py-3 px-4 text-sm">
+                  {q.delivery_plan ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200">
+                      📅 {q.delivery_plan}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 text-xs italic">-</span>
+                  )}
                 </td>
                 <td className="py-3 px-4 text-sm font-mono font-bold text-slate-800 text-right">
                   <div>

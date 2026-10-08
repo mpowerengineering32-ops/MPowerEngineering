@@ -249,14 +249,6 @@ export function auditSalesOrderForMasterTemplate(
     warnings.push(`ฟิลด์ "กำหนดวันส่งมอบงาน" (${data.delivery_plan}) ไม่มีช่องรองรับใน Master Template`);
   }
 
-  if (data.job_no) {
-    missingSlotsInTemplate.push({
-      label: 'เลขที่งาน (Job Number)',
-      dbValue: data.job_no,
-      reason: 'ไม่มีช่องรองรับข้อมูลนี้ใน Master Template'
-    });
-  }
-
   if (data.customer_po_ref) {
     missingSlotsInTemplate.push({
       label: 'เลขที่ PO ลูกค้าอ้างอิง (Customer PO Ref)',
@@ -542,7 +534,7 @@ export async function generateSalesOrderMasterPDF(
     const colX4 = colX3 + colW3;
 
     const headerH = 22;
-    const tableH = isLastPage ? 345 : 460;
+    const tableH = isLastPage ? 385 : 490;
     const tableBottom = tableTop - tableH;
 
     // Outer border & header border
@@ -649,6 +641,10 @@ export async function generateSalesOrderMasterPDF(
       const wordsBoxW = colW1 + colW2;
       const wordsBoxH = rowH;
       const wordsBoxY = summaryTop - summaryTotalH;
+
+      // Draw continuous vertical borders connecting through summary row 1 & 2
+      drawLine(margin, wordsBoxY, margin, summaryTop, 1, rgb(0, 0, 0));
+      drawLine(colX2, wordsBoxY + wordsBoxH, colX2, summaryTop, 1, rgb(0, 0, 0));
 
       drawRect(margin, wordsBoxY, wordsBoxW, wordsBoxH, rgb(0, 0, 0), 1);
       const wordsText = data.baht_text_en;

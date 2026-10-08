@@ -680,11 +680,5 @@ export async function generatePurchaseOrderMasterPDF(
   const appLabel = 'Approved By';
   drawText(appLabel, sig2X + (sigLineW - fontRegular.widthOfTextAtSize(appLabel, 9.5)) / 2, sigY - 14, 9.5);
 
-  // -------------------------------------------------------------
-  // 10. PAGE NUMBER: Page 1/1 (Bottom Right)
-  // -------------------------------------------------------------
-  const pageStr = 'Page 1/1';
-  drawText(pageStr, width - margin - fontRegular.widthOfTextAtSize(pageStr, 8.5), margin - 15, 8.5);
-
   return await pdfDoc.save();
 }

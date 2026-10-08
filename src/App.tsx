@@ -38,7 +38,8 @@ import {
   Receipt,
   Building,
   Activity,
-  FileCheck
+  FileCheck,
+  Search
 } from 'lucide-react';
 import { phpCodebase, PHPFile } from './data/phpCodebase';
 import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend } from 'recharts';
@@ -102,6 +103,8 @@ interface QuotationSim {
   tax_rate: number;
   grand_total: number;
   status: 'Draft' | 'Sent' | 'Approved' | 'Rejected' | 'Cancelled' | 'Invoiced';
+  delivery_plan?: string;
+  salesperson_name?: string;
   items?: { name: string; qty: number; unit: string; price: number }[];
 }
 
@@ -428,6 +431,8 @@ export default function App() {
       tax_rate: 7, 
       grand_total: 909500.00, 
       status: 'Approved',
+      delivery_plan: '2026-07-31',
+      salesperson_name: 'Chaloempon Kittisak',
       items: [{ name: 'บริการงานทดสอบแรงดัน Hydrostatic Testing สำหรับระบบท่อส่งน้ำมันหล่อลื่น', qty: 1, unit: 'Job', price: 850000.00 }]
     },
     { 
@@ -444,7 +449,45 @@ export default function App() {
       tax_rate: 7, 
       grand_total: 2568000.00, 
       status: 'Sent',
+      delivery_plan: '2026-08-15',
+      salesperson_name: 'Apiyut Noeikhiaw',
       items: [{ name: 'จัดหากำลังพลสนับสนุนสายงานวิศวกรรมและการซ่อมบำรุงโรงงานแก่งคอย (Engineer & Tech)', qty: 1, unit: 'Job', price: 2400000.00 }]
+    },
+    { 
+      id: 3, 
+      quotation_no: 'QT-000003', 
+      customer_id: 1, 
+      customer_name: 'บริษัท ปตท. สำรวจและผลิตปิโตรเลียม จำกัด (มหาชน)', 
+      project_name: 'โครงการจัดหาปั๊มไฮโดรเทสความดันสูง คลังน้ำมันระยอง', 
+      title: 'ใบเสนอราคาเช่าอุปกรณ์เครื่องปั๊มแรงดันสูง 6 เดือน', 
+      quotation_date: '2026-06-28', 
+      validity_days: 30, 
+      payment_term: 'เครดิต 30 วัน', 
+      total_value: 1500000.00, 
+      tax_rate: 7, 
+      grand_total: 1605000.00, 
+      status: 'Draft',
+      delivery_plan: '2026-07-15',
+      salesperson_name: 'Chaloempon Kittisak',
+      items: [{ name: 'ปั๊มทดสอบแรงดันสูง Hydrotest High-Pressure Pump Skid 10,000 PSI', qty: 1, unit: 'Skid', price: 1500000.00 }]
+    },
+    { 
+      id: 4, 
+      quotation_no: 'QT-000004', 
+      customer_id: 2, 
+      customer_name: 'บริษัท ไทยออยล์ จำกัด (มหาชน)', 
+      project_name: 'บริการสอบเทียบมาตรวัดความดันดิจิทัล', 
+      title: 'จัดหาและสอบเทียบเกจ์วัดความดันมาตรฐานสากล', 
+      quotation_date: '2026-06-29', 
+      validity_days: 15, 
+      payment_term: 'เครดิต 30 วัน', 
+      total_value: 320000.00, 
+      tax_rate: 7, 
+      grand_total: 342400.00, 
+      status: 'Rejected',
+      delivery_plan: '2026-07-20',
+      salesperson_name: 'ธนพล คำดี (S03)',
+      items: [{ name: 'Digital Pressure Gauge Calibration Service with Certificate', qty: 4, unit: 'Set', price: 80000.00 }]
     }
   ]);
 
@@ -601,6 +644,62 @@ export default function App() {
   const [selectedViewQuotation, setSelectedViewQuotation] = useState<QuotationSim | null>(null);
   const [selectedExcelInvoice, setSelectedExcelInvoice] = useState<any | null>(null);
 
+  // Quotation Cascading Filter States (Excel-like cascading Sourcing)
+  const [quoteSearch, setQuoteSearch] = useState('');
+  const [quoteStatusFilter, setQuoteStatusFilter] = useState<'All' | 'Draft' | 'Sent' | 'Approved' | 'Rejected'>('All');
+  const [quoteSalesRepFilter, setQuoteSalesRepFilter] = useState('All');
+  const [quoteDeliveryPlanFilter, setQuoteDeliveryPlanFilter] = useState('All');
+
+  // Step 1: Pre-filter quotations by Search, Status (Draft, Sent, Approved, Rejected), and Sales Rep
+  const preDeliveryQuotations = useMemo(() => {
+    return quotations.filter(q => {
+      const qNo = q.quotation_no || '';
+      const qTitle = q.title || '';
+      const cName = q.customer_name || '';
+      const pName = q.project_name || '';
+      const sRep = q.salesperson_name || '';
+      const dPlan = q.delivery_plan || '';
+
+      const matchesSearch =
+        qNo.toLowerCase().includes(quoteSearch.toLowerCase()) ||
+        qTitle.toLowerCase().includes(quoteSearch.toLowerCase()) ||
+        cName.toLowerCase().includes(quoteSearch.toLowerCase()) ||
+        pName.toLowerCase().includes(quoteSearch.toLowerCase()) ||
+        sRep.toLowerCase().includes(quoteSearch.toLowerCase()) ||
+        dPlan.toLowerCase().includes(quoteSearch.toLowerCase());
+
+      const matchesStatus =
+        quoteStatusFilter === 'All' ||
+        q.status === quoteStatusFilter ||
+        (quoteStatusFilter === 'Sent' && (q.status === 'Sent' || (q.status as any) === 'Send')) ||
+        (quoteStatusFilter === 'Approved' && (q.status === 'Approved' || q.status === 'Invoiced'));
+
+      const matchesSalesRep =
+        quoteSalesRepFilter === 'All' || (q.salesperson_name || 'Chaloempon Kittisak') === quoteSalesRepFilter;
+
+      return matchesSearch && matchesStatus && matchesSalesRep;
+    });
+  }, [quotations, quoteSearch, quoteStatusFilter, quoteSalesRepFilter]);
+
+  // Step 2: Available Delivery Plans dynamically extracted from the remaining subset
+  const availableQuoteDeliveryPlans = useMemo(() => {
+    const list = preDeliveryQuotations
+      .map(q => q.delivery_plan)
+      .filter(Boolean) as string[];
+    return Array.from(new Set(list)).sort();
+  }, [preDeliveryQuotations]);
+
+  // Step 3: Final filtered Quotations with Delivery Plan applied as the last filter
+  const filteredQuotationsList = useMemo(() => {
+    if (quoteDeliveryPlanFilter === 'All') return preDeliveryQuotations;
+    return preDeliveryQuotations.filter(q => q.delivery_plan === quoteDeliveryPlanFilter);
+  }, [preDeliveryQuotations, quoteDeliveryPlanFilter]);
+
+  const existingQuoteSalesReps = useMemo(() => {
+    const list = quotations.map(q => q.salesperson_name || 'Chaloempon Kittisak').filter(Boolean);
+    return Array.from(new Set(list));
+  }, [quotations]);
+
   // --- 1. Customer Creation Handler ---
   const [custForm, setCustForm] = useState({ name: '', taxId: '', industry: 'Oil & Gas', term: 30, phone: '', email: '', address: '', contactName: '', contactPosition: '', contactPhone: '', contactEmail: '' });
   const handleCreateCustomerSubmit = (e: React.FormEvent) => {
@@ -711,7 +810,16 @@ export default function App() {
   };
 
   // --- 4. Dynamic Quotation Creation Handler ---
-  const [quoteForm, setQuoteForm] = useState({ customerId: '', oppId: '', title: '', date: '2026-06-30', validity: 30, term: 'เครดิต 30 วัน' });
+  const [quoteForm, setQuoteForm] = useState({ 
+    customerId: '', 
+    oppId: '', 
+    title: '', 
+    date: '2026-06-30', 
+    deliveryPlan: '2026-07-31',
+    salesperson: 'Chaloempon Kittisak',
+    validity: 30, 
+    term: 'เครดิต 30 วัน' 
+  });
   const [quoteItems, setQuoteItems] = useState<{ name: string; qty: number; unit: string; price: number }[]>([
     { name: 'บริการ Hydrotesting บริเวณข้อต่อท่อหลัก', qty: 1, unit: 'Job', price: 0 }
   ]);
@@ -792,6 +900,8 @@ export default function App() {
       tax_rate: 7,
       grand_total: grand,
       status: 'Draft', // Set to Draft to allow testing action buttons
+      delivery_plan: quoteForm.deliveryPlan || quoteForm.date,
+      salesperson_name: quoteForm.salesperson || userFullname,
       items: [...quoteItems]
     };
 
@@ -821,7 +931,16 @@ export default function App() {
 
     setShowQuotationModal(false);
     showSimToast(`สร้างใบเสนอราคาเลขที่ "${qNo}" เรียบร้อยแล้ว!`, 'success');
-    setQuoteForm({ customerId: '', oppId: '', title: '', date: '2026-06-30', validity: 30, term: 'เครดิต 30 วัน' });
+    setQuoteForm({ 
+      customerId: '', 
+      oppId: '', 
+      title: '', 
+      date: '2026-06-30', 
+      deliveryPlan: '2026-07-31',
+      salesperson: 'Chaloempon Kittisak',
+      validity: 30, 
+      term: 'เครดิต 30 วัน' 
+    });
     setQuoteItems([{ name: 'บริการ Hydrotesting บริเวณข้อต่อท่อหลัก', qty: 1, unit: 'Job', price: 0 }]);
   };
 
@@ -2035,12 +2154,103 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Quotation Beautiful Table */}
+                    {/* Quotation Filter Toolbar & Beautiful Table */}
                     <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow">
-                      <div className="p-4 bg-slate-850/40 border-b border-slate-800 flex items-center justify-between">
-                        <span className="text-xs font-black text-white flex items-center gap-1.5">
-                          <Database className="w-4 h-4 text-indigo-400" /> แฟ้มรายการเอกสารเสนอราคาทั้งหมด (MySQL quotations)
-                        </span>
+                      {/* Cascading Filter Bar (Excel-like Sourcing) */}
+                      <div className="p-4 bg-slate-850/60 border-b border-slate-800 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <span className="text-xs font-black text-white flex items-center gap-1.5">
+                            <Database className="w-4 h-4 text-indigo-400" /> แฟ้มรายการเอกสารเสนอราคา (Quotation Center)
+                          </span>
+                          <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-900 px-2.5 py-0.5 rounded-full font-bold">
+                            ผลลัพธ์การกรอง: {filteredQuotationsList.length} รายการ
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+                          {/* 1. Status Filter */}
+                          <div className="bg-slate-950 border border-slate-800 rounded-xl p-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                              สถานะ / Status:
+                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {(['All', 'Draft', 'Sent', 'Approved', 'Rejected'] as const).map(st => (
+                                <button
+                                  key={st}
+                                  type="button"
+                                  onClick={() => setQuoteStatusFilter(st)}
+                                  className={`px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer ${
+                                    quoteStatusFilter === st
+                                      ? st === 'Approved' ? 'bg-emerald-600 text-white' :
+                                        st === 'Sent' ? 'bg-indigo-600 text-white' :
+                                        st === 'Draft' ? 'bg-amber-600 text-white' :
+                                        st === 'Rejected' ? 'bg-rose-600 text-white' :
+                                        'bg-slate-700 text-white'
+                                      : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'
+                                  }`}
+                                >
+                                  {st}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* 2. Sales Rep Filter */}
+                          <div className="bg-slate-950 border border-slate-800 rounded-xl p-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                              ฝ่ายขาย / Sales Rep:
+                            </span>
+                            <select
+                              value={quoteSalesRepFilter}
+                              onChange={e => setQuoteSalesRepFilter(e.target.value)}
+                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-xs text-slate-200 font-semibold focus:outline-none focus:border-indigo-500 cursor-pointer"
+                            >
+                              <option value="All">All Sales Reps (ทั้งหมด)</option>
+                              {existingQuoteSalesReps.map(rep => (
+                                <option key={rep} value={rep}>{rep}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* 3. Delivery Plan Cascading Filter (Excel-like Sourcing) */}
+                          <div className="bg-teal-950/40 border border-teal-800/60 rounded-xl p-2">
+                            <span className="text-[10px] font-bold text-teal-400 uppercase tracking-wider block mb-1">
+                              📅 แผนส่งมอบ / DELIVERY PLAN:
+                            </span>
+                            <select
+                              value={quoteDeliveryPlanFilter}
+                              onChange={e => setQuoteDeliveryPlanFilter(e.target.value)}
+                              className="w-full bg-teal-900/60 border border-teal-700/60 rounded-lg px-2 py-1 text-xs text-teal-200 font-bold focus:outline-none focus:border-teal-400 cursor-pointer"
+                              title="กรองตาม DELIVERY PLAN (Excel-style Cascading Filter)"
+                            >
+                              <option value="All">
+                                ทั้งหมด ({availableQuoteDeliveryPlans.length} แผน / {preDeliveryQuotations.length} รายการ)
+                              </option>
+                              {availableQuoteDeliveryPlans.map(dp => (
+                                <option key={dp} value={dp}>
+                                  📅 {dp} ({preDeliveryQuotations.filter(q => q.delivery_plan === dp).length})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* 4. Search Query */}
+                          <div className="bg-slate-950 border border-slate-800 rounded-xl p-2 flex flex-col justify-between">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                              ค้นหา / Search:
+                            </span>
+                            <div className="relative">
+                              <Search className="w-3.5 h-3.5 absolute left-2 top-2 text-slate-500" />
+                              <input
+                                type="text"
+                                placeholder="ค้นหาเลขที่, ลูกค้า, แผนส่ง..."
+                                value={quoteSearch}
+                                onChange={e => setQuoteSearch(e.target.value)}
+                                className="w-full pl-7 pr-2 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-indigo-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="p-4 overflow-x-auto">
@@ -2049,14 +2259,15 @@ export default function App() {
                             <tr className="border-b border-slate-800 text-slate-400 uppercase font-bold text-[10px] tracking-wider">
                               <th className="py-3 px-3">เลขที่เอกสาร / วันที่</th>
                               <th>รายละเอียดชื่อโครงการ / ลูกค้า</th>
-                              <th>เชื่อมโยงโอกาสดีล</th>
+                              <th>ฝ่ายขาย / เชื่อมโยงดีล</th>
+                              <th className="text-teal-400">Delivery Plan</th>
                               <th>ยอดรวมสุทธิ (Grand Total)</th>
                               <th className="text-center">สถานะ</th>
                               <th className="text-right pr-6">ดำเนินการ</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {quotations.map(q => (
+                            {filteredQuotationsList.map(q => (
                               <tr key={q.id} className="border-b border-slate-850 hover:bg-slate-850/30 transition-all text-slate-300">
                                 <td className="py-4 px-3 font-mono">
                                   <div className="text-emerald-400 font-bold">{q.quotation_no}</div>
@@ -2069,7 +2280,17 @@ export default function App() {
                                   <span className="text-[10px] text-slate-500 block">{q.customer_name}</span>
                                 </td>
                                 <td>
-                                  <span className="text-slate-400 text-xs">{q.project_name || 'ดีลทั่วไป'}</span>
+                                  <div className="text-slate-300 font-semibold text-xs">{q.salesperson_name || 'Chaloempon Kittisak'}</div>
+                                  <span className="text-slate-500 text-[10px] block">{q.project_name || 'ดีลทั่วไป'}</span>
+                                </td>
+                                <td>
+                                  {q.delivery_plan ? (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-teal-950/70 text-teal-300 border border-teal-800/80 rounded-md text-[11px] font-mono font-bold">
+                                      📅 {q.delivery_plan}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-500 text-[11px]">-</span>
+                                  )}
                                 </td>
                                 <td>
                                   <div className="font-mono text-emerald-400 font-extrabold text-[13px]">
@@ -3158,6 +3379,27 @@ export default function App() {
                 <div>
                   <label className="block mb-1 font-bold text-slate-400">วันที่ออกใบเสนอราคา</label>
                   <input type="date" required value={quoteForm.date} onChange={e => setQuoteForm({ ...quoteForm, date: e.target.value })} className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white" />
+                </div>
+                <div>
+                  <label className="block mb-1 font-bold text-teal-400">📅 แผนส่งมอบ (DELIVERY PLAN)</label>
+                  <input 
+                    type="date" 
+                    value={quoteForm.deliveryPlan} 
+                    onChange={e => setQuoteForm({ ...quoteForm, deliveryPlan: e.target.value })} 
+                    className="w-full bg-slate-950 border border-teal-800/80 rounded-xl p-2.5 text-teal-300 font-mono font-bold" 
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-bold text-slate-400">ผู้ดูแลฝ่ายขาย (Sales Rep)</label>
+                  <select 
+                    value={quoteForm.salesperson} 
+                    onChange={e => setQuoteForm({ ...quoteForm, salesperson: e.target.value })} 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                  >
+                    <option value="Chaloempon Kittisak">Chaloempon Kittisak</option>
+                    <option value="Apiyut Noeikhiaw">Apiyut Noeikhiaw</option>
+                    <option value="ธนพล คำดี (S03)">ธนพล คำดี (S03)</option>
+                  </select>
                 </div>
                 <div className="col-span-1 sm:col-span-2">
                   <label className="block mb-1 font-bold text-slate-400">หัวข้อนำเสนอโครงการเด่น *</label>

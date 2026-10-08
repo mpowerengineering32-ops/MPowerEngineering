@@ -168,6 +168,7 @@ export interface Quotation {
   cc?: string;
   customer_phone?: string;
   customer_email?: string;
+  delivery_plan?: string;
 }
 
 export interface SalesOrder {
@@ -179,6 +180,7 @@ export interface SalesOrder {
   status: 'Pending' | 'Planning' | 'In Progress' | 'Completed' | 'Cancelled' | 'Partially Invoiced' | 'Fully Invoiced';
   order_date: string;
   target_delivery_date: string;
+  delivery_plan?: string;
   created_at: string;
   customer_name?: string;
   job_no?: string;

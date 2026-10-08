@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PurchaseRequest, PurchaseOrder, Supplier, Customer, UserRole } from '../types';
 import { MetricCard } from './common/MetricCard';
 import { numberToEnglishWords, numberToThaiBaht, numberToEnglishBaht } from '../utils/numberWords';
@@ -167,6 +167,31 @@ export default function PurchaseManagement({
       amount: 30000
     }
   ]);
+
+  // Inline Note/Remarks Editing states for PR and PO views
+  const [isEditingPRNotes, setIsEditingPRNotes] = useState(false);
+  const [tempPRRemarks, setTempPRRemarks] = useState('');
+  const [tempPRDeliveryNote, setTempPRDeliveryNote] = useState('');
+
+  const [isEditingPONotes, setIsEditingPONotes] = useState(false);
+  const [tempPORemarks, setTempPORemarks] = useState('');
+  const [tempPODeliveryNote, setTempPODeliveryNote] = useState('');
+
+  useEffect(() => {
+    if (viewingPR) {
+      setTempPRRemarks(viewingPR.remarks || '');
+      setTempPRDeliveryNote(viewingPR.delivery_note || '* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด');
+      setIsEditingPRNotes(false);
+    }
+  }, [viewingPR]);
+
+  useEffect(() => {
+    if (viewingPO) {
+      setTempPORemarks(viewingPO.remarks || '');
+      setTempPODeliveryNote(viewingPO.delivery_note || '* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด');
+      setIsEditingPONotes(false);
+    }
+  }, [viewingPO]);
 
   const isAdmin = currentRole === 'Admin' || currentRole === 'System Administrator' || (currentRole as string) === 'Administrator';
   const isManagement = currentRole === 'Management';
@@ -1636,6 +1661,18 @@ export default function PurchaseManagement({
                   return null;
                 })()}
                 <button
+                  onClick={() => setIsEditingPRNotes(prev => !prev)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border ${
+                    isEditingPRNotes
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
+                      : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200'
+                  }`}
+                  title="ใส่ข้อความ / แก้ไขหมายเหตุและข้อความจัดส่ง"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>{isEditingPRNotes ? 'ปิดตัวแก้ไขโน้ต' : 'แก้ไขหมายเหตุ/โน้ต'}</span>
+                </button>
+                <button
                   onClick={() => setGeneratingPR(viewingPR)}
                   className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-amber-200 shadow-2xs"
                   title="สร้าง PR ผ่าน Master Template Generator (100% Match)"
@@ -1647,7 +1684,11 @@ export default function PurchaseManagement({
                   onClick={async () => {
                     try {
                       const data = preparePurchaseRequestTemplateData(
-                        viewingPR,
+                        {
+                          ...viewingPR,
+                          remarks: tempPRRemarks,
+                          delivery_note: tempPRDeliveryNote
+                        },
                         suppliers.find(s => s.id === viewingPR.supplier_id || s.supplier_name === viewingPR.supplier_name)
                       );
                       const pdfBytes = await generatePurchaseRequestMasterPDF(data);
@@ -1688,11 +1729,85 @@ export default function PurchaseManagement({
               </div>
             </div>
 
+            {/* Quick Note Editor Drawer for PR */}
+            {isEditingPRNotes && (
+              <div className="bg-amber-50/80 border-b border-amber-200 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                    <Edit2 className="w-4 h-4 text-amber-700" />
+                    แก้ไขข้อความ / โน้ตกำกับในใบขอซื้อ (PR Notes & Delivery Remark)
+                  </span>
+                  <span className="text-[11px] text-amber-700">ข้อความจะอัปเดตลงในตัวอย่างเอกสารและไฟล์ PDF ทันที</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      หมายเหตุ (Remarks)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={tempPRRemarks}
+                      onChange={e => setTempPRRemarks(e.target.value)}
+                      placeholder="ระบุหมายเหตุหรือข้อความเพิ่มเติมสำหรับ PR..."
+                      className="w-full bg-white border border-amber-300 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      ข้อความการจัดส่ง (Delivery Remark / จัดส่งตามที่อยู่)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={tempPRDeliveryNote}
+                      onChange={e => setTempPRDeliveryNote(e.target.value)}
+                      placeholder="ข้อความสีแดงท้ายตาราง เช่น กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่..."
+                      className="w-full bg-white border border-amber-300 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  <button
+                    onClick={() => setIsEditingPRNotes(false)}
+                    className="px-3 py-1.5 bg-white border border-slate-300 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                  >
+                    ปิด
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!viewingPR) return;
+                      const updated = {
+                        ...viewingPR,
+                        remarks: tempPRRemarks,
+                        delivery_note: tempPRDeliveryNote
+                      };
+                      setViewingPR(updated);
+                      try {
+                        await onUpdatePR(viewingPR.id, { remarks: tempPRRemarks, delivery_note: tempPRDeliveryNote });
+                        if (onRefresh) await onRefresh();
+                        onToast('บันทึกข้อความ/หมายเหตุลงในเอกสาร PR เรียบร้อย', 'success');
+                      } catch (e) {
+                        onToast('เกิดข้อผิดพลาดในการบันทึกโน้ต', 'err');
+                      }
+                      setIsEditingPRNotes(false);
+                    }}
+                    className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    บันทึกข้อความลงเอกสาร
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* PR Printable Sheet (100% Geometry Matched to PR.pdf) */}
             <div className="p-4 sm:p-6 overflow-y-auto bg-slate-100/60 flex justify-center">
               <MasterPurchaseRequestDocument
                 data={preparePurchaseRequestTemplateData(
-                  viewingPR,
+                  {
+                    ...viewingPR,
+                    remarks: tempPRRemarks,
+                    delivery_note: tempPRDeliveryNote
+                  },
                   suppliers.find(s => s.id === viewingPR.supplier_id || s.supplier_name === viewingPR.supplier_name)
                 )}
               />
@@ -1753,6 +1868,18 @@ export default function PurchaseManagement({
                   </button>
                 )}
                 <button
+                  onClick={() => setIsEditingPONotes(prev => !prev)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border ${
+                    isEditingPONotes
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                      : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border-indigo-200'
+                  }`}
+                  title="ใส่ข้อความ / แก้ไขหมายเหตุและข้อความจัดส่ง"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                  <span>{isEditingPONotes ? 'ปิดตัวแก้ไขโน้ต' : 'แก้ไขหมายเหตุ/โน้ต'}</span>
+                </button>
+                <button
                   onClick={() => setGeneratingPO(viewingPO)}
                   className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-indigo-200 shadow-2xs"
                   title="สร้าง PO ผ่าน Master Template Generator (100% Match)"
@@ -1764,7 +1891,11 @@ export default function PurchaseManagement({
                   onClick={async () => {
                     try {
                       const data = preparePurchaseOrderTemplateData(
-                        viewingPO,
+                        {
+                          ...viewingPO,
+                          remarks: tempPORemarks,
+                          delivery_note: tempPODeliveryNote
+                        },
                         suppliers.find(s => s.id === viewingPO.supplier_id || s.supplier_name === viewingPO.supplier_name)
                       );
                       const pdfBytes = await generatePurchaseOrderMasterPDF(data);
@@ -1805,11 +1936,85 @@ export default function PurchaseManagement({
               </div>
             </div>
 
+            {/* Quick Note Editor Drawer for PO */}
+            {isEditingPONotes && (
+              <div className="bg-indigo-50/80 border-b border-indigo-200 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+                    <Edit2 className="w-4 h-4 text-indigo-700" />
+                    แก้ไขข้อความ / โน้ตกำกับในใบสั่งซื้อ (PO Notes & Delivery Remark)
+                  </span>
+                  <span className="text-[11px] text-indigo-700">ข้อความจะอัปเดตลงในตัวอย่างเอกสารและไฟล์ PDF ทันที</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      หมายเหตุ (Remarks)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={tempPORemarks}
+                      onChange={e => setTempPORemarks(e.target.value)}
+                      placeholder="ระบุหมายเหตุหรือข้อความเพิ่มเติมสำหรับ PO..."
+                      className="w-full bg-white border border-indigo-300 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      ข้อความการจัดส่ง (Delivery Remark / จัดส่งตามที่อยู่)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={tempPODeliveryNote}
+                      onChange={e => setTempPODeliveryNote(e.target.value)}
+                      placeholder="ข้อความสีแดงท้ายตาราง เช่น กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่..."
+                      className="w-full bg-white border border-indigo-300 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  <button
+                    onClick={() => setIsEditingPONotes(false)}
+                    className="px-3 py-1.5 bg-white border border-slate-300 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                  >
+                    ปิด
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!viewingPO) return;
+                      const updated = {
+                        ...viewingPO,
+                        remarks: tempPORemarks,
+                        delivery_note: tempPODeliveryNote
+                      };
+                      setViewingPO(updated);
+                      try {
+                        await onUpdatePO(viewingPO.id, { remarks: tempPORemarks, delivery_note: tempPODeliveryNote });
+                        if (onRefresh) await onRefresh();
+                        onToast('บันทึกข้อความ/หมายเหตุลงในเอกสาร PO เรียบร้อย', 'success');
+                      } catch (e) {
+                        onToast('เกิดข้อผิดพลาดในการบันทึกโน้ต', 'err');
+                      }
+                      setIsEditingPONotes(false);
+                    }}
+                    className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    บันทึกข้อความลงเอกสาร
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* PO Printable Sheet (100% Geometry Matched to PO.pdf) */}
             <div className="p-4 sm:p-6 overflow-y-auto bg-slate-100/60 flex justify-center">
               <MasterPurchaseOrderDocument
                 data={preparePurchaseOrderTemplateData(
-                  viewingPO,
+                  {
+                    ...viewingPO,
+                    remarks: tempPORemarks,
+                    delivery_note: tempPODeliveryNote
+                  },
                   suppliers.find(s => s.id === viewingPO.supplier_id || s.supplier_name === viewingPO.supplier_name)
                 )}
               />
@@ -1987,6 +2192,30 @@ export default function PurchaseManagement({
                   <span className="text-sm font-mono font-black text-amber-700">
                     ฿{calculatedPRTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                   </span>
+                </div>
+              </div>
+
+              {/* Remarks & Delivery Note Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-amber-50/50 p-3 rounded-xl border border-amber-200">
+                <div>
+                  <label className="text-[10px] text-slate-700 font-bold mb-1 block">หมายเหตุ (Remarks;)</label>
+                  <textarea
+                    rows={2}
+                    value={prRemarks}
+                    onChange={e => setPrRemarks(e.target.value)}
+                    placeholder="ระบุหมายเหตุ เช่น ด่วนมาก, ใช้สำหรับโครงการ..."
+                    className="w-full bg-white border border-amber-300 rounded-lg p-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-700 font-bold mb-1 block">ข้อความจัดส่ง (Delivery Remark)</label>
+                  <textarea
+                    rows={2}
+                    value={prDeliveryNote}
+                    onChange={e => setPrDeliveryNote(e.target.value)}
+                    placeholder="ข้อความจัดส่ง เช่น กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่..."
+                    className="w-full bg-white border border-amber-300 rounded-lg p-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                  />
                 </div>
               </div>
 
@@ -2216,6 +2445,30 @@ export default function PurchaseManagement({
                   <span className="text-sm font-mono font-black text-indigo-700">
                     ฿{calculatedPOTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
                   </span>
+                </div>
+              </div>
+
+              {/* Remarks & Delivery Note Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-200">
+                <div>
+                  <label className="text-[10px] text-slate-700 font-bold mb-1 block">หมายเหตุ (Remarks;)</label>
+                  <textarea
+                    rows={2}
+                    value={poRemarks}
+                    onChange={e => setPoRemarks(e.target.value)}
+                    placeholder="ระบุหมายเหตุ เช่น สั่งซื้อตามอนุมัติฝ่ายจัดซื้อ..."
+                    className="w-full bg-white border border-indigo-300 rounded-lg p-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-700 font-bold mb-1 block">ข้อความจัดส่ง (Delivery Remark)</label>
+                  <textarea
+                    rows={2}
+                    value={poDeliveryNote}
+                    onChange={e => setPoDeliveryNote(e.target.value)}
+                    placeholder="ข้อความจัดส่ง เช่น กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่..."
+                    className="w-full bg-white border border-indigo-300 rounded-lg p-2 text-xs text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
                 </div>
               </div>
 

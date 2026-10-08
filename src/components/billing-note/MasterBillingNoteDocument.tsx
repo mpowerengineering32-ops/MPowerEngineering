@@ -164,7 +164,7 @@ export const MasterBillingNoteDocument: React.FC<MasterBillingNoteDocumentProps>
                       </tr>
                     ))}
                     {/* Filler row ensuring column dividers extend down to the bottom border of the table */}
-                    <tr className="h-full">
+                    <tr style={{ height: `${Math.max(120, 440 - pageItems.length * 36)}px` }}>
                       <td className="border-r-2 border-black">&nbsp;</td>
                       <td className="border-r-2 border-black">&nbsp;</td>
                       <td className="border-r-2 border-black">&nbsp;</td>

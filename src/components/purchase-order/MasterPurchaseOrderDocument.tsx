@@ -311,11 +311,19 @@ export const MasterPurchaseOrderDocument: React.FC<MasterPurchaseOrderDocumentPr
                   <td className="border-r-2 border-black relative p-3 h-[180px]">
                     {/* Red Delivery Remark inside bottom area */}
                     <div className="absolute bottom-3 left-3 text-[10px] text-red-600 font-bold space-y-0.5 leading-snug">
-                      <div>กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่</div>
-                      <div>บริษัท เอ็ม พาวเวอร์เอ็นจิเนียริ่งโซลูชั่นส์ จำกัด</div>
-                      <div className="pt-1">
-                        เปิดบิล-ส่งของวันที่ {data.date}
-                      </div>
+                      {data.delivery_note ? (
+                        data.delivery_note.split('\n').map((line, i) => (
+                          <div key={i}>{line}</div>
+                        ))
+                      ) : (
+                        <>
+                          <div>กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่</div>
+                          <div>บริษัท เอ็ม พาวเวอร์เอ็นจิเนียริ่งโซลูชั่นส์ จำกัด</div>
+                          <div className="pt-1">
+                            เปิดบิล-ส่งของวันที่ {data.date}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </td>
                   <td className="border-r-2 border-black h-[180px]">&nbsp;</td>
@@ -334,8 +342,13 @@ export const MasterPurchaseOrderDocument: React.FC<MasterPurchaseOrderDocumentPr
               <div className="font-bold text-[10px] text-black uppercase tracking-tight">
                 {data.baht_text_en}
               </div>
-              <div className="mt-8 text-[11px] font-bold text-black">
-                Remarks;
+              <div className="mt-6 text-[10.5px] text-black">
+                <div className="font-bold">Remarks;</div>
+                {data.remarks && (
+                  <div className="text-[10px] text-black font-normal mt-0.5 whitespace-pre-line">
+                    {data.remarks}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -394,11 +407,6 @@ export const MasterPurchaseOrderDocument: React.FC<MasterPurchaseOrderDocumentPr
               <div className="border-b border-black mb-1 w-full h-8 flex items-end justify-center"></div>
               <div className="text-[11px] text-black">Approved By</div>
             </div>
-          </div>
-
-          {/* Page 1/1 at bottom right */}
-          <div className="text-right text-[10px] text-black pt-2">
-            Page 1/1
           </div>
         </div>
       </div>

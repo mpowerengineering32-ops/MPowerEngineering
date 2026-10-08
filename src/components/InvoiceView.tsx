@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Customer, SalesOrder, Invoice, UserRole, InvoiceItem } from '../types';
 import { numberToEnglishWords } from '../utils/numberWords';
+import { MPOWER_LOGO_BASE64 } from '../assets/logoBase64';
 import { 
   FileSpreadsheet, 
   Plus, 
@@ -56,10 +57,9 @@ export default function InvoiceView({
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
   const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
 
-  // Document Toggle Controls for professional PRINT template (3 exact forms requested by user)
-  const [activeInvoiceTemplate, setActiveInvoiceTemplate] = useState<'TAX_INVOICE_ORIGINAL' | 'TAX_INVOICE_COPY' | 'RECEIPT'>('TAX_INVOICE_ORIGINAL');
-  const [printDocType, setPrintDocType] = useState<'INVOICE / TAX INVOICE' | 'INVOICE' | 'DEBIT NOTE'>('INVOICE / TAX INVOICE');
-  const [printWatermark, setPrintWatermark] = useState<'ORIGINAL' | 'COPY'>('ORIGINAL');
+  // Document Toggle Controls for professional PRINT template (Tax Invoice / Delivery Note & Receipt with ORIGINAL / COPY)
+  const [docKind, setDocKind] = useState<'TAX_INVOICE' | 'RECEIPT'>('TAX_INVOICE');
+  const [copyType, setCopyType] = useState<'ORIGINAL' | 'COPY'>('ORIGINAL');
 
   // Form State
   const [soId, setSoId] = useState('');
@@ -861,47 +861,27 @@ export default function InvoiceView({
                 เอกสารสำหรับ Invoice: <span className="font-mono text-amber-400">{viewingInvoice.invoice_no}</span>
               </span>
               
-              {/* 3 Form Templates requested by user */}
-              <div className="flex flex-wrap items-center gap-2.5">
+              {/* Exact Form Selectors: Document Type & ORIGINAL/COPY */}
+              <div className="flex flex-wrap items-center gap-3">
+                {/* 1. Document Type Selector */}
                 <div className="bg-slate-950 p-1 rounded-xl flex items-center gap-1 border border-slate-700">
                   <button
                     type="button"
-                    onClick={() => {
-                      setActiveInvoiceTemplate('TAX_INVOICE_ORIGINAL');
-                      setPrintWatermark('ORIGINAL');
-                    }}
+                    onClick={() => setDocKind('TAX_INVOICE')}
                     className={`text-xs px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                      activeInvoiceTemplate === 'TAX_INVOICE_ORIGINAL'
+                      docKind === 'TAX_INVOICE'
                         ? 'bg-rose-600 text-white shadow'
                         : 'text-slate-400 hover:text-white hover:bg-slate-850'
                     }`}
                   >
-                    Tax Invoice ORIGINAL
+                    Tax Invoice / Delivery Note
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setActiveInvoiceTemplate('TAX_INVOICE_COPY');
-                      setPrintWatermark('COPY');
-                    }}
+                    onClick={() => setDocKind('RECEIPT')}
                     className={`text-xs px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                      activeInvoiceTemplate === 'TAX_INVOICE_COPY'
-                        ? 'bg-amber-600 text-white shadow'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-850'
-                    }`}
-                  >
-                    Tax Invoice COPY
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveInvoiceTemplate('RECEIPT');
-                      setPrintWatermark('ORIGINAL');
-                    }}
-                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
-                      activeInvoiceTemplate === 'RECEIPT'
+                      docKind === 'RECEIPT'
                         ? 'bg-emerald-600 text-white shadow'
                         : 'text-slate-400 hover:text-white hover:bg-slate-850'
                     }`}
@@ -910,9 +890,36 @@ export default function InvoiceView({
                   </button>
                 </div>
 
+                {/* 2. ORIGINAL / COPY Selector */}
+                <div className="bg-slate-950 p-1 rounded-xl flex items-center gap-1 border border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => setCopyType('ORIGINAL')}
+                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                      copyType === 'ORIGINAL'
+                        ? 'bg-blue-600 text-white shadow'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                    }`}
+                  >
+                    ORIGINAL (ต้นฉบับ)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setCopyType('COPY')}
+                    className={`text-xs px-3 py-1.5 rounded-lg font-bold transition cursor-pointer ${
+                      copyType === 'COPY'
+                        ? 'bg-amber-600 text-white shadow'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-850'
+                    }`}
+                  >
+                    COPY (สำเนา)
+                  </button>
+                </div>
+
                 <button
                   onClick={handlePrint}
-                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-xl text-xs cursor-pointer flex items-center gap-1.5 shadow"
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-xl text-xs cursor-pointer flex items-center gap-1.5 shadow"
                 >
                   <Printer className="w-4 h-4" />
                   พิมพ์ / Print PDF
@@ -951,25 +958,50 @@ export default function InvoiceView({
               const grandTotalVal = viewingInvoice.grand_total || (subtotalVal + vatVal);
               const grandTotalInWords = numberToEnglishWords(grandTotalVal);
 
-              const isReceipt = activeInvoiceTemplate === 'RECEIPT';
-              const isCopy = activeInvoiceTemplate === 'TAX_INVOICE_COPY';
+              const isReceipt = docKind === 'RECEIPT';
+              const isCopy = copyType === 'COPY';
 
               return (
-                <div className="bg-white print:p-0 print:m-0 text-black font-sans w-[210mm] min-h-[297mm] mx-auto relative select-none p-8 md:p-10" style={{ fontFamily: 'Arial, sans-serif' }}>
+                <div className="master-invoice-container bg-white print:p-0 print:m-0 text-black font-sans w-[210mm] min-h-[297mm] mx-auto relative select-none p-8 md:p-10" style={{ fontFamily: 'Arial, sans-serif' }}>
+                  <style>{`
+                    @media print {
+                      @page {
+                        size: A4 portrait;
+                        margin: 0;
+                      }
+                      body {
+                        background: white !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                      }
+                      .print\\:hidden, #navbar-shell, #sidebar-shell, button {
+                        display: none !important;
+                      }
+                      .master-invoice-container {
+                        width: 210mm !important;
+                        min-height: 297mm !important;
+                        height: 297mm !important;
+                        margin: 0 !important;
+                        padding: 10mm !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                        page-break-after: avoid !important;
+                        break-after: avoid !important;
+                      }
+                      table {
+                        border-collapse: collapse !important;
+                      }
+                    }
+                  `}</style>
                   {/* Top Header Row */}
                   <div className="flex justify-between items-start mb-3">
                     {/* Left: Logo & Company Address */}
                     <div className="flex items-start gap-4">
                       <div className="w-[180px] shrink-0 pt-0.5">
                         <img 
-                          src="/mpower-logo.png" 
+                          src={MPOWER_LOGO_BASE64} 
                           alt="M Power Logo" 
-                          className="w-full h-auto object-contain" 
-                          referrerPolicy="no-referrer" 
-                          onError={(e) => { 
-                            (e.target as HTMLImageElement).onerror=null; 
-                            (e.target as HTMLImageElement).src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q'; 
-                          }} 
+                          className="w-full h-auto object-contain max-h-[55px]" 
                         />
                       </div>
                       <div className="text-[11px] leading-tight text-black">
@@ -982,7 +1014,7 @@ export default function InvoiceView({
 
                     {/* Right: Watermark Tag */}
                     <div className="text-right">
-                      <div className="text-[#dc2626] font-bold text-base tracking-wider uppercase">
+                      <div className="text-[#dc2626] font-extrabold text-sm tracking-widest uppercase border-2 border-[#dc2626] px-3.5 py-1 rounded inline-block">
                         {isCopy ? 'COPY' : 'ORIGINAL'}
                       </div>
                     </div>
@@ -990,9 +1022,12 @@ export default function InvoiceView({
 
                   {/* Document Title Centered */}
                   <div className="text-center my-3">
-                    <h2 className="text-lg font-bold text-black uppercase tracking-wide">
+                    <h2 className="text-xl font-black text-black uppercase tracking-wide">
                       {isReceipt ? 'Receipt' : 'Tax Invoice / Delivery Note'}
                     </h2>
+                    <div className="text-[11px] font-bold text-slate-700 mt-0.5">
+                      {isReceipt ? 'ใบเสร็จรับเงิน' : 'ใบกำกับภาษี / ใบส่งของ'}
+                    </div>
                   </div>
 
                   {/* Metadata Box (2 Columns with 1px Outer Border) */}
@@ -1183,16 +1218,24 @@ export default function InvoiceView({
                         </div>
                       </div>
 
-                      {/* Signatures Section */}
-                      <div className="grid grid-cols-2 text-center text-[11px] font-bold text-black pt-2">
+                      {/* Signatures Section: 3-column professional format */}
+                      <div className="grid grid-cols-3 text-center text-[10.5px] font-bold text-black pt-4 gap-4">
                         <div className="flex flex-col items-center justify-end">
-                          <div>......................................................</div>
-                          <div className="mt-1">{isCopy ? 'Received By' : 'PREPARE BY'}</div>
+                          <div className="border-b border-dotted border-black w-36 mb-1.5 h-6"></div>
+                          <div>ผู้รับสินค้า / Received By</div>
+                          <div className="text-[9.5px] text-slate-600 font-normal mt-0.5">วันที่ (Date): ..... / ..... / .....</div>
                         </div>
 
                         <div className="flex flex-col items-center justify-end">
-                          <div>......................................................</div>
-                          <div className="mt-1">{isCopy ? 'Authorized Signature' : 'CUSTOMER APPRROVE BY'}</div>
+                          <div className="border-b border-dotted border-black w-36 mb-1.5 h-6"></div>
+                          <div>ผู้ส่งสินค้า / Delivered By</div>
+                          <div className="text-[9.5px] text-slate-600 font-normal mt-0.5">วันที่ (Date): ..... / ..... / .....</div>
+                        </div>
+
+                        <div className="flex flex-col items-center justify-end">
+                          <div className="border-b border-dotted border-black w-36 mb-1.5 h-6"></div>
+                          <div>ผู้มีอำนาจลงนาม / Authorized Signature</div>
+                          <div className="text-[9.5px] text-slate-600 font-normal mt-0.5">วันที่ (Date): ..... / ..... / .....</div>
                         </div>
                       </div>
                     </>

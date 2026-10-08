@@ -21,7 +21,7 @@ import { Invoice, Customer } from '../types';
 import { COMPANY_MASTER_INFO } from '../data/masterTemplatesData';
 import { numberToThaiBaht } from '../utils/numberWords';
 
-export type InvoiceExcelFormType = 'TAX_INVOICE_ORIGINAL' | 'TAX_INVOICE_COPY' | 'RECEIPT';
+export type InvoiceExcelFormType = 'TAX_INVOICE_ORIGINAL' | 'TAX_INVOICE_COPY' | 'RECEIPT' | 'RECEIPT_COPY';
 
 interface InvoiceExcelRow {
   item_no: number;
@@ -118,11 +118,11 @@ export const InvoiceExcelFormModal: React.FC<InvoiceExcelFormModalProps> = ({
   }, [items]);
 
   const vat = useMemo(() => {
-    return formType === 'RECEIPT' ? 0 : Math.round(subtotal * 0.07 * 100) / 100;
+    return (formType === 'RECEIPT' || formType === 'RECEIPT_COPY') ? 0 : Math.round(subtotal * 0.07 * 100) / 100;
   }, [subtotal, formType]);
 
   const totalWithVat = useMemo(() => {
-    return formType === 'RECEIPT' ? subtotal : subtotal + vat;
+    return (formType === 'RECEIPT' || formType === 'RECEIPT_COPY') ? subtotal : subtotal + vat;
   }, [subtotal, vat, formType]);
 
   const whtAmount = useMemo(() => {
@@ -303,6 +303,13 @@ export const InvoiceExcelFormModal: React.FC<InvoiceExcelFormModalProps> = ({
           badge: 'ต้นฉบับ / ORIGINAL',
           color: 'bg-emerald-700 text-white'
         };
+      case 'RECEIPT_COPY':
+        return {
+          th: 'ใบเสร็จรับเงิน',
+          en: 'RECEIPT',
+          badge: 'สำเนา / COPY',
+          color: 'bg-teal-800 text-white'
+        };
     }
   };
 
@@ -405,7 +412,7 @@ export const InvoiceExcelFormModal: React.FC<InvoiceExcelFormModalProps> = ({
               <span>2. Tax Invoice COPY (สำเนา)</span>
             </button>
 
-            {/* Mode 3: Receipt */}
+            {/* Mode 3: Receipt ORIGINAL */}
             <button
               onClick={() => setFormType('RECEIPT')}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${
@@ -415,7 +422,20 @@ export const InvoiceExcelFormModal: React.FC<InvoiceExcelFormModalProps> = ({
               }`}
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>3. Receipt (ใบเสร็จรับเงิน)</span>
+              <span>3. Receipt ORIGINAL (ต้นฉบับ)</span>
+            </button>
+
+            {/* Mode 4: Receipt COPY */}
+            <button
+              onClick={() => setFormType('RECEIPT_COPY')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                formType === 'RECEIPT_COPY'
+                  ? 'bg-teal-700 text-white shadow-sm ring-2 ring-teal-700/30'
+                  : 'bg-white text-slate-700 hover:bg-slate-200 border border-slate-300'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>4. Receipt COPY (สำเนา)</span>
             </button>
           </div>
 

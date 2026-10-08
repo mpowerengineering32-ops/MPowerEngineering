@@ -9,7 +9,9 @@ import {
   ZoomIn,
   ZoomOut,
   ShieldCheck,
-  ShoppingCart
+  ShoppingCart,
+  Edit3,
+  Check
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Supplier, PurchaseOrder } from '../../types';
@@ -41,11 +43,24 @@ export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProp
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [showAuditDetails, setShowAuditDetails] = useState<boolean>(false);
+  const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
 
-  // 1. Prepare exact Master Template Data
+  // Editable Remarks and Delivery Note
+  const [customRemarks, setCustomRemarks] = useState<string>(purchaseOrder.remarks || '');
+  const [customDeliveryNote, setCustomDeliveryNote] = useState<string>(
+    purchaseOrder.delivery_note ||
+      '* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด'
+  );
+
+  // 1. Prepare exact Master Template Data with custom notes
   const templateData: PurchaseOrderTemplateData = useMemo(() => {
-    return preparePurchaseOrderTemplateData(purchaseOrder, supplier);
-  }, [purchaseOrder, supplier]);
+    const poWithCustomNotes = {
+      ...purchaseOrder,
+      remarks: customRemarks,
+      delivery_note: customDeliveryNote
+    };
+    return preparePurchaseOrderTemplateData(poWithCustomNotes, supplier);
+  }, [purchaseOrder, supplier, customRemarks, customDeliveryNote]);
 
   // 2. Pre-Export Audit & Field Mapping Check
   const auditResult = useMemo(() => {
@@ -179,10 +194,24 @@ export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProp
               </button>
             </div>
 
+            {/* Edit Notes / Remarks Button */}
+            <button
+              onClick={() => setIsEditingNotes(v => !v)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer border ${
+                isEditingNotes
+                  ? 'bg-emerald-600 text-white border-emerald-500'
+                  : 'bg-slate-800 hover:bg-slate-700 text-emerald-300 border-slate-700'
+              }`}
+              title="ใส่ข้อความ / ปรับแก้ Remarks และ Delivery Remark"
+            >
+              <Edit3 className="w-4 h-4 text-emerald-400" />
+              <span>{isEditingNotes ? 'ปิดตัวแก้ไขโน้ต' : 'แก้ไขหมายเหตุ/โน้ต'}</span>
+            </button>
+
             {/* Print Button */}
             <button
               onClick={handlePrint}
-              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Printer className="w-4 h-4 text-emerald-400" />
               <span>พิมพ์ (Print)</span>
@@ -241,7 +270,7 @@ export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProp
           </div>
 
           <div className="text-[11px] font-mono text-slate-500">
-            A4 Portrait • 1 หน้าเดี่ยว • Page 1/1
+            A4 Portrait • 1 หน้าเดี่ยว
           </div>
         </div>
 
@@ -263,6 +292,54 @@ export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProp
                 <span>{auditResult.warnings.join('; ')}</span>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Notes & Remarks Live Editor Drawer */}
+        {isEditingNotes && (
+          <div className="bg-indigo-50/90 border-b border-indigo-300 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+                <Edit3 className="w-4 h-4 text-indigo-700" />
+                ใส่ข้อความ / แก้ไขหมายเหตุและข้อความจัดส่งในใบสั่งซื้อ (Live Notes Editor)
+              </span>
+              <span className="text-[11px] text-indigo-700">ข้อความจะอัปเดตลงในตัวอย่างเอกสารและไฟล์ PDF ทันที</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  หมายเหตุ (Remarks)
+                </label>
+                <textarea
+                  rows={2}
+                  value={customRemarks}
+                  onChange={e => setCustomRemarks(e.target.value)}
+                  placeholder="ระบุหมายเหตุหรือเงื่อนไขเพิ่มเติมสำหรับ PO..."
+                  className="w-full bg-white border border-indigo-300 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  ข้อความการจัดส่ง (Delivery Remark / จัดส่งตามที่อยู่)
+                </label>
+                <textarea
+                  rows={2}
+                  value={customDeliveryNote}
+                  onChange={e => setCustomDeliveryNote(e.target.value)}
+                  placeholder="ข้อความจัดส่งท้ายตาราง เช่น กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่..."
+                  className="w-full bg-white border border-indigo-300 rounded-lg p-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                onClick={() => setIsEditingNotes(false)}
+                className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>เสร็จสิ้นการแก้ไข</span>
+              </button>
+            </div>
           </div>
         )}
 

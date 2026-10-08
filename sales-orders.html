@@ -209,7 +209,6 @@
                 <thead class="table-light text-uppercase small font-bold">
                   <tr>
                     <th>SO Number</th>
-                    <th>Job Number</th>
                     <th>Customer PO Ref</th>
                     <th>Sales Representative</th>
                     <th>Delivery Plan</th>
@@ -222,7 +221,7 @@
                 </thead>
                 <tbody id="so-table-body">
                   <tr>
-                    <td colspan="11" class="text-center py-5 text-muted">
+                    <td colspan="10" class="text-center py-5 text-muted">
                       <div class="spinner-border text-primary" role="status"></div>
                       <div class="mt-2">Loading sales orders from server...</div>
                     </td>
@@ -347,7 +346,7 @@
 
               <!-- 2. Document Title -->
               <div style="text-align: center; margin: 12px 0;">
-                <h4 style="font-size: 18px; font-weight: 900; text-transform: uppercase; color: #000; margin: 0; letter-spacing: 0.5px;">Sale Order</h4>
+                <h4 id="print-doc-title" style="font-size: 18px; font-weight: 900; text-transform: uppercase; color: #000; margin: 0; letter-spacing: 0.5px;">Sale Order</h4>
               </div>
 
               <!-- 3. Customer & Sale Order Details Box -->
@@ -518,7 +517,7 @@
     let customersCached = [];
     let userMap = new Map(); // Added userMap
     let activePrintSOId = null;
-    let activePrintTemplate = 'delivery'; 
+    let activePrintTemplate = 'sales_order'; 
     let editItemIndexCounter = 0;
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -652,7 +651,7 @@
       if (filtered.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="11" class="text-center py-5 text-muted">
+            <td colspan="10" class="text-center py-5 text-muted">
               <i class="fas fa-file-excel d-block fs-2 mb-2 text-secondary opacity-50"></i>
               No sales orders or pending deliveries match your search filters.
             </td>
@@ -738,7 +737,6 @@
         tbody.insertAdjacentHTML('beforeend', `
           <tr>
             <td><strong class="font-monospace text-primary">${soNo}</strong></td>
-            <td><span class="badge bg-secondary font-monospace" style="font-size: 0.85rem;">${so.job_no || '-'}</span></td>
             <td><span class="font-monospace text-dark fw-bold">${so.po_no || '-'}</span></td>
             <td><span class="text-muted small">${window.SupabaseDB.getUsernameOrDisplayName(so.sales_person_id || so.sales_person, true) || so.sales_person || 'System'}</span></td>
             <td><span class="text-primary fw-bold font-monospace">${so.target_delivery_date ? new Date(so.target_delivery_date).toLocaleDateString('en-GB', {day: '2-digit', month: 'short', year: 'numeric'}) : '-'}</span></td>
@@ -837,7 +835,7 @@
 
     function viewPrintSO(id) {
       activePrintSOId = id;
-      setPrintTemplate('delivery'); 
+      setPrintTemplate('sales_order'); 
       const modal = new bootstrap.Modal(document.getElementById('soPrintModal'));
       modal.show();
     }
@@ -853,12 +851,17 @@
       btnSo.className = "btn btn-sm btn-outline-secondary";
       btnCost.className = "btn btn-sm btn-outline-secondary";
 
+      const titleEl = document.getElementById('print-doc-title');
+
       if (type === 'delivery') {
         btnDelivery.className = "btn btn-sm btn-primary";
+        if (titleEl) titleEl.innerText = "Delivery Order";
       } else if (type === 'sales_order') {
         btnSo.className = "btn btn-sm btn-primary";
+        if (titleEl) titleEl.innerText = "Sale Order";
       } else if (type === 'cost_summary') {
         btnCost.className = "btn btn-sm btn-primary";
+        if (titleEl) titleEl.innerText = "Cost Summary";
       }
 
       renderSOPrintContent(activePrintSOId, type);
@@ -899,7 +902,10 @@
       ];
 
       let subTotal = 0;
-      let rowsHtml = '';
+      let col1Html = '';
+      let col2Html = '';
+      let col3Html = '';
+      let col4Html = '';
 
       items.forEach((it) => {
         const qty = parseFloat(it.qty || 1);
@@ -911,82 +917,321 @@
         const mainDesc = descLines[0] || 'Sky Lotech High Lift';
         const details = it.details || descLines.slice(1);
 
-        rowsHtml += `
-          <tr style="vertical-align: top;">
-            <td style="padding: 8px; text-align: center; border-right: 1px solid #000; font-weight: bold;">${qty}</td>
-            <td style="padding: 8px 12px; border-right: 1px solid #000; line-height: 1.3;">
-              <div style="font-weight: bold; color: #000;">${mainDesc}</div>
-              ${details && details.length > 0 ? `
-                <div style="font-size: 10px; color: #000; margin-top: 2px;">
-                  ${details.map(d => `<div>${d}</div>`).join('')}
-                </div>
-              ` : ''}
-            </td>
-            <td style="padding: 8px 12px; border-right: 1px solid #000; text-align: right; font-family: monospace;">${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-            <td style="padding: 8px 12px; text-align: right; font-family: monospace;">${amt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-          </tr>
+        col1Html += `<div style="padding: 6px 4px; text-align: center; font-weight: bold; font-size: 11px;">${qty}</div>`;
+        col2Html += `
+          <div style="padding: 6px 12px; line-height: 1.4;">
+            <div style="font-weight: bold; color: #000; font-size: 11px;">${mainDesc}</div>
+            ${details && details.length > 0 ? `
+              <div style="font-size: 10px; color: #000; margin-top: 2px; line-height: 1.35;">
+                ${details.map(d => {
+                  const isItalic = d.trim().startsWith('-') || d.toLowerCase().includes('length') || d.toLowerCase().includes('diameter');
+                  return `<div style="${isItalic ? 'font-style: italic;' : ''}">${d}</div>`;
+                }).join('')}
+              </div>
+            ` : ''}
+          </div>
         `;
+        col3Html += `<div style="padding: 6px 14px; text-align: right; font-size: 11px; font-family: Arial, Helvetica, sans-serif;">${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>`;
+        col4Html += `<div style="padding: 6px 14px; text-align: right; font-size: 11px; font-family: Arial, Helvetica, sans-serif;">${amt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>`;
       });
 
       const vat = Math.round(subTotal * 0.07 * 100) / 100;
       const grandTotal = Math.round((subTotal + vat) * 100) / 100;
 
-      // English Baht text
-      const bahtTextEn = "TWO THOUSAND NINE HUNDRED NINETY SIX BAHT";
+      // English Baht text conversion
+      function getEnglishBaht(val) {
+        if (!val || isNaN(val)) return "ZERO BAHT";
+        const units = ["", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE", "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN", "NINETEEN"];
+        const tens = ["", "", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY"];
+        function chunk(n) {
+          let str = "";
+          if (n >= 100) { str += units[Math.floor(n / 100)] + " HUNDRED "; n %= 100; }
+          if (n >= 20) { str += tens[Math.floor(n / 10)] + (n % 10 ? " " + units[n % 10] : ""); }
+          else if (n > 0) { str += units[n]; }
+          return str.trim();
+        }
+        const b = Math.floor(val);
+        const sat = Math.round((val - b) * 100);
+        let words = "";
+        if (b >= 1000000) { words += chunk(Math.floor(b / 1000000)) + " MILLION "; }
+        const remThous = b % 1000000;
+        if (remThous >= 1000) { words += chunk(Math.floor(remThous / 1000)) + " THOUSAND "; }
+        const rem = remThous % 1000;
+        if (rem > 0) { words += chunk(rem); }
+        let res = (words.trim() || "ZERO") + " BAHT";
+        if (sat > 0) { res += " AND " + chunk(sat) + " SATANG"; }
+        return res;
+      }
+
+      const bahtTextEn = getEnglishBaht(grandTotal);
+
+      const isDelivery = (type === 'delivery');
 
       tableContainer.innerHTML = `
-        <div style="border: 1px solid #000; min-height: 360px; display: flex; flex-direction: column; justify-content: space-between;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-            <thead>
-              <tr style="border-bottom: 1px solid #000; font-weight: 800; text-align: center;">
-                <th style="padding: 6px 8px; width: 11%; border-right: 1px solid #000;">Quantity</th>
-                <th style="padding: 6px 12px; width: 55%; border-right: 1px solid #000; text-align: center;">Drescription</th>
-                <th style="padding: 6px 12px; width: 17%; border-right: 1px solid #000; text-align: center;">Unit Price (THB)</th>
-                <th style="padding: 6px 12px; width: 17%; text-align: center;">Amount (THB)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rowsHtml}
-              <tr>
-                <td style="border-right: 1px solid #000;"></td>
-                <td style="padding: 16px; text-align: center; border-right: 1px solid #000; font-style: italic; font-weight: 600;">** LAST ENTRY **</td>
-                <td style="border-right: 1px solid #000;"></td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+  <!-- ===== ITEMS TABLE ===== -->
+  <div style="
+    border: 1px solid #000;
+    border-bottom: 0;
+    display: grid;
+    grid-template-columns: 11% 55% 17% 17%;
+    font-size: 11px;
+    box-sizing: border-box;
+    min-height: 360px;
+    align-items: stretch;
+  ">
 
-        <!-- 5. Summary Row & English Baht Text -->
-        <div style="border: 1px solid #000; border-top: 0; display: flex; font-size: 11px;">
-          <div style="width: 66%; display: flex; flex-direction: column; justify-content: flex-end; border-right: 1px solid #000;">
-            <div style="border-top: 1px solid #000; padding: 4px; text-align: center; font-weight: 800; text-transform: uppercase; font-size: 10px; background: #f8fafc;">
-              ${bahtTextEn}
-            </div>
-          </div>
-          <div style="width: 34%;">
-            <div style="display: flex; border-top: 1px solid #000;">
-              <div style="width: 50%; padding: 4px 8px; text-align: right; font-weight: 800; border-right: 1px solid #000;">AMOUNT</div>
-              <div style="width: 50%; padding: 4px 8px; text-align: right; font-family: monospace;">${subTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            </div>
-            <div style="display: flex; border-top: 1px solid #000;">
-              <div style="width: 50%; padding: 4px 8px; text-align: right; font-weight: 800; border-right: 1px solid #000;">SALES VAT 7%</div>
-              <div style="width: 50%; padding: 4px 8px; text-align: right; font-family: monospace;">${vat.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            </div>
-            <div style="display: flex; border-top: 1px solid #000;">
-              <div style="width: 50%; padding: 4px 8px; text-align: right; font-weight: 800; border-right: 1px solid #000;">TOTAL AMOUNT</div>
-              <div style="width: 50%; padding: 4px 8px; text-align: right; font-family: monospace; font-weight: bold;">${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            </div>
-          </div>
-        </div>
+    <!-- Column 1: Quantity -->
+    <div style="
+      border-right: 1px solid #000;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      height: 100%;
+      align-self: stretch;
+    ">
+      <div style="
+        height: 32px;
+        box-sizing: border-box;
+        border-bottom: 1px solid #000;
+        font-weight: 800;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">Quantity</div>
+      <div style="flex: 1 1 auto;">
+        ${col1Html}
+      </div>
+      <div style="height: 24px;">&nbsp;</div>
+    </div>
 
-        <!-- 6. Terms & Condition -->
-        <div style="margin-top: 16px; font-size: 10px; color: #000;">
-          <div style="font-weight: 800;">Terms & Condition;</div>
-          <div style="padding-left: 16px;">- 30 days validily from date of quotation.</div>
-          <div style="padding-left: 16px;">- All prices above are quoted in THB.</div>
-        </div>
-      `;
+    <!-- Column 2: Description -->
+    <div style="
+      border-right: 1px solid #000;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      height: 100%;
+      align-self: stretch;
+    ">
+      <div style="
+        height: 32px;
+        box-sizing: border-box;
+        border-bottom: 1px solid #000;
+        font-weight: 800;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">Description</div>
+      <div style="flex: 1 1 auto;">
+        ${col2Html}
+      </div>
+      <div style="
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-style: italic;
+        font-weight: 600;
+      ">** LAST ENTRY **</div>
+    </div>
+
+    <!-- Column 3: Unit Price (THB) -->
+    <div style="
+      border-right: 1px solid #000;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      height: 100%;
+      align-self: stretch;
+    ">
+      <div style="
+        height: 32px;
+        box-sizing: border-box;
+        border-bottom: 1px solid #000;
+        font-weight: 800;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">Unit Price (THB)</div>
+      <div style="flex: 1 1 auto;">
+        ${col3Html}
+      </div>
+      <div style="height: 24px;">&nbsp;</div>
+    </div>
+
+    <!-- Column 4: Amount (THB) -->
+    <div style="
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      height: 100%;
+      align-self: stretch;
+    ">
+      <div style="
+        height: 32px;
+        box-sizing: border-box;
+        border-bottom: 1px solid #000;
+        font-weight: 800;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">Amount (THB)</div>
+      <div style="flex: 1 1 auto;">
+        ${col4Html}
+      </div>
+      <div style="height: 24px;">&nbsp;</div>
+    </div>
+
+  </div>
+
+  <!-- ===== SUMMARY ROW ===== -->
+  <div style="
+    border: 1px solid #000;
+    border-top: 0;
+    display: grid;
+    grid-template-columns: 11% 55% 17% 17%;
+    font-size: 11px;
+    box-sizing: border-box;
+    background: #ffffff;
+  ">
+    <!-- Column 1: Quantity divider extension (11%) -->
+    <div style="
+      border-right: 1px solid #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      box-sizing: border-box;
+      height: 100%;
+    ">
+      <div style="
+        border-top: 1px solid #000;
+        height: 25px;
+        background: #f8fafc;
+        box-sizing: border-box;
+      ">&nbsp;</div>
+    </div>
+
+    <!-- Column 2: Baht text (55%) -->
+    <div style="
+      border-right: 1px solid #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      box-sizing: border-box;
+      height: 100%;
+    ">
+      <div style="
+        border-top: 1px solid #000;
+        padding: 5px 4px;
+        text-align: center;
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 10px;
+        background: #f8fafc;
+        height: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+      ">
+        ${bahtTextEn}
+      </div>
+    </div>
+
+    <!-- Column 3: Labels (17%) -->
+    <div style="
+      border-right: 1px solid #000;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    ">
+      <div style="
+        height: 24px;
+        padding: 4px 8px;
+        text-align: right;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        box-sizing: border-box;
+      ">AMOUNT</div>
+      <div style="
+        height: 24px;
+        border-top: 1px solid #000;
+        padding: 4px 8px;
+        text-align: right;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        box-sizing: border-box;
+      ">SALES VAT 7%</div>
+      <div style="
+        height: 25px;
+        border-top: 1px solid #000;
+        padding: 4px 8px;
+        text-align: right;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        box-sizing: border-box;
+      ">TOTAL AMOUNT</div>
+    </div>
+
+    <!-- Column 4: Values (17%) -->
+    <div style="
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+    ">
+      <div style="
+        height: 24px;
+        padding: 4px 8px;
+        text-align: right;
+        font-family: monospace;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        box-sizing: border-box;
+      ">${subTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      <div style="
+        height: 24px;
+        border-top: 1px solid #000;
+        padding: 4px 8px;
+        text-align: right;
+        font-family: monospace;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        box-sizing: border-box;
+      ">${vat.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      <div style="
+        height: 25px;
+        border-top: 1px solid #000;
+        padding: 4px 8px;
+        text-align: right;
+        font-family: monospace;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        box-sizing: border-box;
+      ">${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+    </div>
+  </div>
+
+  <!-- ===== TERMS & CONDITION ===== -->
+  <div style="margin-top: 16px; font-size: 10px; color: #000;">
+    <div style="font-weight: 800;">Terms &amp; Condition;</div>
+    <div style="padding-left: 16px;">- 30 days validily from date of quotation.</div>
+    <div style="padding-left: 16px;">- All prices above are quoted in THB.</div>
+  </div>
+`;
     }
 
     async function changeSOStatus(id, current) {
