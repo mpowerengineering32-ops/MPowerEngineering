@@ -29,6 +29,7 @@ interface PurchaseRequestGenerateModalProps {
   purchaseRequest: PurchaseRequest | null;
   supplier?: Supplier;
   onToast: (msg: string, type: 'success' | 'err') => void;
+  onSaveUpdates?: (id: string, updates: Partial<PurchaseRequest>) => Promise<any>;
 }
 
 export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModalProps> = ({
@@ -36,7 +37,8 @@ export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModal
   onClose,
   purchaseRequest,
   supplier,
-  onToast
+  onToast,
+  onSaveUpdates
 }) => {
   if (!isOpen || !purchaseRequest) return null;
 
@@ -44,23 +46,54 @@ export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModal
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [showAuditDetails, setShowAuditDetails] = useState<boolean>(false);
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
+  const [isSavingChanges, setIsSavingChanges] = useState<boolean>(false);
 
-  // Editable Remarks and Delivery Note
+  // Editable Remarks, Delivery Note & Metadata
   const [customRemarks, setCustomRemarks] = useState<string>(purchaseRequest.remarks || '');
   const [customDeliveryNote, setCustomDeliveryNote] = useState<string>(
     purchaseRequest.delivery_note ||
-      'กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่\nบริษัท เอ็ม พาวเวอร์เอ็นจิเนียริ่งโซลูชั่นส์ จำกัด\nเปิดบิล-ส่งของวันที่ ' + (purchaseRequest.date || '')
+      '* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด'
   );
+  const [customDueDate, setCustomDueDate] = useState<string>(purchaseRequest.due_date || 'Cash');
+  const [customSalesName, setCustomSalesName] = useState<string>(purchaseRequest.sales_name || 'Praiya');
+  const [customRefCustomer, setCustomRefCustomer] = useState<string>(purchaseRequest.ref_customer || 'Promt Solution');
 
-  // 1. Prepare exact Master Template Data (PR.pdf) with customized remarks
+  // 1. Prepare exact Master Template Data (PR.pdf) with customized remarks & metadata
   const templateData: PurchaseRequestTemplateData = useMemo(() => {
     const prWithCustomNotes = {
       ...purchaseRequest,
       remarks: customRemarks,
-      delivery_note: customDeliveryNote
+      delivery_note: customDeliveryNote,
+      due_date: customDueDate,
+      sales_name: customSalesName,
+      ref_customer: customRefCustomer
     };
     return preparePurchaseRequestTemplateData(prWithCustomNotes, supplier);
-  }, [purchaseRequest, supplier, customRemarks, customDeliveryNote]);
+  }, [purchaseRequest, supplier, customRemarks, customDeliveryNote, customDueDate, customSalesName, customRefCustomer]);
+
+  // Handle Save changes back to database
+  const handleSaveToDatabase = async () => {
+    if (!onSaveUpdates || !purchaseRequest) {
+      onToast('บันทึกข้อความลงในพรีวิวเอกสารและ PDF เรียบร้อย', 'success');
+      return;
+    }
+    setIsSavingChanges(true);
+    try {
+      await onSaveUpdates(purchaseRequest.id, {
+        remarks: customRemarks,
+        delivery_note: customDeliveryNote,
+        due_date: customDueDate,
+        sales_name: customSalesName,
+        ref_customer: customRefCustomer
+      });
+      onToast(`บันทึกการแก้ไขข้อความลงในใบขอซื้อ ${purchaseRequest.pr_no} สำเร็จ`, 'success');
+    } catch (err: any) {
+      console.error('Error saving PR updates:', err);
+      onToast('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'err');
+    } finally {
+      setIsSavingChanges(false);
+    }
+  };
 
   // 2. Pre-Export Audit & Field Mapping Check
   const auditResult = useMemo(() => {
@@ -117,19 +150,20 @@ export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModal
       ['Sales Name :', templateData.sales_name, '', 'Tel. :', templateData.supplier_phone],
       ['Ref. Customer :', templateData.ref_customer, '', 'Attn. :', templateData.attn],
       [''],
-      ['Quantity', 'Descriptions', 'Unit Price (THB)', 'Amount (THB)'],
+      ['Quantity', 'Description', 'Unit', 'Price (THB)', 'Amount (THB)'],
       ...templateData.items.map(it => [
         it.quantity,
         it.description,
+        it.unit || 'EA',
         it.unit_price,
         it.amount
       ]),
       ['** LAST ENTRY **'],
       ['* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด'],
       [''],
-      ['', '', 'AMOUNT', templateData.amount],
-      ['', '', 'SALES VAT 7%', templateData.vat_amount],
-      ['', '', 'TOTAL AMOUNT', templateData.total_amount],
+      ['', '', '', 'AMOUNT', templateData.amount],
+      ['', '', '', 'SALES VAT 7%', templateData.vat_amount],
+      ['', '', '', 'TOTAL AMOUNT', templateData.total_amount],
       [''],
       ['TOTAL AMOUNT (WORDS):', templateData.baht_text_en],
       ['Remarks;', templateData.remarks || '']
@@ -300,18 +334,60 @@ export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModal
 
         {/* Notes & Remarks Live Editor Drawer */}
         {isEditingNotes && (
-          <div className="bg-amber-50/90 border-b border-amber-300 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="bg-amber-50/95 border-b border-amber-300 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
                 <Edit3 className="w-4 h-4 text-amber-700" />
-                ใส่ข้อความ / แก้ไขหมายเหตุและข้อความจัดส่งในใบขอซื้อ (Live Notes Editor)
+                ใส่ข้อความ / แก้ไข Noted, Remarks และข้อมูลเอกสารใบขอซื้อ (Live Notes & Metadata Editor)
               </span>
               <span className="text-[11px] text-amber-700">ข้อความจะอัปเดตลงในตัวอย่างเอกสารและไฟล์ PDF ทันที</span>
             </div>
+
+            {/* Quick Preset Buttons for Remarks & Delivery */}
+            <div className="flex items-center gap-1.5 flex-wrap pb-1 text-[11px]">
+              <span className="font-bold text-slate-700 mr-1">ข้อความด่วน (Presets):</span>
+              <button
+                type="button"
+                onClick={() => setCustomRemarks('ขออนุมัติจัดซื้อสำหรับงานโครงการเร่งด่วน ดำเนินการตามงบประมาณที่กำหนด')}
+                className="px-2 py-0.5 bg-white border border-amber-200 text-amber-800 rounded-md hover:bg-amber-100 transition cursor-pointer"
+              >
+                + ขอซื้อเร่งด่วนตามงบ
+              </button>
+              <button
+                type="button"
+                onClick={() => setCustomRemarks('จัดซื้ออะไหล่สำรองและอุปกรณ์ซ่อมบำรุงตามแผนงานประจำเดือน')}
+                className="px-2 py-0.5 bg-white border border-amber-200 text-amber-800 rounded-md hover:bg-amber-100 transition cursor-pointer"
+              >
+                + อะไหล่สำรองซ่อมบำรุง
+              </button>
+              <button
+                type="button"
+                onClick={() => setCustomRemarks('เงื่อนไขการชำระเงิน: เครดิต 30 วัน วางบิลหลังตรวจรับงานเรียบร้อย')}
+                className="px-2 py-0.5 bg-white border border-amber-200 text-amber-800 rounded-md hover:bg-amber-100 transition cursor-pointer"
+              >
+                + เครดิต 30 วัน
+              </button>
+              <button
+                type="button"
+                onClick={() => setCustomDeliveryNote('* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด\n** เปิดบิล-ส่งของวันที่ ' + templateData.date)}
+                className="px-2 py-0.5 bg-white border border-rose-200 text-rose-700 rounded-md hover:bg-rose-50 transition cursor-pointer"
+              >
+                + ส่งมอบที่บริษัท
+              </button>
+              <button
+                type="button"
+                onClick={() => setCustomDeliveryNote('* กรุณาจัดส่งสินค้า ณ ไซต์งานโครงการ ระบุผู้รับและเบอร์โทรศัพท์ผู้ควบคุมงาน')}
+                className="px-2 py-0.5 bg-white border border-rose-200 text-rose-700 rounded-md hover:bg-rose-50 transition cursor-pointer"
+              >
+                + ส่งมอบที่ไซต์งาน
+              </button>
+            </div>
+
+            {/* Note & Delivery Note Textareas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  หมายเหตุ (Remarks)
+                  หมายเหตุ / บันทึกข้อความ (Remarks / Noted)
                 </label>
                 <textarea
                   rows={2}
@@ -323,7 +399,7 @@ export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModal
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  ข้อความการจัดส่ง (Delivery Remark / จัดส่งตามที่อยู่)
+                  ข้อความการจัดส่ง (Delivery Remark สีแดงท้ายตาราง)
                 </label>
                 <textarea
                   rows={2}
@@ -334,14 +410,70 @@ export const PurchaseRequestGenerateModal: React.FC<PurchaseRequestGenerateModal
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-1">
-              <button
-                onClick={() => setIsEditingNotes(false)}
-                className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>เสร็จสิ้นการแก้ไข</span>
-              </button>
+
+            {/* Metadata Fields: Due Date, Sales Name, Ref Customer */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1 border-t border-amber-200/60">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  เงื่อนไขชำระเงิน (Due / Term)
+                </label>
+                <input
+                  type="text"
+                  value={customDueDate}
+                  onChange={e => setCustomDueDate(e.target.value)}
+                  placeholder="เช่น Cash, Credit 30 Days"
+                  className="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  ผู้ขอซื้อ / ผู้ประสานงาน (Sales / Requester)
+                </label>
+                <input
+                  type="text"
+                  value={customSalesName}
+                  onChange={e => setCustomSalesName(e.target.value)}
+                  placeholder="เช่น Praiya"
+                  className="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  ลูกค้า/โครงการอ้างอิง (Ref. Customer)
+                </label>
+                <input
+                  type="text"
+                  value={customRefCustomer}
+                  onChange={e => setCustomRefCustomer(e.target.value)}
+                  placeholder="เช่น Promt Solution"
+                  className="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-amber-200">
+              <span className="text-[11px] text-slate-500">
+                สามารถคลิกเลือก Presets หรือพิมพ์ข้อความเองได้ตามต้องการ
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSaveToDatabase}
+                  disabled={isSavingChanges}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1 disabled:opacity-50"
+                  title="บันทึกข้อความลงในฐานข้อมูลถาวร"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{isSavingChanges ? 'กำลังบันทึก...' : 'บันทึกข้อความลง PR'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingNotes(false)}
+                  className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-semibold cursor-pointer"
+                >
+                  ปิดตัวแก้ไข
+                </button>
+              </div>
             </div>
           </div>
         )}

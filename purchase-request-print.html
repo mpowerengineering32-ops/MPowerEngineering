@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Purchase Request - M Power Engineering Solutions</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 210mm;
+      height: 297mm;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #ffffff;
+      color: #000000;
+      font-family: Arial, Helvetica, "Sarabun", "Noto Sans Thai", sans-serif;
+      font-size: 11px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .print-container {
+      width: 210mm;
+      height: 297mm;
+      padding: 14mm 15mm;
+      box-sizing: border-box;
+      margin: 0 auto;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Screen-only Controls Toolbar */
+    .screen-toolbar {
+      position: fixed;
+      top: 12px;
+      right: 16px;
+      z-index: 9999;
+      background: #1e293b;
+      color: #ffffff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+    }
+
+    .screen-toolbar button {
+      background: #334155;
+      color: #ffffff;
+      border: 1px solid #475569;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .screen-toolbar button:hover {
+      background: #475569;
+    }
+
+    .screen-toolbar .print-btn {
+      background: #2563eb;
+      border-color: #3b82f6;
+    }
+
+    .screen-toolbar .print-btn:hover {
+      background: #1d4ed8;
+    }
+
+    @media print {
+      .screen-toolbar {
+        display: none !important;
+      }
+      html, body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      .print-container {
+        width: 210mm;
+        height: 297mm;
+        padding: 14mm 15mm;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Print toolbar (hidden when printing) -->
+  <div class="screen-toolbar">
+    <span style="font-weight: bold; color: #94a3b8;">Purchase Request Form</span>
+    <button class="print-btn" onclick="window.print()">Print Document</button>
+  </div>
+
+  <div class="print-container">
+    <div>
+      <!-- 1. Corporate Header: Logo & Company Address -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 8px;">
+        <div style="display: flex; align-items: flex-start; gap: 16px;">
+          <div style="padding-top: 2px;">
+            <img src="/mpower-logo.png" alt="M Power Logo" style="height: 46px; width: auto; object-fit: contain; display: block;" onerror="this.onerror=null; this.src='https://lh3.googleusercontent.com/d/1DWDy98ToKToCLyb-1rI6U7k_aoNayq1Q';" />
+          </div>
+          <div style="font-size: 10px; line-height: 1.35; color: #000000; padding-left: 4px;">
+            <div style="font-weight: 800; font-size: 12px;">M Power Engineering Solutions Co., Ltd.</div>
+            <div>53/72 Moo 8, Sattahip Subdistrict, Sattahip District, Chonburi 20180 , Thailand.</div>
+            <div>Tel. 033-641789 / 063-9359565 Email: sales@mpower-engineering.com , info@mpower-engineering.com</div>
+            <div>Tax ID Number. 0205569006956 (Head office)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Document Title: Purchase Request -->
+      <div style="text-align: center; margin: 10px 0 12px 0;">
+        <h1 style="font-size: 18px; font-weight: 900; text-transform: none; color: #000000; letter-spacing: 0.2px; margin: 0;">Purchase Request</h1>
+      </div>
+
+      <!-- 3. Vendor / Supplier & PR Metadata Box (Framed Box with Vertical Divider) -->
+      <div style="
+        border: 1px solid #000;
+        display: flex;
+        margin-bottom: 12px;
+        font-size: 11px;
+        line-height: 1.45;
+        box-sizing: border-box;
+      ">
+        <!-- Left Column: Vendor / Supplier Info (64%) -->
+        <div style="width: 64%; padding: 10px; border-right: 1px solid #000; box-sizing: border-box;">
+          <div id="supplier-name" style="font-weight: bold; font-size: 11.5px;">Dacon Trading Co., Ltd. (Head Office)</div>
+          <div id="supplier-address-1" style="font-size: 10.5px; line-height: 1.35; margin-top: 2px;">88/9 Moo 3, Phala, Banchang,</div>
+          <div id="supplier-address-2" style="font-size: 10.5px; line-height: 1.35;">Rayong 21130 Thailand</div>
+          <div style="margin-top: 6px; font-size: 10.5px; line-height: 1.4;">
+            <div style="display: flex;">
+              <span style="width: 80px; font-weight: bold;">Tax ID No. :</span>
+              <span id="supplier-tax-id">0215542000248</span>
+            </div>
+            <div style="display: flex;">
+              <span style="width: 80px; font-weight: bold;">Tel. :</span>
+              <span id="supplier-phone">081-8935437</span>
+            </div>
+            <div style="display: flex;">
+              <span style="width: 80px; font-weight: bold;">Attn. :</span>
+              <span id="supplier-attn">Khun Chatcha</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: PR Metadata (36%) -->
+        <div style="width: 36%; padding: 10px; font-size: 10.5px; line-height: 1.45; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-start; gap: 4px;">
+          <div style="display: flex;">
+            <span style="width: 105px; font-weight: bold;">PR. No. :</span>
+            <span id="pr-no" style="font-weight: bold;">2609001</span>
+          </div>
+          <div style="display: flex;">
+            <span style="width: 105px; font-weight: bold;">Date :</span>
+            <span id="pr-date">01-Sep-26</span>
+          </div>
+          <div style="display: flex;">
+            <span style="width: 105px; font-weight: bold;">Due Date :</span>
+            <span id="pr-due-date">Cash</span>
+          </div>
+          <div style="display: flex;">
+            <span style="width: 105px; font-weight: bold;">Sales Name :</span>
+            <span id="sales-name">Praiya</span>
+          </div>
+          <div style="display: flex;">
+            <span style="width: 105px; font-weight: bold;">Ref. Customer :</span>
+            <span id="ref-customer">Promt Solution</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Items Table (5 Columns with continuous vertical gridlines & horizontal row dividers) -->
+      <table style="width: 100%; table-layout: fixed; border-collapse: collapse; border: 1px solid #000; font-size: 10.5px; background: #ffffff;">
+        <thead>
+          <tr style="border-bottom: 1.5px solid #000; font-weight: bold; text-align: center;">
+            <th style="width: 11%; padding: 8px 4px; border-right: 1px solid #000; border-bottom: 1.5px solid #000; text-align: center;">Quantity</th>
+            <th style="width: 45%; padding: 8px 12px; border-right: 1px solid #000; border-bottom: 1.5px solid #000; text-align: center;">Description</th>
+            <th style="width: 10%; padding: 8px 4px; border-right: 1px solid #000; border-bottom: 1.5px solid #000; text-align: center;">Unit</th>
+            <th style="width: 17%; padding: 8px 12px; border-right: 1px solid #000; border-bottom: 1.5px solid #000; text-align: center;">Price (THB)</th>
+            <th style="width: 17%; padding: 8px 12px; border-bottom: 1.5px solid #000; text-align: center;">Amount (THB)</th>
+          </tr>
+        </thead>
+        <tbody id="items-tbody">
+          <!-- Item row (only vertical grid lines, no horizontal row divider) -->
+          <tr style="vertical-align: top;">
+            <td id="col-quantity" style="padding: 8px 4px; text-align: center; border-right: 1px solid #000; font-family: monospace;">2</td>
+            <td id="col-description" style="padding: 8px 12px; border-right: 1px solid #000; font-weight: 500;">1630,WL/WF,BLACK</td>
+            <td id="col-unit" style="padding: 8px 4px; text-align: center; border-right: 1px solid #000; font-family: monospace;">EA</td>
+            <td id="col-unit-price" style="padding: 8px 12px; text-align: right; border-right: 1px solid #000; font-family: monospace;">19,100.00</td>
+            <td id="col-amount" style="padding: 8px 12px; text-align: right; font-family: monospace;">38,200.00</td>
+          </tr>
+          <!-- ** LAST ENTRY ** (only vertical grid lines, no horizontal divider) -->
+          <tr style="vertical-align: top;">
+            <td style="padding: 4px; border-right: 1px solid #000;">&nbsp;</td>
+            <td style="padding: 4px 12px; border-right: 1px solid #000; text-align: center; font-weight: bold; font-style: italic;">** LAST ENTRY **</td>
+            <td style="padding: 4px; border-right: 1px solid #000;">&nbsp;</td>
+            <td style="padding: 4px; border-right: 1px solid #000;">&nbsp;</td>
+            <td style="padding: 4px;">&nbsp;</td>
+          </tr>
+          <!-- Filler space ensuring vertical lines extend down to table bottom with Red Delivery Remark -->
+          <tr>
+            <td style="border-right: 1px solid #000; height: 180px;">&nbsp;</td>
+            <td style="border-right: 1px solid #000; height: 180px; position: relative; padding: 12px; vertical-align: bottom;">
+              <div id="delivery-remark" style="font-size: 10px; color: #dc2626; font-weight: bold; line-height: 1.35;">
+                * กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด<br>
+                ** เปิดบิล-ส่งของวันที่ 1 กันยายน 2569
+              </div>
+            </td>
+            <td style="border-right: 1px solid #000; height: 180px;">&nbsp;</td>
+            <td style="border-right: 1px solid #000; height: 180px;">&nbsp;</td>
+            <td style="height: 180px;">&nbsp;</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- 5. Total Section & Baht Text -->
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: stretch;
+        box-sizing: border-box;
+      ">
+        <!-- Left: Framed Baht Text Box (Aligned with Total Amount row) -->
+        <div style="width: 66%; padding-top: 48px; padding-right: 14px; box-sizing: border-box;">
+          <div id="baht-text" style="
+            border: 1px solid #000;
+            padding: 6px 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 9.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+          ">
+            FORTY THOUSAND EIGHT HUNDRED AND SEVENTY FOUR BAHT ONLY
+          </div>
+        </div>
+
+        <!-- Right: Summary Box (AMOUNT, SALES VAT 7%, TOTAL AMOUNT) -->
+        <div style="
+          width: 34%;
+          border: 1px solid #000;
+          border-top: 0;
+          font-size: 10.5px;
+          box-sizing: border-box;
+        ">
+          <!-- AMOUNT -->
+          <div style="display: flex; border-bottom: 1px solid #000; height: 26px; align-items: center;">
+            <div style="width: 50%; font-weight: bold; text-align: center; border-right: 1px solid #000; height: 100%; display: flex; align-items: center; justify-content: center;">
+              AMOUNT
+            </div>
+            <div id="summary-amount" style="width: 50%; text-align: right; padding-right: 14px; font-family: monospace, Arial, sans-serif;">
+              38,200.00
+            </div>
+          </div>
+
+          <!-- SALES VAT 7% -->
+          <div style="display: flex; border-bottom: 1px solid #000; height: 26px; align-items: center;">
+            <div style="width: 50%; font-weight: bold; text-align: center; border-right: 1px solid #000; height: 100%; display: flex; align-items: center; justify-content: center;">
+              SALES VAT 7%
+            </div>
+            <div id="summary-vat" style="width: 50%; text-align: right; padding-right: 14px; font-family: monospace, Arial, sans-serif;">
+              2,674.00
+            </div>
+          </div>
+
+          <!-- TOTAL AMOUNT -->
+          <div style="display: flex; height: 26px; align-items: center;">
+            <div style="width: 50%; font-weight: bold; text-align: center; border-right: 1px solid #000; height: 100%; display: flex; align-items: center; justify-content: center;">
+              TOTAL AMOUNT
+            </div>
+            <div id="summary-total" style="width: 50%; text-align: right; padding-right: 14px; font-weight: bold; font-family: monospace, Arial, sans-serif;">
+              40,874.00
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Remarks (without Page 1/1) -->
+      <div style="margin-top: 14px; font-size: 10.5px; color: #000;">
+        <div style="font-weight: bold;">Remarks;</div>
+        <div id="pr-remarks" style="font-size: 10px; margin-top: 2px;"></div>
+      </div>
+    </div>
+
+    <!-- 6. Signatures: 2 Blocks (Received By & Authorized Signature) -->
+    <div style="margin-top: 36px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; padding: 0 40px; text-align: center;">
+        <!-- Received By -->
+        <div style="width: 220px; text-align: center;">
+          <div style="height: 40px;"></div>
+          <div style="font-size: 11px; color: #000; font-family: monospace; letter-spacing: 1px; margin-bottom: 4px; user-select: none;">............................</div>
+          <div style="font-size: 11px; font-weight: bold; color: #000;">Received By</div>
+        </div>
+
+        <!-- Authorized Signature -->
+        <div style="width: 220px; text-align: center;">
+          <div style="height: 40px;"></div>
+          <div style="font-size: 11px; color: #000; font-family: monospace; letter-spacing: 1px; margin-bottom: 4px; user-select: none;">............................</div>
+          <div style="font-size: 11px; font-weight: bold; color: #000;">Authorized Signature</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // URL parameters loader if dynamic data is provided
+    (function initFromQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('pr_no')) document.getElementById('pr-no').innerText = params.get('pr_no');
+      if (params.get('date')) document.getElementById('pr-date').innerText = params.get('date');
+      if (params.get('due_date')) document.getElementById('pr-due-date').innerText = params.get('due_date');
+      if (params.get('sales_name')) document.getElementById('sales-name').innerText = params.get('sales_name');
+      if (params.get('ref_customer')) document.getElementById('ref-customer').innerText = params.get('ref_customer');
+      if (params.get('supplier_name')) document.getElementById('supplier-name').innerText = params.get('supplier_name');
+      if (params.get('supplier_tax_id')) document.getElementById('supplier-tax-id').innerText = params.get('supplier_tax_id');
+      if (params.get('supplier_phone')) document.getElementById('supplier-phone').innerText = params.get('supplier_phone');
+      if (params.get('supplier_attn')) document.getElementById('supplier-attn').innerText = params.get('supplier_attn');
+      if (params.get('baht_text')) document.getElementById('baht-text').innerText = params.get('baht_text');
+      if (params.get('remarks')) document.getElementById('pr-remarks').innerText = params.get('remarks');
+    })();
+  </script>
+</body>
+</html>

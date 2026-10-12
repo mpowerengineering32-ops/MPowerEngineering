@@ -29,6 +29,7 @@ interface PurchaseOrderGenerateModalProps {
   purchaseOrder: PurchaseOrder | null;
   supplier?: Supplier;
   onToast: (msg: string, type: 'success' | 'err') => void;
+  onSaveUpdates?: (id: string, updates: Partial<PurchaseOrder>) => Promise<any>;
 }
 
 export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProps> = ({
@@ -36,7 +37,8 @@ export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProp
   onClose,
   purchaseOrder,
   supplier,
-  onToast
+  onToast,
+  onSaveUpdates
 }) => {
   if (!isOpen || !purchaseOrder) return null;
 
@@ -44,23 +46,54 @@ export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProp
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [showAuditDetails, setShowAuditDetails] = useState<boolean>(false);
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
+  const [isSavingChanges, setIsSavingChanges] = useState<boolean>(false);
 
-  // Editable Remarks and Delivery Note
+  // Editable Remarks and Delivery Note & Metadata
   const [customRemarks, setCustomRemarks] = useState<string>(purchaseOrder.remarks || '');
   const [customDeliveryNote, setCustomDeliveryNote] = useState<string>(
     purchaseOrder.delivery_note ||
       '* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด'
   );
+  const [customDueDate, setCustomDueDate] = useState<string>(purchaseOrder.due_date || 'Cash');
+  const [customSalesName, setCustomSalesName] = useState<string>(purchaseOrder.sales_name || 'Praiya');
+  const [customRefCustomer, setCustomRefCustomer] = useState<string>(purchaseOrder.ref_customer || 'Promt Solution');
 
-  // 1. Prepare exact Master Template Data with custom notes
+  // 1. Prepare exact Master Template Data with custom notes & metadata
   const templateData: PurchaseOrderTemplateData = useMemo(() => {
     const poWithCustomNotes = {
       ...purchaseOrder,
       remarks: customRemarks,
-      delivery_note: customDeliveryNote
+      delivery_note: customDeliveryNote,
+      due_date: customDueDate,
+      sales_name: customSalesName,
+      ref_customer: customRefCustomer
     };
     return preparePurchaseOrderTemplateData(poWithCustomNotes, supplier);
-  }, [purchaseOrder, supplier, customRemarks, customDeliveryNote]);
+  }, [purchaseOrder, supplier, customRemarks, customDeliveryNote, customDueDate, customSalesName, customRefCustomer]);
+
+  // Handle Save changes back to database
+  const handleSaveToDatabase = async () => {
+    if (!onSaveUpdates || !purchaseOrder) {
+      onToast('บันทึกข้อความลงในพรีวิวเอกสารและ PDF เรียบร้อย', 'success');
+      return;
+    }
+    setIsSavingChanges(true);
+    try {
+      await onSaveUpdates(purchaseOrder.id, {
+        remarks: customRemarks,
+        delivery_note: customDeliveryNote,
+        due_date: customDueDate,
+        sales_name: customSalesName,
+        ref_customer: customRefCustomer
+      });
+      onToast(`บันทึกการแก้ไขข้อความลงในใบสั่งซื้อ ${purchaseOrder.po_no} สำเร็จ`, 'success');
+    } catch (err: any) {
+      console.error('Error saving PO updates:', err);
+      onToast('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'err');
+    } finally {
+      setIsSavingChanges(false);
+    }
+  };
 
   // 2. Pre-Export Audit & Field Mapping Check
   const auditResult = useMemo(() => {
@@ -115,18 +148,19 @@ export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProp
       ['Sales Name :', templateData.sales_name, '', 'Tel. :', templateData.supplier_phone],
       ['Ref. Customer :', templateData.ref_customer, '', 'Attn. :', templateData.attn],
       [''],
-      ['Quantity', 'Descriptions', 'Unit Price (THB)', 'Amount (THB)'],
+      ['Quantity', 'Description', 'Unit', 'Price (THB)', 'Amount (THB)'],
       ...templateData.items.map(it => [
         it.quantity,
         it.description,
+        it.unit || 'EA',
         it.unit_price,
         it.amount
       ]),
       ['** LAST ENTRY **'],
       [''],
-      ['', '', 'AMOUNT', templateData.amount],
-      ['', '', 'SALES VAT 7%', templateData.vat_amount],
-      ['', '', 'TOTAL AMOUNT', templateData.total_amount],
+      ['', '', '', 'AMOUNT', templateData.amount],
+      ['', '', '', 'SALES VAT 7%', templateData.vat_amount],
+      ['', '', '', 'TOTAL AMOUNT', templateData.total_amount],
       [''],
       ['TOTAL AMOUNT (WORDS):', templateData.baht_text_en],
       ['Remarks;', templateData.remarks || '']
@@ -297,18 +331,60 @@ export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProp
 
         {/* Notes & Remarks Live Editor Drawer */}
         {isEditingNotes && (
-          <div className="bg-indigo-50/90 border-b border-indigo-300 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="bg-indigo-50/95 border-b border-indigo-300 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
                 <Edit3 className="w-4 h-4 text-indigo-700" />
-                ใส่ข้อความ / แก้ไขหมายเหตุและข้อความจัดส่งในใบสั่งซื้อ (Live Notes Editor)
+                ใส่ข้อความ / แก้ไข Noted, Remarks และข้อมูลเอกสาร (Live Notes & Metadata Editor)
               </span>
               <span className="text-[11px] text-indigo-700">ข้อความจะอัปเดตลงในตัวอย่างเอกสารและไฟล์ PDF ทันที</span>
             </div>
+
+            {/* Quick Preset Buttons for Remarks & Delivery */}
+            <div className="flex items-center gap-1.5 flex-wrap pb-1 text-[11px]">
+              <span className="font-bold text-slate-700 mr-1">ข้อความด่วน (Presets):</span>
+              <button
+                type="button"
+                onClick={() => setCustomRemarks('เงื่อนไขการชำระเงิน: เครดิต 30 วัน นับจากวันส่งมอบงานและเอกสารครบถ้วน')}
+                className="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 rounded-md hover:bg-indigo-100 transition cursor-pointer"
+              >
+                + เครดิต 30 วัน
+              </button>
+              <button
+                type="button"
+                onClick={() => setCustomRemarks('รับประกันคุณภาพสินค้า 1 ปี ตามมาตรฐานผู้ผลิต พร้อมเอกสารใบรับรอง (COA/COC)')}
+                className="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 rounded-md hover:bg-indigo-100 transition cursor-pointer"
+              >
+                + รับประกัน 1 ปี
+              </button>
+              <button
+                type="button"
+                onClick={() => setCustomRemarks('สินค้าเร่งด่วนสำหรับโครงการ ต้องส่งมอบตรงตามกำหนด มิฉะนั้นมีค่าปรับตามระเบียบ')}
+                className="px-2 py-0.5 bg-white border border-indigo-200 text-indigo-700 rounded-md hover:bg-indigo-100 transition cursor-pointer"
+              >
+                + งานเร่งด่วนโครงการ
+              </button>
+              <button
+                type="button"
+                onClick={() => setCustomDeliveryNote('* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด\n** เปิดบิล-ส่งของวันที่ ' + templateData.date)}
+                className="px-2 py-0.5 bg-white border border-rose-200 text-rose-700 rounded-md hover:bg-rose-50 transition cursor-pointer"
+              >
+                + ส่งมอบที่บริษัท
+              </button>
+              <button
+                type="button"
+                onClick={() => setCustomDeliveryNote('* กรุณาจัดส่งสินค้า ณ ไซต์งานโครงการ ระบุผู้รับและเบอร์โทรศัพท์ผู้ควบคุมงาน')}
+                className="px-2 py-0.5 bg-white border border-rose-200 text-rose-700 rounded-md hover:bg-rose-50 transition cursor-pointer"
+              >
+                + ส่งมอบที่ไซต์งาน
+              </button>
+            </div>
+
+            {/* Note & Delivery Note Textareas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  หมายเหตุ (Remarks)
+                  หมายเหตุ / บันทึกข้อความ (Remarks / Noted)
                 </label>
                 <textarea
                   rows={2}
@@ -320,7 +396,7 @@ export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProp
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                  ข้อความการจัดส่ง (Delivery Remark / จัดส่งตามที่อยู่)
+                  ข้อความการจัดส่ง (Delivery Remark สีแดงท้ายตาราง)
                 </label>
                 <textarea
                   rows={2}
@@ -331,14 +407,70 @@ export const PurchaseOrderGenerateModal: React.FC<PurchaseOrderGenerateModalProp
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-1">
-              <button
-                onClick={() => setIsEditingNotes(false)}
-                className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>เสร็จสิ้นการแก้ไข</span>
-              </button>
+
+            {/* Metadata Fields: Due Date, Sales Name, Ref Customer */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1 border-t border-indigo-200/60">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  เงื่อนไขชำระเงิน (Due Date)
+                </label>
+                <input
+                  type="text"
+                  value={customDueDate}
+                  onChange={e => setCustomDueDate(e.target.value)}
+                  placeholder="เช่น Cash, Credit 30 Days"
+                  className="w-full bg-white border border-indigo-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  ชื่อผู้ประสานงาน (Sales Name)
+                </label>
+                <input
+                  type="text"
+                  value={customSalesName}
+                  onChange={e => setCustomSalesName(e.target.value)}
+                  placeholder="เช่น Praiya"
+                  className="w-full bg-white border border-indigo-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                  ลูกค้า/โครงการอ้างอิง (Ref. Customer)
+                </label>
+                <input
+                  type="text"
+                  value={customRefCustomer}
+                  onChange={e => setCustomRefCustomer(e.target.value)}
+                  placeholder="เช่น Promt Solution"
+                  className="w-full bg-white border border-indigo-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-2 border-t border-indigo-200">
+              <span className="text-[11px] text-slate-500">
+                สามารถคลิกเลือก Presets หรือพิมพ์ข้อความเองได้ตามต้องการ
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSaveToDatabase}
+                  disabled={isSavingChanges}
+                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1 disabled:opacity-50"
+                  title="บันทึกข้อความลงในฐานข้อมูลถาวร"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{isSavingChanges ? 'กำลังบันทึก...' : 'บันทึกข้อความลง PO'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingNotes(false)}
+                  className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-xs font-semibold cursor-pointer"
+                >
+                  ปิดตัวแก้ไข
+                </button>
+              </div>
             </div>
           </div>
         )}

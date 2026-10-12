@@ -287,36 +287,36 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
         </div>
       </div>
 
-      {/* Items Table */}
-      <div className="border border-slate-900 mb-3 overflow-hidden">
+      {/* Items Table with Full Grid Lines (Headers, Rows, Dividers) */}
+      <div className="border border-black mb-3 overflow-hidden">
         <table className="w-full border-collapse text-[11px]">
           <thead>
-            <tr className="bg-slate-900 text-white font-bold text-center">
-              <th className="py-2 px-2 border-r border-slate-700 w-10">ลำดับ<br/><span className="text-[9px] font-normal text-slate-300">No.</span></th>
-              <th className="py-2 px-3 border-r border-slate-700 text-left">รายละเอียดสินค้า / บริการ / ข้อมูลจำเพาะ<br/><span className="text-[9px] font-normal text-slate-300">Item Description & Technical Specifications</span></th>
-              <th className="py-2 px-2 border-r border-slate-700 w-20 text-center">จำนวน<br/><span className="text-[9px] font-normal text-slate-300">Qty</span></th>
-              <th className="py-2 px-2 border-r border-slate-700 w-20 text-center">หน่วย<br/><span className="text-[9px] font-normal text-slate-300">Unit</span></th>
-              <th className="py-2 px-3 border-r border-slate-700 text-right w-28">ราคาต่อหน่วย<br/><span className="text-[9px] font-normal text-slate-300">Unit Price</span></th>
-              <th className="py-2 px-3 text-right w-32">จำนวนเงิน (บาท)<br/><span className="text-[9px] font-normal text-slate-300">Amount (THB)</span></th>
+            <tr className="bg-slate-900 text-white font-bold text-center border-b border-black">
+              <th className="py-2.5 px-2 border-r border-black w-10">ลำดับ<br/><span className="text-[9px] font-normal text-slate-300">No.</span></th>
+              <th className="py-2.5 px-3 border-r border-black text-left">รายละเอียดสินค้า / บริการ / ข้อมูลจำเพาะ<br/><span className="text-[9px] font-normal text-slate-300">Item Description & Technical Specifications</span></th>
+              <th className="py-2.5 px-2 border-r border-black w-20 text-center">จำนวน<br/><span className="text-[9px] font-normal text-slate-300">Qty</span></th>
+              <th className="py-2.5 px-2 border-r border-black w-20 text-center">หน่วย<br/><span className="text-[9px] font-normal text-slate-300">Unit</span></th>
+              <th className="py-2.5 px-3 border-r border-black text-right w-28">ราคาต่อหน่วย<br/><span className="text-[9px] font-normal text-slate-300">Unit Price</span></th>
+              <th className="py-2.5 px-3 text-right w-32">จำนวนเงิน (บาท)<br/><span className="text-[9px] font-normal text-slate-300">Amount (THB)</span></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-300">
+          <tbody>
             {items.map((it: any, idx: number) => {
               const qty = Number(it.quantity) || 1;
               const unitPrice = Number(it.unit_price) || 0;
               const itemTotal = Number(it.total_price) || qty * unitPrice;
               return (
                 <tr key={it.id || idx} className="hover:bg-slate-50">
-                  <td className="py-2 px-2 text-center font-mono border-r border-slate-300 text-slate-700">{idx + 1}</td>
-                  <td className="py-2 px-3 border-r border-slate-300">
+                  <td className="py-2 px-2 text-center font-mono border-r border-black text-slate-700" style={{ borderRight: '1px solid #000' }}>{idx + 1}</td>
+                  <td className="py-2 px-3 border-r border-black" style={{ borderRight: '1px solid #000' }}>
                     <div className="font-bold text-slate-900">{it.item_name}</div>
                     {it.description && (
                       <div className="text-[10px] text-slate-600 leading-tight mt-0.5">{it.description}</div>
                     )}
                   </td>
-                  <td className="py-2 px-2 text-center font-mono font-bold text-slate-800 border-r border-slate-300">{qty.toLocaleString()}</td>
-                  <td className="py-2 px-2 text-center text-slate-700 border-r border-slate-300">{it.unit || 'ชุด'}</td>
-                  <td className="py-2 px-3 text-right font-mono text-slate-900 border-r border-slate-300">
+                  <td className="py-2 px-2 text-center font-mono font-bold text-slate-800 border-r border-black" style={{ borderRight: '1px solid #000' }}>{qty.toLocaleString()}</td>
+                  <td className="py-2 px-2 text-center text-slate-700 border-r border-black" style={{ borderRight: '1px solid #000' }}>{it.unit || 'ชุด'}</td>
+                  <td className="py-2 px-3 text-right font-mono text-slate-900 border-r border-black" style={{ borderRight: '1px solid #000' }}>
                     ฿{unitPrice.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                   <td className="py-2 px-3 text-right font-mono font-bold text-slate-950">
@@ -325,22 +325,22 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                 </tr>
               );
             })}
-            {/* Blank filler rows */}
+            {/* Blank filler rows with continuous vertical dividers */}
             {items.length < 5 && Array.from({ length: 5 - items.length }).map((_, i) => (
               <tr key={`proc-fill-${i}`} className="h-7 text-transparent">
-                <td className="border-r border-slate-300">.</td>
-                <td className="border-r border-slate-300">.</td>
-                <td className="border-r border-slate-300">.</td>
-                <td className="border-r border-slate-300">.</td>
-                <td className="border-r border-slate-300">.</td>
+                <td className="border-r border-black" style={{ borderRight: '1px solid #000' }}>.</td>
+                <td className="border-r border-black" style={{ borderRight: '1px solid #000' }}>.</td>
+                <td className="border-r border-black" style={{ borderRight: '1px solid #000' }}>.</td>
+                <td className="border-r border-black" style={{ borderRight: '1px solid #000' }}>.</td>
+                <td className="border-r border-black" style={{ borderRight: '1px solid #000' }}>.</td>
                 <td>.</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             {/* Subtotal */}
-            <tr className="border-t-2 border-slate-900 bg-slate-50 font-bold">
-              <td colSpan={4} rowSpan={3} className="py-2 px-3 border-r border-slate-300 align-top text-slate-700">
+            <tr className="border-t border-black bg-slate-50 font-bold">
+              <td colSpan={4} rowSpan={3} className="py-2 px-3 border-r border-black align-top text-slate-700">
                 <div className="text-[10.5px]">
                   <span className="font-semibold text-slate-600">จำนวนเงินรวมทั้งสิ้น (ตัวอักษร):</span>
                   <div className="text-slate-950 font-bold underline decoration-slate-400 mt-1">
@@ -358,21 +358,21 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
                   )}
                 </div>
               </td>
-              <td className="py-1.5 px-3 text-right border-r border-slate-300 text-slate-700">ยอดรวมก่อนภาษี:</td>
+              <td className="py-1.5 px-3 text-right border-r border-black text-slate-700">ยอดรวมก่อนภาษี:</td>
               <td className="py-1.5 px-3 text-right font-mono text-slate-900">
                 ฿{subtotal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
             </tr>
             {/* VAT 7% */}
-            <tr className="bg-slate-50 font-bold">
-              <td className="py-1.5 px-3 text-right border-r border-slate-300 text-slate-700">ภาษีมูลค่าเพิ่ม 7%:</td>
+            <tr className="bg-slate-50 font-bold border-t border-black">
+              <td className="py-1.5 px-3 text-right border-r border-black text-slate-700">ภาษีมูลค่าเพิ่ม 7%:</td>
               <td className="py-1.5 px-3 text-right font-mono text-slate-900">
                 ฿{vatAmount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
             </tr>
             {/* Grand Total */}
-            <tr className="bg-slate-100 font-black border-t border-slate-300">
-              <td className="py-2 px-3 text-right border-r border-slate-300 text-slate-950">ยอดสุทธิทั้งสิ้น:</td>
+            <tr className="bg-slate-100 font-black border-t border-black">
+              <td className="py-2 px-3 text-right border-r border-black text-slate-950">ยอดสุทธิทั้งสิ้น:</td>
               <td className="py-2 px-3 text-right font-mono text-base text-slate-950">
                 ฿{totalAmount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
@@ -403,28 +403,28 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
         <div className="grid grid-cols-4 gap-2 pt-2 text-center text-[10px]">
           <div className="border border-slate-400 p-2 flex flex-col justify-between min-h-[95px] bg-slate-50/40">
             <div className="font-bold text-slate-900 uppercase">1. ผู้ขอซื้อ / Requested By</div>
-            <div className="my-1 border-b border-dashed border-slate-400 w-4/5 mx-auto pt-4 text-slate-500 font-mono text-[9px]">
+            <div className="my-1 w-4/5 mx-auto pt-4 text-slate-500 font-mono text-[9px]">
               ({pr?.requested_by || 'วิศวกรโครงการ'})
             </div>
             <div className="text-slate-600">วันที่: {pr?.pr_date || '....../....../......'}</div>
           </div>
           <div className="border border-slate-400 p-2 flex flex-col justify-between min-h-[95px] bg-slate-50/40">
             <div className="font-bold text-slate-900 uppercase">2. หัวหน้าฝ่าย / Dept Head</div>
-            <div className="my-1 border-b border-dashed border-slate-400 w-4/5 mx-auto pt-4 text-slate-500 font-mono text-[9px]">
+            <div className="my-1 w-4/5 mx-auto pt-4 text-slate-500 font-mono text-[9px]">
               (ผู้จัดการโครงการ / วิศวกรรม)
             </div>
             <div className="text-slate-600">วันที่: {pr?.pr_date || '....../....../......'}</div>
           </div>
           <div className="border border-slate-400 p-2 flex flex-col justify-between min-h-[95px] bg-slate-50/40">
             <div className="font-bold text-slate-900 uppercase">3. เจ้าหน้าที่จัดซื้อ / Procurement</div>
-            <div className="my-1 border-b border-dashed border-slate-400 w-4/5 mx-auto pt-4 text-slate-500 font-mono text-[9px]">
+            <div className="my-1 w-4/5 mx-auto pt-4 text-slate-500 font-mono text-[9px]">
               (ตรวจสอบราคาและงบประมาณ)
             </div>
             <div className="text-slate-600">วันที่: {pr?.pr_date || '....../....../......'}</div>
           </div>
           <div className="border border-slate-400 p-2 flex flex-col justify-between min-h-[95px] bg-slate-50/40">
             <div className="font-bold text-slate-900 uppercase">4. ผู้อนุมัติ / Final Approval</div>
-            <div className="my-1 border-b border-dashed border-slate-400 w-4/5 mx-auto pt-4 text-slate-500 font-mono text-[9px]">
+            <div className="my-1 w-4/5 mx-auto pt-4 text-slate-500 font-mono text-[9px]">
               (กรรมการผู้จัดการ)
             </div>
             <div className="text-slate-600">วันที่: {pr?.pr_date || '....../....../......'}</div>
@@ -437,7 +437,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
             <div className="font-bold text-slate-900 uppercase text-[10px]">
               เจ้าหน้าที่จัดซื้อ / Purchasing Officer
             </div>
-            <div className="my-2 border-b border-dashed border-slate-400 w-3/4 mx-auto pt-6 text-slate-500 font-mono text-[10px]">
+            <div className="my-2 w-3/4 mx-auto pt-6 text-slate-500 font-mono text-[10px]">
               (ศรัญญา พานิชย์ / จัดซื้อ)
             </div>
             <div className="text-[10px] text-slate-600">
@@ -449,7 +449,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
             <div className="font-bold text-slate-900 uppercase text-[10px]">
               ผู้มีอำนาจสั่งซื้อ / Authorized Signatory
             </div>
-            <div className="my-2 border-b border-dashed border-slate-400 w-3/4 mx-auto pt-6 text-slate-500 font-mono text-[10px]">
+            <div className="my-2 w-3/4 mx-auto pt-6 text-slate-500 font-mono text-[10px]">
               (กรรมการผู้จัดการ / ประทับตรา)
             </div>
             <div className="text-[10px] text-slate-600">
@@ -461,7 +461,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
             <div className="font-bold text-slate-900 uppercase text-[10px]">
               ผู้ขายยืนยันคำสั่งซื้อ / Vendor Acknowledged
             </div>
-            <div className="my-2 border-b border-dashed border-slate-400 w-3/4 mx-auto pt-6 text-slate-500 font-mono text-[10px]">
+            <div className="my-2 w-3/4 mx-auto pt-6 text-slate-500 font-mono text-[10px]">
               (ลงนามผู้รับคำสั่งซื้อ / ประทับตรา)
             </div>
             <div className="text-[10px] text-slate-600">
@@ -553,7 +553,7 @@ export const PurchaseDocumentTemplate: React.FC<PurchaseDocumentTemplateProps> =
 
         {/* Canvas */}
         <div className="bg-slate-100/60 p-4 sm:p-6 rounded-2xl border border-slate-200 flex justify-center overflow-x-auto">
-          {isPR ? content : <MasterPurchaseOrderDocument data={poTemplateData!} />}
+          {isPR ? <MasterPurchaseRequestDocument data={prTemplateData!} /> : <MasterPurchaseOrderDocument data={poTemplateData!} />}
         </div>
       </div>
     );

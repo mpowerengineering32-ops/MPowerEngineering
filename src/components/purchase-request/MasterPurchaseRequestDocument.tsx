@@ -91,11 +91,11 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
           </div>
 
           {/* ======================================================== */}
-          {/* 3. VENDOR / SUPPLIER & PR INFORMATION (Two Column Box)   */}
+          {/* 3. VENDOR / SUPPLIER & PR INFORMATION (Framed Box with Divider) */}
           {/* ======================================================== */}
-          <div className="flex justify-between items-start text-[11px] mb-3 leading-[1.45]">
-            {/* Left Column: Vendor / Supplier Info */}
-            <div className="w-[50%] pr-4 space-y-0.5">
+          <div className="border border-black flex mb-3 text-[11px] leading-[1.45] box-border">
+            {/* Left Column: Vendor / Supplier Info (64%) */}
+            <div className="w-[64%] p-2.5 border-r border-black space-y-0.5 box-border">
               <div className="font-bold text-[11.5px] text-black break-words">
                 {data.supplier_name}
               </div>
@@ -106,7 +106,7 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
                   </div>
                 ))}
               </div>
-              <div className="pt-2 space-y-0.5 text-[10.5px]">
+              <div className="pt-1.5 space-y-0.5 text-[10.5px]">
                 <div className="flex">
                   <span className="w-24 shrink-0 font-bold text-black">Tax ID No. :</span>
                   <span className="text-black font-mono break-all">{data.supplier_tax_id}</span>
@@ -122,8 +122,8 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
               </div>
             </div>
 
-            {/* Right Column: PR Metadata (Exact 8 fields from PR.pdf) */}
-            <div className="w-[48%] pl-2 space-y-0.5 text-[10.5px]">
+            {/* Right Column: PR Metadata (36%) */}
+            <div className="w-[36%] p-2.5 space-y-1 text-[10.5px] flex flex-col justify-start box-border">
               <div className="flex">
                 <span className="w-28 shrink-0 font-bold text-black">PR. No. :</span>
                 <span className="font-mono font-bold text-black">{data.pr_no}</span>
@@ -134,49 +134,40 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
               </div>
               <div className="flex">
                 <span className="w-28 shrink-0 font-bold text-black">Due Date :</span>
-                <span className="text-black">{data.due_date}</span>
-              </div>
-              <div className="flex">
-                <span className="w-28 shrink-0 font-bold text-black">Tax ID No. :</span>
-                <span className="font-mono text-black break-all">{data.supplier_tax_id}</span>
+                <span className="text-black">{data.due_date || 'Cash'}</span>
               </div>
               <div className="flex">
                 <span className="w-28 shrink-0 font-bold text-black">Sales Name :</span>
                 <span className="text-black break-words">{data.sales_name}</span>
               </div>
-              <div className="flex">
-                <span className="w-28 shrink-0 font-bold text-black">Tel. :</span>
-                <span className="font-mono text-black break-all">{data.supplier_phone}</span>
-              </div>
               <div className="flex items-start">
                 <span className="w-28 shrink-0 font-bold text-black">Ref. Customer :</span>
                 <span className="text-black break-words break-all leading-tight">{data.ref_customer}</span>
-              </div>
-              <div className="flex">
-                <span className="w-28 shrink-0 font-bold text-black">Attn. :</span>
-                <span className="text-black break-words">{data.attn}</span>
               </div>
             </div>
           </div>
 
           {/* ======================================================== */}
-          {/* 4. ITEM TABLE (Quantity | Descriptions | Unit Price | Amount) */}
-          {/* Continuous vertical gridlines all the way to bottom of box */}
+          {/* 4. ITEM TABLE (Quantity | Description | Unit | Price (THB) | Amount (THB)) */}
+          {/* Continuous vertical gridlines + horizontal divider for header & items */}
           {/* ======================================================== */}
           <div className="w-full">
-            <table className="w-full table-fixed border-collapse border-2 border-black text-[10.5px]">
+            <table className="w-full table-fixed border-collapse border border-black text-[10.5px]" style={{ border: '1px solid #000', borderCollapse: 'collapse' }}>
               <thead>
-                <tr className="border-b-2 border-black text-black font-bold text-center bg-transparent">
-                  <th className="w-[12%] py-2.5 px-2 border-r-2 border-b-2 border-black text-center font-bold">
+                <tr className="border-b-2 border-black text-black font-bold text-center bg-transparent" style={{ borderBottom: '1.5px solid #000' }}>
+                  <th className="w-[11%] py-2 px-2 border-r border-b-2 border-black text-center font-bold" style={{ borderRight: '1px solid #000', borderBottom: '1.5px solid #000' }}>
                     Quantity
                   </th>
-                  <th className="w-[52%] py-2.5 px-3 border-r-2 border-b-2 border-black text-left font-bold">
-                    Descriptions
+                  <th className="w-[45%] py-2 px-3 border-r border-b-2 border-black text-center font-bold" style={{ borderRight: '1px solid #000', borderBottom: '1.5px solid #000' }}>
+                    Description
                   </th>
-                  <th className="w-[18%] py-2.5 px-3 border-r-2 border-b-2 border-black text-right font-bold">
-                    Unit Price (THB)
+                  <th className="w-[10%] py-2 px-2 border-r border-b-2 border-black text-center font-bold" style={{ borderRight: '1px solid #000', borderBottom: '1.5px solid #000' }}>
+                    Unit
                   </th>
-                  <th className="w-[18%] py-2.5 px-3 border-b-2 border-black text-right font-bold">
+                  <th className="w-[17%] py-2 px-3 border-r border-b-2 border-black text-center font-bold" style={{ borderRight: '1px solid #000', borderBottom: '1.5px solid #000' }}>
+                    Price (THB)
+                  </th>
+                  <th className="w-[17%] py-2 px-3 border-b-2 border-black text-center font-bold" style={{ borderBottom: '1.5px solid #000' }}>
                     Amount (THB)
                   </th>
                 </tr>
@@ -185,15 +176,19 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
                 {data.items.map((item, idx) => (
                   <tr key={idx} className="align-top">
                     {/* Quantity */}
-                    <td className="py-2 px-2 text-center border-r-2 border-black font-mono">
+                    <td className="py-2 px-2 text-center border-r border-black font-mono" style={{ borderRight: '1px solid #000' }}>
                       {item.quantity}
                     </td>
-                    {/* Descriptions */}
-                    <td className="py-2 px-3 border-r-2 border-black font-medium break-words">
+                    {/* Description */}
+                    <td className="py-2 px-3 border-r border-black font-medium break-words" style={{ borderRight: '1px solid #000' }}>
                       {item.description}
                     </td>
-                    {/* Unit Price */}
-                    <td className="py-2 px-3 text-right font-mono border-r-2 border-black">
+                    {/* Unit */}
+                    <td className="py-2 px-2 text-center border-r border-black font-mono" style={{ borderRight: '1px solid #000' }}>
+                      {item.unit || 'EA'}
+                    </td>
+                    {/* Price (THB) */}
+                    <td className="py-2 px-3 text-right font-mono border-r border-black" style={{ borderRight: '1px solid #000' }}>
                       {item.unit_price.toLocaleString('en-US', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
@@ -209,69 +204,59 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
                   </tr>
                 ))}
 
-                {/* ** LAST ENTRY ** marker */}
+                {/* ** LAST ENTRY ** marker (only vertical column lines, no horizontal divider) */}
                 <tr className="align-top">
-                  <td className="py-1 px-2 text-center border-r-2 border-black font-mono">&nbsp;</td>
-                  <td className="py-1 px-3 border-r-2 border-black font-bold text-center">
+                  <td className="py-1 px-2 text-center border-r border-black font-mono" style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                  <td className="py-1 px-3 border-r border-black font-bold text-center italic" style={{ borderRight: '1px solid #000' }}>
                     ** LAST ENTRY **
                   </td>
-                  <td className="py-1 px-3 border-r-2 border-black">&nbsp;</td>
+                  <td className="py-1 px-2 border-r border-black font-mono" style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                  <td className="py-1 px-3 border-r border-black" style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
                   <td className="py-1 px-3">&nbsp;</td>
                 </tr>
 
                 {/* Filler space ensuring vertical lines extend all the way down to table bottom */}
                 <tr>
-                  <td className="border-r-2 border-black h-[180px]">&nbsp;</td>
-                  <td className="border-r-2 border-black relative p-3 h-[180px]">
-                    {/* Red Delivery Remark inside bottom area */}
-                    <div className="absolute bottom-3 left-3 text-[10px] text-red-600 font-bold space-y-0.5 leading-snug">
+                  <td className="border-r border-black h-[220px]" style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                  <td className="border-r border-black relative p-3 h-[220px]" style={{ borderRight: '1px solid #000' }}>
+                    {/* Red Delivery Remark inside bottom area matching sample */}
+                    <div className="absolute bottom-3 left-3 text-[10px] text-[#dc2626] font-bold space-y-0.5 leading-snug">
                       {data.delivery_note ? (
                         data.delivery_note.split('\n').map((line, i) => (
                           <div key={i}>{line}</div>
                         ))
                       ) : (
-                        <>
-                          <div>กรุณาจัดส่งสินค้าตามชื่อ-ที่อยู่</div>
-                          <div>บริษัท เอ็ม พาวเวอร์เอ็นจิเนียริ่งโซลูชั่นส์ จำกัด</div>
-                          <div className="pt-1">
-                            เปิดบิล-ส่งของวันที่ {data.date}
-                          </div>
-                        </>
+                        <div>* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด</div>
                       )}
                     </div>
                   </td>
-                  <td className="border-r-2 border-black h-[180px]">&nbsp;</td>
-                  <td className="h-[180px]">&nbsp;</td>
+                  <td className="border-r border-black h-[220px]" style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                  <td className="border-r border-black h-[220px]" style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                  <td className="h-[220px]">&nbsp;</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           {/* ======================================================== */}
-          {/* 5. TOTAL SECTION & BAHT TEXT                            */}
+          {/* 5. TOTAL SECTION & BAHT TEXT (Directly Attached Layout) */}
           {/* ======================================================== */}
-          <div className="flex justify-between items-start mt-2">
-            {/* Left: English Baht Text & Remarks */}
-            <div className="w-[55%] pt-1">
-              <div className="font-bold text-[10px] text-black uppercase tracking-tight">
+          <div className="flex justify-between items-start">
+            {/* Left: Framed Baht Text Box (Aligned with Total Amount row) */}
+            <div className="w-[66%] pt-12 pr-4">
+              <div className="border border-black px-3 py-1.5 text-center font-bold text-[9.5px] uppercase tracking-wide">
                 {data.baht_text_en}
-              </div>
-              <div className="mt-6 text-[10.5px] text-black">
-                <div className="font-bold">Remarks;</div>
-                {data.remarks && (
-                  <div className="text-[10px] text-black font-normal mt-0.5 whitespace-pre-line">
-                    {data.remarks}
-                  </div>
-                )}
               </div>
             </div>
 
             {/* Right: Summary Box (AMOUNT, SALES VAT 7%, TOTAL AMOUNT) */}
-            <div className="w-[40%] border border-black text-[10.5px]">
+            <div className="w-[34%] border border-black border-t-0 text-[10.5px]">
               {/* AMOUNT */}
-              <div className="flex justify-between items-center py-1 px-3 border-b border-black">
-                <span className="font-bold text-black">AMOUNT</span>
-                <span className="font-mono text-black">
+              <div className="flex items-center border-b border-black">
+                <span className="w-[50%] py-1.5 px-2 font-bold text-black text-center border-r border-black">
+                  AMOUNT
+                </span>
+                <span className="w-[50%] py-1.5 px-3 font-mono text-black text-right">
                   {data.amount.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
@@ -280,9 +265,11 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
               </div>
 
               {/* SALES VAT 7% */}
-              <div className="flex justify-between items-center py-1 px-3 border-b border-black">
-                <span className="font-bold text-black">SALES VAT 7%</span>
-                <span className="font-mono text-black">
+              <div className="flex items-center border-b border-black">
+                <span className="w-[50%] py-1.5 px-2 font-bold text-black text-center border-r border-black">
+                  SALES VAT 7%
+                </span>
+                <span className="w-[50%] py-1.5 px-3 font-mono text-black text-right">
                   {data.vat_amount.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
@@ -290,10 +277,12 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
                 </span>
               </div>
 
-              {/* TOTAL AMOUNT with double underline */}
-              <div className="flex justify-between items-center py-1.5 px-3 border-b-4 border-b-double border-black">
-                <span className="font-bold text-black">TOTAL AMOUNT</span>
-                <span className="font-bold font-mono text-black text-[11.5px]">
+              {/* TOTAL AMOUNT */}
+              <div className="flex items-center">
+                <span className="w-[50%] py-1.5 px-2 font-bold text-black text-center border-r border-black">
+                  TOTAL AMOUNT
+                </span>
+                <span className="w-[50%] py-1.5 px-3 font-bold font-mono text-black text-right">
                   {data.total_amount.toLocaleString('en-US', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
@@ -302,23 +291,35 @@ export const MasterPurchaseRequestDocument: React.FC<MasterPurchaseRequestDocume
               </div>
             </div>
           </div>
+
+          {/* Remarks (without Page 1/1) */}
+          <div className="mt-3 text-[10.5px] text-black">
+            <div className="font-bold">Remarks;</div>
+            {data.remarks && (
+              <div className="text-[10px] text-black font-normal mt-0.5 whitespace-pre-line">
+                {data.remarks}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ======================================================== */}
-        {/* 6. SIGNATURES: Requested By & Approved By               */}
+        {/* 6. SIGNATURES: 2 Blocks (Received By & Authorized Signature) */}
         {/* ======================================================== */}
-        <div className="mt-8 mb-4">
-          <div className="flex justify-around items-end text-center">
-            {/* Requested By */}
+        <div className="mt-10 mb-4">
+          <div className="flex justify-between items-end px-8 text-center">
+            {/* Received By */}
             <div className="w-56 text-center">
-              <div className="border-b border-dotted border-black mb-1.5 w-full h-8"></div>
-              <div className="text-[11px] font-bold text-black">Requested By</div>
+              <div className="h-10"></div>
+              <div className="text-[11px] text-black font-mono tracking-wider mb-1 select-none">............................</div>
+              <div className="text-[11px] font-bold text-black">Received By</div>
             </div>
 
-            {/* Approved By */}
+            {/* Authorized Signature */}
             <div className="w-56 text-center">
-              <div className="border-b border-dotted border-black mb-1.5 w-full h-8"></div>
-              <div className="text-[11px] font-bold text-black">Approved By</div>
+              <div className="h-10"></div>
+              <div className="text-[11px] text-black font-mono tracking-wider mb-1 select-none">............................</div>
+              <div className="text-[11px] font-bold text-black">Authorized Signature</div>
             </div>
           </div>
         </div>

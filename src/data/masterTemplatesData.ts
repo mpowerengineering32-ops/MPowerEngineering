@@ -131,10 +131,11 @@ export const DEFAULT_MASTER_TEMPLATES: MasterTemplate[] = [
       { tag: '{{APPROVED_BY}}', key: 'approved_by', label: 'Approved By', required: true, isPresentInTemplate: true, sampleValue: 'Approved By', category: 'sign' }
     ],
     tableColumns: [
-      { colIndex: 1, key: 'quantity', headerText: 'Quantity', widthPct: 12, align: 'center' },
-      { colIndex: 2, key: 'description', headerText: 'Drescription', widthPct: 52, align: 'left' },
-      { colIndex: 3, key: 'unit_price', headerText: 'Unit Price (THB)', widthPct: 18, align: 'right' },
-      { colIndex: 4, key: 'amount', headerText: 'Amount (THB)', widthPct: 18, align: 'right' }
+      { colIndex: 1, key: 'quantity', headerText: 'Quantity', widthPct: 11, align: 'center' },
+      { colIndex: 2, key: 'description', headerText: 'Description', widthPct: 45, align: 'left' },
+      { colIndex: 3, key: 'unit', headerText: 'Unit', widthPct: 10, align: 'center' },
+      { colIndex: 4, key: 'unit_price', headerText: 'Price (THB)', widthPct: 17, align: 'right' },
+      { colIndex: 5, key: 'amount', headerText: 'Amount (THB)', widthPct: 17, align: 'right' }
     ],
     versionHistory: [
       { id: 'v-pr-1.0', version: '1.0', fileName: 'PR.pdf', fileType: 'pdf', uploadedAt: '2026-09-25T10:30:00Z', uploadedBy: 'System Administrator', changelog: 'แม่แบบ PR.pdf Master Template 100% Geometry Matched (Boxed Layout, Requestd By / Approved By)', isActive: true, fileSize: 178900 }
@@ -177,10 +178,11 @@ export const DEFAULT_MASTER_TEMPLATES: MasterTemplate[] = [
       { tag: '{{APPROVED_BY}}', key: 'approved_by', label: 'Approved By', required: true, isPresentInTemplate: true, sampleValue: 'Authorized Manager', category: 'sign' }
     ],
     tableColumns: [
-      { colIndex: 1, key: 'quantity', headerText: 'Quantity', widthPct: 12, align: 'center' },
-      { colIndex: 2, key: 'description', headerText: 'Descriptions', widthPct: 52, align: 'left' },
-      { colIndex: 3, key: 'unit_price', headerText: 'Unit Price (THB)', widthPct: 18, align: 'right' },
-      { colIndex: 4, key: 'amount', headerText: 'Amount (THB)', widthPct: 18, align: 'right' }
+      { colIndex: 1, key: 'quantity', headerText: 'Quantity', widthPct: 11, align: 'center' },
+      { colIndex: 2, key: 'description', headerText: 'Description', widthPct: 45, align: 'left' },
+      { colIndex: 3, key: 'unit', headerText: 'Unit', widthPct: 10, align: 'center' },
+      { colIndex: 4, key: 'unit_price', headerText: 'Price (THB)', widthPct: 17, align: 'right' },
+      { colIndex: 5, key: 'amount', headerText: 'Amount (THB)', widthPct: 17, align: 'right' }
     ],
     versionHistory: [
       { id: 'v-po-1.0', version: '1.0', fileName: 'PO.pdf', fileType: 'pdf', uploadedAt: '2026-09-25T10:45:00Z', uploadedBy: 'System Administrator', changelog: 'แม่แบบ PO.pdf Master Template 100% Geometry Matched (Page 1/1, Prepared By / Approved By)', isActive: true, fileSize: 195400 }

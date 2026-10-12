@@ -528,6 +528,45 @@ export default function PurchaseManagement({
     setIsPOFormOpen(true);
   };
 
+  // Open PO Edit
+  const handleOpenEditPO = (po: PurchaseOrder) => {
+    setEditingPO(po);
+    setPoNo(po.po_no);
+    setPoDate(po.date || po.po_date || new Date().toISOString().split('T')[0]);
+    setPoDueDate(po.due_date || 'Credit 30');
+    setPoRefPR(po.pr_no || '');
+    setPoSupplierId(po.supplier_id || '');
+    setPoSupplierName(po.supplier_name || '');
+    setPoSupplierAddress(po.supplier_address || '');
+    setPoSupplierTaxId(po.supplier_tax_id || '');
+    setPoSupplierPhone(po.supplier_phone || '');
+    setPoSupplierAttn(po.supplier_attn || '');
+    setPoRefCustomer(po.ref_customer || 'Promt Solution');
+    setPoPaymentTerm(po.payment_term || po.due_date || 'Credit 30');
+    setPoRemarks(po.remarks || '');
+    setPoDeliveryNote(po.delivery_note || '* กรุณาจัดส่งสินค้า ตามชื่อ-ที่อยู่ บริษัท เอ็ม พาวเวอร์ เอ็นจิเนียริ่ง โซลูชั่นส์ จำกัด');
+    setPoItems(
+      (po.items && po.items.length > 0)
+        ? po.items.map(it => ({
+            item_no: it.item_no || 1,
+            description: it.description || '',
+            quantity: Number(it.quantity ?? it.qty ?? 1),
+            unit_price: Number(it.unit_price || 0),
+            amount: Number(it.amount || 0)
+          }))
+        : [
+            {
+              item_no: 1,
+              description: '1630,WL/WF,BLACK',
+              quantity: 2,
+              unit_price: 19100,
+              amount: 38200
+            }
+          ]
+    );
+    setIsPOFormOpen(true);
+  };
+
   // Save PO
   const handleSavePO = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1504,6 +1543,16 @@ export default function PurchaseManagement({
                             </button>
                           )}
 
+                          {canCreate && !isPR && doc.status !== 'Completed' && (
+                            <button
+                              onClick={() => handleOpenEditPO(doc.raw as PurchaseOrder)}
+                              className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded transition cursor-pointer"
+                              title="แก้ไข PO / Noted"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
                           <button
                             onClick={() => {
                               if (isPR) setViewingPR(doc.raw as PurchaseRequest);
@@ -2241,7 +2290,7 @@ export default function PurchaseManagement({
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 4: DIRECT CREATE PO FORM                               */}
+      {/* MODAL 4: DIRECT CREATE / EDIT PO FORM                         */}
       {/* ============================================================ */}
       {isPOFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto">
@@ -2249,7 +2298,7 @@ export default function PurchaseManagement({
             <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4 text-indigo-600" />
-                สร้างใบสั่งซื้อ (Purchase Order - PO)
+                {editingPO ? `แก้ไขใบสั่งซื้อ: ${poNo}` : 'สร้างใบสั่งซื้อ (Purchase Order - PO)'}
               </h3>
               <button
                 onClick={() => setIsPOFormOpen(false)}
@@ -2485,7 +2534,7 @@ export default function PurchaseManagement({
                   type="submit"
                   className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer"
                 >
-                  ยืนยันสร้าง PO
+                  {editingPO ? 'บันทึกการแก้ไข PO' : 'ยืนยันสร้าง PO'}
                 </button>
               </div>
             </form>
@@ -2569,6 +2618,7 @@ export default function PurchaseManagement({
           purchaseRequest={generatingPR}
           supplier={suppliers.find(s => s.id === generatingPR.supplier_id || s.supplier_name === generatingPR.supplier_name)}
           onToast={onToast}
+          onSaveUpdates={onUpdatePR}
         />
       )}
 
@@ -2580,6 +2630,7 @@ export default function PurchaseManagement({
           purchaseOrder={generatingPO}
           supplier={suppliers.find(s => s.id === generatingPO.supplier_id || s.supplier_name === generatingPO.supplier_name)}
           onToast={onToast}
+          onSaveUpdates={onUpdatePO}
         />
       )}
     </div>
